@@ -73,10 +73,6 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
 
   const skipNextFetchRef = useRef<Record<string, boolean>>({});
 
-  const skipNextFetch = useCallback((date: string) => {
-    skipNextFetchRef.current[date] = true;
-  }, []);
-
   const normalizeTime = (time: string) => {
     if (!time) return '';
     return time.substring(0, 5); // "17:45:00" → "17:45"
@@ -108,12 +104,6 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
 
       const dbApts = await supabaseService.getAppointmentsByDate(date);
       
-      console.log('=== FETCH: dados retornados do Supabase ===');
-      console.log('appointments retornados:', dbApts);
-      // No fetchAppointmentsByDate não temos o 'horarioEscolhido' do modal, 
-      // então logamos apenas se há algum agendamento excepcional retornado
-      console.log('contém algum excepcional?', dbApts?.some(a => a.is_exceptional));
-
       const normalizedApts = (dbApts || []).map(normalizeAppointment);
 
       setAppointments(prev => {
@@ -256,12 +246,8 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
             filter: `user_id=eq.${session.user.id}`
           },
           (payload) => {
-            console.log('=== REALTIME: evento recebido ===');
-            const { eventType } = payload;
-            console.log('tipo:', eventType);
-            console.log('payload completo:', payload);
-            
-            const { new: newRecord, old: oldRecord } = payload;
+            console.log("Realtime evento recebido:", payload);
+            const { eventType, new: newRecord, old: oldRecord } = payload;
 
             if (eventType === 'INSERT' || eventType === 'UPDATE') {
               const apt = {
@@ -932,7 +918,6 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
       updateBarberProfile,
       addCustomer,
       reorderServices,
-      skipNextFetch,
       fetchAppointmentsByDate
     }}>
       {children}

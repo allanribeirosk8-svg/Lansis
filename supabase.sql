@@ -62,7 +62,6 @@ CREATE TABLE IF NOT EXISTS appointments (
   price DECIMAL(10, 2) NOT NULL,
   duration INTEGER NOT NULL,
   status TEXT DEFAULT 'pending', -- pending, completed, no-show
-  is_exceptional BOOLEAN DEFAULT false,
   created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
 );
 

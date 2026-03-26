@@ -17,7 +17,6 @@ export interface Appointment {
   observation?: string;
   status: 'pending' | 'completed' | 'no-show';
   createdAt: number;
-  isExceptional?: boolean;
 }
 
 export interface Customer {
@@ -82,6 +81,4 @@ export interface AppState {
   updateBarberProfile: (profile: BarberProfile) => void;
   addCustomer: (customer: Customer) => void;
   reorderServices: (services: ServiceItem[]) => void;
-  skipNextFetch: (date: string) => void;
-  fetchAppointmentsByDate: (date: string) => Promise<void>;
 }
