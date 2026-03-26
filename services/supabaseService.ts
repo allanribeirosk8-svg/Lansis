@@ -171,7 +171,7 @@ export const supabaseService = {
 
     const { error } = await supabase.from('customer_photos').insert({
       user_id: userId,
-      customer_phone: normalizePhone(phone),
+      customer_phone: phone,
       url: photo.url,
       description: photo.description,
       date: photo.date
@@ -191,7 +191,7 @@ export const supabaseService = {
       // 1. Create new customer record
       const { error: insertError } = await supabase.from('customers').insert({
         user_id: userId,
-        phone: normalizedNew,
+        phone: customer.phone,
         name: customer.name,
         avatar: customer.avatar,
         cut_count: customer.cutCount,
@@ -202,17 +202,17 @@ export const supabaseService = {
 
       // 2. Update photos to point to new phone
       const { error: photoError } = await (supabase.from('customer_photos') as any)
-        .update({ customer_phone: normalizedNew } as any)
+        .update({ customer_phone: customer.phone } as any)
         .eq('user_id', userId)
-        .eq('customer_phone', normalizedOld);
+        .eq('customer_phone', oldPhone);
       
       if (photoError) throw photoError;
 
       // 3. Update appointments to point to new phone
       const { error: aptError } = await (supabase.from('appointments') as any)
-        .update({ phone: normalizedNew, client_name: customer.name } as any)
+        .update({ phone: customer.phone, client_name: customer.name } as any)
         .eq('user_id', userId)
-        .eq('phone', normalizedOld);
+        .eq('phone', oldPhone);
       
       if (aptError) throw aptError;
 
@@ -220,7 +220,7 @@ export const supabaseService = {
       const { error: deleteError } = await (supabase.from('customers') as any)
         .delete()
         .eq('user_id', userId)
-        .eq('phone', normalizedOld);
+        .eq('phone', oldPhone);
       
       if (deleteError) throw deleteError;
     } else {
@@ -232,7 +232,7 @@ export const supabaseService = {
         no_show_count: customer.noShowCount || 0
       } as any)
       .eq('user_id', userId)
-      .eq('phone', normalizedNew);
+      .eq('phone', customer.phone);
       
       if (error) throw error;
 
@@ -240,7 +240,7 @@ export const supabaseService = {
       const { error: aptError } = await (supabase.from('appointments') as any)
         .update({ client_name: customer.name } as any)
         .eq('user_id', userId)
-        .eq('phone', normalizedNew);
+        .eq('phone', customer.phone);
       
       if (aptError) throw aptError;
     }
@@ -249,11 +249,10 @@ export const supabaseService = {
     const userId = await this.getUserId();
     if (!userId) return null;
 
-    const normalized = normalizePhone(phone);
     const { data, error } = await supabase
       .from('customers')
       .select('phone, name')
-      .eq('phone', normalized)
+      .eq('phone', phone)
       .eq('user_id', userId)
       .maybeSingle();
     
@@ -278,6 +277,7 @@ export const supabaseService = {
       price: Number(a.price),
       duration: a.duration,
       status: a.status,
+      isExceptional: a.is_exceptional,
       createdAt: new Date(a.created_at).getTime()
     })) as Appointment[];
   },
@@ -303,6 +303,7 @@ export const supabaseService = {
       price: Number(a.price),
       duration: a.duration,
       status: a.status,
+      isExceptional: a.is_exceptional,
       createdAt: new Date(a.created_at).getTime()
     })) as Appointment[];
   },
@@ -321,7 +322,8 @@ export const supabaseService = {
       service: appointment.service,
       price: appointment.price,
       duration: appointment.duration,
-      status: appointment.status
+      status: appointment.status,
+      is_exceptional: appointment.isExceptional || false
     };
 
     if (isUUID(appointment.id)) {
@@ -342,6 +344,7 @@ export const supabaseService = {
       price: Number(a.price),
       duration: a.duration,
       status: a.status,
+      isExceptional: a.is_exceptional,
       createdAt: new Date(a.created_at).getTime()
     } as Appointment;
   },

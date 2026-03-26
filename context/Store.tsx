@@ -64,12 +64,18 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
   const [isLoading, setIsLoading] = useState(true);
 
   const appointmentsRef = useRef(appointments);
+  appointmentsRef.current = appointments;
+
+  const customersRef = useRef<Record<string, Customer>>({});
   useEffect(() => {
-    console.log("useEffect disparado, appointments:", appointments);
-    appointmentsRef.current = appointments;
-  }, [appointments]);
+    customersRef.current = customers;
+  }, [customers]);
 
   const skipNextFetchRef = useRef<Record<string, boolean>>({});
+
+  const skipNextFetch = useCallback((date: string) => {
+    skipNextFetchRef.current[date] = true;
+  }, []);
 
   const normalizeTime = (time: string) => {
     if (!time) return '';
@@ -90,7 +96,6 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
   const fetchAppointmentsByDate = useCallback(async (date: string) => {
     try {
       if (skipNextFetchRef.current[date]) {
-        console.log(`Skipping fetch for date ${date} as it was just updated locally`);
         skipNextFetchRef.current[date] = false;
         return;
       }
@@ -103,15 +108,30 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
 
       const dbApts = await supabaseService.getAppointmentsByDate(date);
       
+      console.log('=== FETCH: dados retornados do Supabase ===');
+      console.log('appointments retornados:', dbApts);
+      // No fetchAppointmentsByDate não temos o 'horarioEscolhido' do modal, 
+      // então logamos apenas se há algum agendamento excepcional retornado
+      console.log('contém algum excepcional?', dbApts?.some(a => a.is_exceptional));
+
       const normalizedApts = (dbApts || []).map(normalizeAppointment);
 
-      // Update state by merging or replacing. 
-      // If we want to keep only the current date in state, we replace.
-      // But the app might need other dates for stats.
-      // However, the user asked to fetch when switching date, implying they want the latest for that date.
       setAppointments(prev => {
         const otherDates = prev.filter(a => a.date !== date);
-        return [...otherDates, ...normalizedApts];
+        
+        // Para appointments do dia, preservar clientName
+        // local se o appointment já existia no estado
+        const merged = normalizedApts.map(newApt => {
+          const existing = prev.find(a => a.id === newApt.id);
+          if (existing) {
+            // Manter clientName local pois pode ter sido
+            // atualizado via edição de cliente
+            return { ...newApt, clientName: existing.clientName };
+          }
+          return newApt;
+        });
+        
+        return [...otherDates, ...merged];
       });
     } catch (e) {
       console.error("Error fetching appointments by date", e);
@@ -236,8 +256,12 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
             filter: `user_id=eq.${session.user.id}`
           },
           (payload) => {
-            console.log("Realtime evento recebido:", payload);
-            const { eventType, new: newRecord, old: oldRecord } = payload;
+            console.log('=== REALTIME: evento recebido ===');
+            const { eventType } = payload;
+            console.log('tipo:', eventType);
+            console.log('payload completo:', payload);
+            
+            const { new: newRecord, old: oldRecord } = payload;
 
             if (eventType === 'INSERT' || eventType === 'UPDATE') {
               const apt = {
@@ -631,45 +655,58 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
     }
   }, []);
 
-  const updateCustomer = useCallback(async (phone: string, updates: Partial<Customer>) => {
+  const updateCustomer = useCallback(async (
+    phone: string,
+    updates: Partial<Customer>
+  ) => {
     const normalizedPhone = normalizePhone(phone);
-    let updatedCustomer: Customer | null = null;
 
+    // Ler o cliente atual FORA do setCustomers
+    // usando a ref que mantém o estado atualizado
+    const currentCustomer = customersRef.current[normalizedPhone];
+    if (!currentCustomer) return;
+
+    // Montar o objeto atualizado de forma síncrona
+    const updatedCustomer: Customer = { ...currentCustomer, ...updates };
+    const newPhone = updates.phone
+      ? normalizePhone(updates.phone)
+      : normalizedPhone;
+    const phoneChanged = newPhone !== normalizedPhone;
+
+    // Atualizar estado local
     setCustomers(prev => {
-      const customer = prev[normalizedPhone];
-      if (!customer) return prev;
-      
-      updatedCustomer = { ...customer, ...updates };
-      
-      if (updates.phone && normalizePhone(updates.phone) !== normalizedPhone) {
-        const newNormalizedPhone = normalizePhone(updates.phone);
+      if (phoneChanged) {
         const { [normalizedPhone]: _, ...rest } = prev;
-        return { ...rest, [newNormalizedPhone]: updatedCustomer };
+        return { ...rest, [newPhone]: updatedCustomer };
       }
-      
       return { ...prev, [normalizedPhone]: updatedCustomer };
     });
 
-    // Side effects outside of setCustomers
-    if (updatedCustomer) {
-      const { data: { session } } = isSupabaseConfigured() ? await supabase.auth.getSession() : { data: { session: null } };
-      if (session) {
-        supabaseService.updateCustomer(phone, updatedCustomer).catch(console.error);
-      }
-    }
-    
-    // Also update appointments if name or phone changed
+    // Atualizar appointments
     if (updates.name || updates.phone) {
       setAppointments(prev => prev.map(apt => {
         if (normalizePhone(apt.phone) === normalizedPhone) {
-          return { 
-            ...apt, 
-            clientName: updates.name || apt.clientName,
-            phone: updates.phone || apt.phone
+          return {
+            ...apt,
+            clientName: updates.name ?? apt.clientName,
+            phone: updates.phone ?? apt.phone
           };
         }
         return apt;
       }));
+    }
+
+    // Chamar Supabase com o objeto já montado (nunca null)
+    const { data: { session } } = isSupabaseConfigured()
+      ? await supabase.auth.getSession()
+      : { data: { session: null } };
+
+    if (session) {
+      try {
+        await supabaseService.updateCustomer(phone, updatedCustomer);
+      } catch (err) {
+        console.error('Erro ao atualizar cliente no Supabase:', err);
+      }
     }
   }, []);
 
@@ -831,7 +868,7 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
     setCustomers(prev => {
       if (prev[normalized]) return prev;
       isNew = true;
-      return { ...prev, [normalized]: { ...customer, phone: normalized } };
+      return { ...prev, [normalized]: customer };
     });
 
     if (isNew) {
@@ -895,6 +932,7 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
       updateBarberProfile,
       addCustomer,
       reorderServices,
+      skipNextFetch,
       fetchAppointmentsByDate
     }}>
       {children}

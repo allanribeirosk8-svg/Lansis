@@ -55,7 +55,8 @@ import {
   Award,
   UserX,
   PieChart as PieChartIcon,
-  LayoutDashboard
+  LayoutDashboard,
+  Zap
 } from 'lucide-react';
 import { FaWhatsapp } from 'react-icons/fa';
 import { 
@@ -313,6 +314,7 @@ export const AdminApp: React.FC = () => {
   const [credentials, setCredentials] = useState({ user: '', pass: '' });
   const [error, setError] = useState('');
   const [showAddModal, setShowAddModal] = useState(false);
+  const [showExceptionalModal, setShowExceptionalModal] = useState(false);
   const [showAddCustomerModal, setShowAddCustomerModal] = useState(false);
   const [showWeeklyModal, setShowWeeklyModal] = useState(false);
   const [showProfileModal, setShowProfileModal] = useState(false);
@@ -562,6 +564,7 @@ export const AdminApp: React.FC = () => {
                 setShowWeeklyModal={setShowWeeklyModal}
                 onReschedule={setReschedulingApt}
                 onAddInSlot={openAddWithSlot}
+                onAddExceptional={() => setShowExceptionalModal(true)}
                 handleCameraClick={handleCameraClick}
                 onSuccess={(msg) => {
                   setSuccessMessage(msg);
@@ -642,6 +645,17 @@ export const AdminApp: React.FC = () => {
               origin: { y: 0.6 },
               colors: ['#000000', '#ffffff', '#22c55e']
             });
+          }}
+        />
+      )}
+      {showExceptionalModal && (
+        <AddAppointmentModal 
+          selectedDate={selectedDate} 
+          isExceptional={true}
+          onClose={() => setShowExceptionalModal(false)} 
+          onSuccess={() => {
+            setSuccessMessage('Agendamento excepcional realizado!');
+            setTimeout(() => setSuccessMessage(null), 3000);
           }}
         />
       )}
@@ -757,9 +771,10 @@ const AgendaView: React.FC<{
     setShowWeeklyModal: (show: boolean) => void; 
     onReschedule: (apt: Appointment) => void;
     onAddInSlot: (date: string, time: string) => void;
+    onAddExceptional: () => void;
     handleCameraClick: (phone: string) => void;
     onSuccess?: (msg: string) => void;
-}> = ({ selectedDate, setSelectedDate, onOpenCustomer, showWeeklyModal, setShowWeeklyModal, onReschedule, onAddInSlot, handleCameraClick, onSuccess }) => {
+}> = ({ selectedDate, setSelectedDate, onOpenCustomer, showWeeklyModal, setShowWeeklyModal, onReschedule, onAddInSlot, onAddExceptional, handleCameraClick, onSuccess }) => {
   const { appointments, finishAppointment, revertAppointment, deleteAppointment, blockedSlots, unblockedSlots, toggleSlotAvailability, toggleSlotUnblock, weeklySchedule, markNoShow, toggleWeeklyBreak, fetchAppointmentsByDate } = useStore();
   
   useEffect(() => {
@@ -772,6 +787,7 @@ const AgendaView: React.FC<{
   const [activeFinishMenu, setActiveFinishMenu] = useState<string | null>(null);
   const [activeRevertMenu, setActiveRevertMenu] = useState<string | null>(null);
   const [activeUnlockMenu, setActiveUnlockMenu] = useState<string | null>(null);
+  const [expandedCompletedId, setExpandedCompletedId] = useState<string | null>(null);
   const [finishingId, setFinishingId] = useState<string | null>(null);
   const [weeklyUnlockSlot, setWeeklyUnlockSlot] = useState<string | null>(null);
   const [showToast, setShowToast] = useState(false);
@@ -926,8 +942,12 @@ const AgendaView: React.FC<{
     return slotDate < now;
   };
 
-  const displaySlots = useMemo(() => {
-    const items = generatedSlots.map(slot => {
+  const activeSlots = useMemo(() => {
+    // Combine generated slots with manual unblocked slots for the day
+    const manualUnblocked = unblockedSlots[selectedDate] || [];
+    const allSlots = Array.from(new Set([...generatedSlots, ...manualUnblocked])).sort();
+
+    const items = allSlots.map(slot => {
         const apt = appointments.find(a => {
           if (a.date !== selectedDate) return false;
           const occupied = getOccupiedSlots(a.time, a.duration || 30);
@@ -938,19 +958,19 @@ const AgendaView: React.FC<{
         return { slot, apt, isStartSlot };
     });
 
-    const filtered = items.filter(({ slot, apt, isStartSlot }) => {
+    return items.filter(({ slot, apt, isStartSlot }) => {
+        if (apt && isStartSlot && (apt.status === 'completed' || apt.status === 'no-show')) return false;
+        if (apt && !isStartSlot && (apt.status === 'completed' || apt.status === 'no-show')) return false;
         if (isPast(slot)) return !!apt && isStartSlot;
         return true;
     });
+  }, [generatedSlots, unblockedSlots, appointments, selectedDate]);
 
-    return filtered.sort((a, b) => {
-        const aCompleted = a.apt?.status === 'completed' || a.apt?.status === 'no-show';
-        const bCompleted = b.apt?.status === 'completed' || b.apt?.status === 'no-show';
-        if (aCompleted && !bCompleted) return 1;
-        if (!aCompleted && bCompleted) return -1;
-        return 0; 
-    });
-  }, [generatedSlots, appointments, selectedDate]);
+  const completedAppointments = useMemo(() => {
+    return appointments
+      .filter(a => a.date === selectedDate && (a.status === 'completed' || a.status === 'no-show'))
+      .sort((a, b) => b.time.localeCompare(a.time));
+  }, [appointments, selectedDate]);
 
   return (
     <div className="space-y-4">
@@ -1247,8 +1267,9 @@ const AgendaView: React.FC<{
                 <p className="text-slate-400 font-bold text-sm uppercase tracking-widest">Fechado hoje</p>
             </div>
         ) : (
-            <div className="grid grid-cols-1 gap-3">
-                {displaySlots.map(({ slot, apt, isStartSlot }) => {
+            <>
+                <div className="grid grid-cols-1 gap-3">
+                {activeSlots.map(({ slot, apt, isStartSlot }) => {
                     const isManualBlocked = dateBlockedSlots.some(s => normalizeTime(s) === slot);
                     const isManualUnblocked = (unblockedSlots[selectedDate] || []).some(s => normalizeTime(s) === slot);
                     const isWeeklyBreak = dayConfig.breaks.some(b => normalizeTime(b) === slot);
@@ -1408,7 +1429,8 @@ const AgendaView: React.FC<{
                                 {/* Header do Card */}
                                 <div className="px-4 py-3 flex items-start justify-between border-b border-slate-50/50">
                                     <div className="flex gap-4 min-w-0">
-                                        <div className={`text-base font-bold shrink-0 mt-1 ${isActuallyCompleted ? 'text-green-700' : isNoShow ? 'text-amber-700' : 'text-slate-500'}`}>
+                                        <div className={`text-base font-bold shrink-0 mt-1 flex items-center gap-1 ${isActuallyCompleted ? 'text-green-700' : isNoShow ? 'text-amber-700' : 'text-slate-500'}`}>
+                                            {apt.isExceptional && <Zap size={12} fill="currentColor" className="text-amber-500" />}
                                             {apt.time}
                                         </div>
                                         <div className="flex flex-col min-w-0">
@@ -1631,9 +1653,157 @@ const AgendaView: React.FC<{
                         </motion.div>
                     );
                 })}
+                
+                {/* Slot Especial Fora do Expediente */}
+                {dayConfig?.isOpen && (
+                    <div 
+                        onClick={onAddExceptional}
+                        className="bg-amber-500/[0.06] dark:bg-amber-500/[0.10] border-2 border-dashed border-amber-500/40 h-[52px] px-3 rounded-2xl flex items-center gap-4 transition-all hover:border-amber-500 cursor-pointer group"
+                    >
+                        <div className="w-14 flex items-center justify-center text-amber-500 shrink-0">
+                            <Zap size={20} fill="currentColor" />
+                        </div>
+                        <span className="text-[11px] font-black text-amber-600 dark:text-amber-500 uppercase tracking-widest">AGENDAR FORA DO EXPEDIENTE</span>
+                    </div>
+                )}
             </div>
-        )}
-      </div>
+
+            {/* Seção de Concluídos */}
+            {completedAppointments.length > 0 && (
+                <div className="mt-6 space-y-4 animate-in fade-in slide-in-from-bottom-4 duration-700 pb-10">
+                    <div className="h-px bg-slate-100 dark:bg-slate-800 mx-2" />
+                    
+                    <div className="flex items-center gap-2 px-2">
+                        <div className="w-1 h-4 bg-blue-500 rounded-full"></div>
+                        <h3 className="font-semibold text-slate-800 dark:text-[#FFFFFF] text-sm uppercase tracking-widest">
+                            Concluídos ({completedAppointments.length})
+                        </h3>
+                    </div>
+
+                    <div className="grid grid-cols-1 gap-2">
+                        {completedAppointments.map((apt) => {
+                            const isExpanded = expandedCompletedId === apt.id;
+                            const isNoShow = apt.status === 'no-show';
+                            const isRevertOpen = activeRevertMenu === apt.id;
+                            
+                            return (
+                                <div 
+                                    key={apt.id}
+                                    className="bg-white dark:bg-slate-800 border border-slate-100 dark:border-slate-700 rounded-xl shadow-sm overflow-hidden transition-all duration-300 relative"
+                                >
+                                    {/* Compact Header */}
+                                    <div 
+                                        onClick={() => setExpandedCompletedId(isExpanded ? null : apt.id)}
+                                        className="h-[48px] px-4 flex items-center justify-between cursor-pointer hover:bg-slate-50 dark:hover:bg-slate-700/50 transition-colors"
+                                    >
+                                        <div className="flex items-center gap-3 min-w-0">
+                                            <span className="text-sm font-bold text-slate-500 dark:text-slate-400 shrink-0">
+                                                {apt.time}
+                                            </span>
+                                            <span className="text-sm font-bold text-slate-900 dark:text-white truncate">
+                                                {capitalizeName(apt.clientName)}
+                                            </span>
+                                        </div>
+                                        
+                                        <div className="flex items-center gap-3">
+                                            <div className={`flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-black uppercase tracking-widest ${isNoShow ? 'bg-amber-100 text-amber-700' : 'bg-green-100 text-green-700'}`}>
+                                                {isNoShow ? 'Falta' : '✓ Finalizado'}
+                                            </div>
+                                            <motion.div
+                                                animate={{ rotate: isExpanded ? 90 : 0 }}
+                                                className="text-slate-400"
+                                            >
+                                                <ChevronRight size={18} />
+                                            </motion.div>
+                                        </div>
+                                    </div>
+
+                                    {/* Expanded Content */}
+                                    <AnimatePresence>
+                                        {isExpanded && (
+                                            <motion.div
+                                                initial={{ height: 0, opacity: 0 }}
+                                                animate={{ height: 'auto', opacity: 1 }}
+                                                exit={{ height: 0, opacity: 0 }}
+                                                transition={{ duration: 0.3, ease: "easeInOut" }}
+                                            >
+                                                <div className="px-4 py-4 border-t border-slate-50 dark:border-slate-700 bg-slate-50/30 dark:bg-slate-900/30">
+                                                    <div className="flex items-center justify-around">
+                                                        <div className="flex flex-col items-center gap-1">
+                                                            <button 
+                                                                onClick={() => handleCameraClick(apt.phone)}
+                                                                className="w-10 h-10 flex items-center justify-center text-[#F59E0B] hover:bg-amber-50 dark:hover:bg-amber-900/20 rounded-xl transition-colors"
+                                                            >
+                                                                <Camera size={20} />
+                                                            </button>
+                                                            <span className="text-[10px] font-medium text-slate-400">Foto</span>
+                                                        </div>
+
+                                                        <div className="flex flex-col items-center gap-1">
+                                                            <button 
+                                                                onClick={() => onOpenCustomer(apt.phone)}
+                                                                className="w-10 h-10 flex items-center justify-center text-[#3B82F6] hover:bg-blue-50 dark:hover:bg-blue-900/20 rounded-xl transition-colors"
+                                                            >
+                                                                <User size={20} />
+                                                            </button>
+                                                            <span className="text-[10px] font-medium text-slate-400">Cliente</span>
+                                                        </div>
+
+                                                        <div className="flex flex-col items-center gap-1">
+                                                            <button 
+                                                                onClick={() => setActiveRevertMenu(apt.id)}
+                                                                className="w-10 h-10 flex items-center justify-center text-brand-500 hover:bg-brand-50 dark:hover:bg-brand-900/20 rounded-xl transition-colors"
+                                                            >
+                                                                <RotateCcw size={20} />
+                                                            </button>
+                                                            <span className="text-[10px] font-medium text-slate-400">Retornar</span>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            </motion.div>
+                                        )}
+                                    </AnimatePresence>
+
+                                    {/* Menu de Retorno (Inside Card for context) */}
+                                    <AnimatePresence>
+                                        {isRevertOpen && (
+                                            <motion.div 
+                                                initial={{ opacity: 0, scale: 0.95 }}
+                                                animate={{ opacity: 1, scale: 1 }}
+                                                exit={{ opacity: 0, scale: 0.95 }}
+                                                className="menu-container absolute inset-0 bg-slate-900/95 flex items-center justify-center gap-3 z-10 px-3"
+                                            >
+                                                <p className="text-white text-[9px] font-black uppercase tracking-widest flex-1">Retornar atendimento?</p>
+                                                <div className="flex gap-2">
+                                                    <button 
+                                                        onClick={() => { 
+                                                            revertAppointment(apt.id); 
+                                                            setActiveRevertMenu(null); 
+                                                            onSuccess?.('Atendimento retornado com sucesso!');
+                                                        }}
+                                                        className="h-8 px-4 bg-brand-600 text-white rounded-xl text-[10px] font-black uppercase tracking-widest shadow-lg"
+                                                    >
+                                                        Sim
+                                                    </button>
+                                                    <button 
+                                                        onClick={() => setActiveRevertMenu(null)}
+                                                        className="h-8 px-4 bg-slate-700 text-white rounded-xl text-[10px] font-black uppercase tracking-widest"
+                                                    >
+                                                        Não
+                                                    </button>
+                                                </div>
+                                            </motion.div>
+                                        )}
+                                    </AnimatePresence>
+                                </div>
+                            );
+                        })}
+                    </div>
+                </div>
+            )}
+        </>
+    )}
+</div>
 
 
       {/* Success Toast */}
@@ -1842,11 +2012,12 @@ const AddAppointmentModal: React.FC<{
   selectedDate: string; 
   selectedTime?: string; 
   prefilledCustomer?: Customer | null;
+  isExceptional?: boolean;
   onClose: () => void;
   onSuccess?: () => void;
-}> = ({ selectedDate: initialDate, selectedTime: initialTime, prefilledCustomer, onClose, onSuccess }) => {
+}> = ({ selectedDate: initialDate, selectedTime: initialTime, prefilledCustomer, isExceptional = false, onClose, onSuccess }) => {
   useLockBodyScroll();
-  const { addAppointment, appointments, weeklySchedule, services } = useStore();
+  const { addAppointment, appointments, weeklySchedule, services, toggleSlotUnblock, fetchAppointmentsByDate, skipNextFetch } = useStore();
   const [formData, setFormData] = useState({
     name: prefilledCustomer?.name || '',
     phone: prefilledCustomer?.phone || '',
@@ -1857,10 +2028,20 @@ const AddAppointmentModal: React.FC<{
   });
   const [errors, setErrors] = useState<{name?: boolean, phone?: boolean, time?: boolean, services?: boolean}>({});
   const [showErrorMsg, setShowErrorMsg] = useState(false);
+  const [isInsideWorkingHours, setIsInsideWorkingHours] = useState(false);
 
   const dayOfWeek = new Date(formData.date + 'T12:00:00').getDay();
   const dayConfig = weeklySchedule[dayOfWeek];
   const generatedSlots = useMemo(() => dayConfig?.isOpen ? generateTimeSlots(dayConfig.start, dayConfig.end) : [], [dayConfig]);
+
+  useEffect(() => {
+    if (isExceptional && formData.time && generatedSlots.length > 0) {
+      const normalizedTime = normalizeTime(formData.time);
+      setIsInsideWorkingHours(generatedSlots.includes(normalizedTime));
+    } else {
+      setIsInsideWorkingHours(false);
+    }
+  }, [formData.time, generatedSlots, isExceptional]);
 
   const isSlotPast = (slot: string) => {
     const today = getTodayString();
@@ -1898,37 +2079,75 @@ const AddAppointmentModal: React.FC<{
   }, [appointments, formData.date]);
 
   const isSlotAvailable = (slot: string) => {
+    if (!slot) return false;
     if (bookedSlots.includes(slot)) return false;
+    if (isExceptional) return true; // Exceptional slots don't need to be in generatedSlots
     const requiredSlots = getOccupiedSlots(slot, totalDuration);
     return requiredSlots.every(s => generatedSlots.includes(s) && !bookedSlots.includes(s));
   };
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
+    const normalizedTime = normalizeTime(formData.time);
     const newErrors = {
       name: !formData.name.trim(),
       phone: !formData.phone.trim(),
-      time: !formData.time,
+      time: !formData.time || !isSlotAvailable(normalizedTime),
       services: formData.serviceIds.length === 0
     };
     setErrors(newErrors);
-    if (newErrors.name || newErrors.phone || newErrors.time || newErrors.services) {
+    if (newErrors.name || newErrors.phone || newErrors.time || newErrors.services || isInsideWorkingHours) {
       setShowErrorMsg(true);
       return;
     }
+    
+    if (isExceptional) {
+      toggleSlotUnblock(formData.date, normalizedTime);
+    }
+
+    if (isExceptional) {
+      console.log('=== EXCEPCIONAL: iniciando criação ===');
+      console.log('dados do agendamento:', {
+        clientName: capitalizeName(formData.name),
+        phone: formData.phone,
+        date: formData.date,
+        time: normalizedTime,
+        service: selectedServices.map(s => s.name).join(', '),
+        price: totalPrice,
+        duration: totalDuration,
+        observation: formData.observation,
+        status: 'pending',
+        isExceptional: isExceptional,
+      });
+      console.log('data:', formData.date);
+      console.log('horário:', normalizedTime);
+    }
+
     addAppointment({
       id: Date.now().toString(),
       clientName: capitalizeName(formData.name),
       phone: formData.phone,
       date: formData.date,
-      time: formData.time,
+      time: normalizedTime,
       service: selectedServices.map(s => s.name).join(', '),
       price: totalPrice,
       duration: totalDuration,
       observation: formData.observation,
       status: 'pending',
+      isExceptional: isExceptional,
       createdAt: Date.now()
+    }).then(() => {
+      if (isExceptional) {
+        console.log('=== EXCEPCIONAL: addAppointment concluído ===');
+      }
     });
+
+    // Force refresh grid to show new exceptional slot
+    if (isExceptional) {
+      skipNextFetch(formData.date);
+      fetchAppointmentsByDate(formData.date);
+    }
+
     onSuccess?.();
     onClose();
   };
@@ -1953,7 +2172,15 @@ const AddAppointmentModal: React.FC<{
         className="bg-white dark:bg-slate-900 w-[90%] max-w-md rounded-[32px] shadow-2xl flex flex-col max-h-[85vh] relative z-[200] border border-white/20 dark:border-slate-800 overflow-hidden"
       >
         <header className="px-6 pt-6 pb-4 flex justify-between items-center shrink-0 bg-white dark:bg-slate-900 sticky top-0 z-10 mb-6">
-          <h2 className="text-lg font-bold text-slate-800 dark:text-white uppercase tracking-tight">Novo Agendamento</h2>
+          <div className="flex flex-col">
+            <h2 className={`text-lg font-bold uppercase tracking-tight flex items-center gap-2 ${isExceptional ? 'text-amber-600 dark:text-amber-500' : 'text-slate-800 dark:text-white'}`}>
+              {isExceptional && <Zap size={20} fill="currentColor" />}
+              {isExceptional ? 'Agendamento Excepcional' : 'Novo Agendamento'}
+            </h2>
+            {isExceptional && (
+              <span className="text-[10px] font-bold text-amber-600/60 dark:text-amber-500/60 uppercase tracking-widest">Fora do expediente padrão</span>
+            )}
+          </div>
           <button onClick={onClose} className="w-10 h-10 rounded-full bg-slate-100 dark:bg-slate-800 flex items-center justify-center text-slate-400 hover:bg-slate-200 dark:hover:bg-slate-700 transition-colors">
             <X size={20} />
           </button>
@@ -1961,6 +2188,17 @@ const AddAppointmentModal: React.FC<{
         
         <form onSubmit={handleSubmit} className="flex flex-col flex-1 overflow-hidden">
           <div className="px-6 pb-6 space-y-6 overflow-y-auto flex-1 min-h-0 pr-4">
+            {isExceptional && (
+              <div className="bg-amber-50 dark:bg-amber-900/20 border border-amber-100 dark:border-amber-900/30 p-4 rounded-2xl flex gap-3 items-start animate-in fade-in slide-in-from-top-2 duration-300">
+                <div className="w-8 h-8 bg-amber-100 dark:bg-amber-900/40 rounded-full flex items-center justify-center text-amber-600 shrink-0">
+                  <AlertTriangle size={18} />
+                </div>
+                <div className="flex flex-col gap-0.5">
+                  <p className="text-amber-800 dark:text-amber-200 text-[11px] font-bold uppercase tracking-tight">Atenção: Horário Especial</p>
+                  <p className="text-amber-700/70 dark:text-amber-200/60 text-[10px] leading-tight">Este agendamento será realizado fora do seu horário padrão semanal.</p>
+                </div>
+              </div>
+            )}
             <Input 
               label="Nome" 
               value={formData.name} 
@@ -2006,19 +2244,39 @@ const AddAppointmentModal: React.FC<{
                 Horário
                 <span className="text-red-500">*</span>
               </label>
-              <div className={`grid grid-cols-4 gap-2 p-1 rounded-2xl transition-all ${errors.time ? 'ring-2 ring-red-500 bg-red-50/50' : ''}`}>
-                  {generatedSlots.map(slot => {
-                    const available = isSlotAvailable(slot);
-                    if (isSlotPast(slot)) return null;
-                    return (
-                      <button key={slot} type="button" disabled={!available} onClick={() => { setFormData({...formData, time: slot}); setErrors(prev => ({...prev, time: false})); setShowErrorMsg(false); }} className={`py-2 rounded-xl text-xs font-bold transition-all border ${formData.time === slot ? 'bg-brand-600 text-white border-brand-600' : !available ? 'bg-slate-50 dark:bg-slate-800 text-slate-200 dark:text-slate-700 border-slate-100 dark:border-slate-700' : 'bg-white dark:bg-slate-900 text-slate-600 dark:text-slate-400 border-slate-200 dark:border-slate-800'}`}>{slot}</button>
-                    );
-                  })}
-              </div>
+              {isExceptional ? (
+                <div className="relative">
+                  <input 
+                    type="time"
+                    value={formData.time}
+                    onChange={e => { setFormData({...formData, time: e.target.value}); setErrors(prev => ({...prev, time: false})); setShowErrorMsg(false); }}
+                    className={`w-full pl-10 pr-4 py-3 rounded-2xl border bg-slate-50 dark:bg-slate-800 text-sm focus:outline-none focus:ring-2 transition-all ${errors.time ? 'border-red-500 ring-red-100 dark:ring-red-900/20' : 'border-none focus:ring-brand-100 dark:focus:ring-brand-900/20'}`}
+                  />
+                  <Clock size={18} className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" />
+                </div>
+              ) : (
+                <div className={`grid grid-cols-4 gap-2 p-1 rounded-2xl transition-all ${errors.time ? 'ring-2 ring-red-500 bg-red-50/50' : ''}`}>
+                    {generatedSlots.map(slot => {
+                      const available = isSlotAvailable(slot);
+                      if (isSlotPast(slot)) return null;
+                      return (
+                        <button key={slot} type="button" disabled={!available} onClick={() => { setFormData({...formData, time: slot}); setErrors(prev => ({...prev, time: false})); setShowErrorMsg(false); }} className={`py-2 rounded-xl text-xs font-bold transition-all border ${formData.time === slot ? 'bg-brand-600 text-white border-brand-600' : !available ? 'bg-slate-50 dark:bg-slate-800 text-slate-200 dark:text-slate-700 border-slate-100 dark:border-slate-700' : 'bg-white dark:bg-slate-900 text-slate-600 dark:text-slate-400 border-slate-200 dark:border-slate-800'}`}>{slot}</button>
+                      );
+                    })}
+                </div>
+              )}
               {errors.time && (
                 <div className="flex items-center gap-1 text-red-500 text-[10px] font-bold ml-1">
                   <AlertTriangle size={12} />
-                  <span>Selecione um horário disponível</span>
+                  <span>{isExceptional ? 'Informe um horário válido' : 'Selecione um horário disponível'}</span>
+                </div>
+              )}
+              {isInsideWorkingHours && (
+                <div className="bg-red-50 dark:bg-red-900/20 border border-red-100 dark:border-red-900/30 p-3 rounded-2xl flex gap-2 items-start mt-2">
+                  <AlertTriangle size={14} className="text-red-500 shrink-0 mt-0.5" />
+                  <p className="text-red-700 dark:text-red-400 text-[10px] font-bold leading-tight uppercase tracking-tight">
+                    ⚠️ Este horário está dentro do seu expediente. Feche esta janela e agende no card disponível na sua grade
+                  </p>
                 </div>
               )}
             </div>
@@ -2585,7 +2843,7 @@ const CustomersView: React.FC<{
   const [selectedPhone, setSelectedPhone] = useState<string | null>(null);
   const [searchTerm, setSearchTerm] = useState('');
 
-  const selectedCustomer = selectedPhone ? customers[selectedPhone] : null;
+  const liveCustomer = selectedPhone ? customers[normalizePhone(selectedPhone)] : null;
 
   React.useEffect(() => {
     const normalized = initialPhone ? normalizePhone(initialPhone) : null;
@@ -2595,9 +2853,9 @@ const CustomersView: React.FC<{
     }
   }, [initialPhone, customers, clearInitial]);
 
-  if (selectedCustomer) return (
+  if (liveCustomer) return (
     <CustomerDetail 
-      customer={selectedCustomer} 
+      customer={liveCustomer} 
       onBack={() => setSelectedPhone(null)} 
       onPhoneChange={(newPhone) => setSelectedPhone(normalizePhone(newPhone))}
       onNewAppointment={onNewAppointment}
