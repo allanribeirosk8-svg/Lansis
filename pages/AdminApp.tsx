@@ -48,6 +48,9 @@ import {
   GripVertical,
   TrendingUp,
   TrendingDown,
+  Zap,
+  CheckCircle2,
+  XCircle,
   Minus,
   DollarSign,
   Users2,
@@ -322,6 +325,7 @@ export const AdminApp: React.FC = () => {
   const [targetCustomerPhone, setTargetCustomerPhone] = useState<string | null>(null);
   
   const [prefilledSlot, setPrefilledSlot] = useState<{ date: string, time: string } | null>(null);
+  const [isExceptionalMode, setIsExceptionalMode] = useState(false);
   const [prefilledCustomer, setPrefilledCustomer] = useState<Customer | null>(null);
   const [successMessage, setSuccessMessage] = useState<string | null>(null);
 
@@ -436,8 +440,9 @@ export const AdminApp: React.FC = () => {
     setActiveTab('clientes');
   };
 
-  const openAddWithSlot = (date: string, time: string) => {
+  const openAddWithSlot = (date: string, time: string, isExceptional: boolean = false) => {
     setPrefilledSlot({ date, time });
+    setIsExceptionalMode(isExceptional);
     setShowAddModal(true);
   };
 
@@ -628,10 +633,12 @@ export const AdminApp: React.FC = () => {
           selectedDate={prefilledSlot?.date || getTodayString()} 
           selectedTime={prefilledSlot?.time || ''}
           prefilledCustomer={prefilledCustomer}
+          isExceptional={isExceptionalMode}
           onClose={() => { 
             setShowAddModal(false); 
             setPrefilledSlot(null); 
             setPrefilledCustomer(null);
+            setIsExceptionalMode(false);
           }} 
           onSuccess={() => {
             setSuccessMessage('Agendamento realizado com sucesso!');
@@ -756,7 +763,7 @@ const AgendaView: React.FC<{
     showWeeklyModal: boolean; 
     setShowWeeklyModal: (show: boolean) => void; 
     onReschedule: (apt: Appointment) => void;
-    onAddInSlot: (date: string, time: string) => void;
+    onAddInSlot: (date: string, time: string, isExceptional?: boolean) => void;
     handleCameraClick: (phone: string) => void;
     onSuccess?: (msg: string) => void;
 }> = ({ selectedDate, setSelectedDate, onOpenCustomer, showWeeklyModal, setShowWeeklyModal, onReschedule, onAddInSlot, handleCameraClick, onSuccess }) => {
@@ -772,6 +779,7 @@ const AgendaView: React.FC<{
   const [activeFinishMenu, setActiveFinishMenu] = useState<string | null>(null);
   const [activeRevertMenu, setActiveRevertMenu] = useState<string | null>(null);
   const [activeUnlockMenu, setActiveUnlockMenu] = useState<string | null>(null);
+  const [expandedCompletedId, setExpandedCompletedId] = useState<string | null>(null);
   const [finishingId, setFinishingId] = useState<string | null>(null);
   const [weeklyUnlockSlot, setWeeklyUnlockSlot] = useState<string | null>(null);
   const [showToast, setShowToast] = useState(false);
@@ -909,11 +917,21 @@ const AgendaView: React.FC<{
   const dayOfWeek = new Date(selectedDate + 'T12:00:00').getDay();
   const dateBlockedSlots = blockedSlots[selectedDate] || [];
   const dayConfig = weeklySchedule[dayOfWeek];
+  const currentDayAppointments = appointments.filter(a => a.date === selectedDate);
 
   const generatedSlots = useMemo(() => {
     if (!dayConfig) return [];
-    return generateTimeSlots(dayConfig.start, dayConfig.end);
-  }, [dayConfig]);
+    
+    // 1. Base slots from weekly schedule - only if open
+    const baseSlots = dayConfig.isOpen ? generateTimeSlots(dayConfig.start, dayConfig.end) : [];
+    
+    // 2. Map appointment times for the current day
+    const appointmentTimes = currentDayAppointments.map(a => a.time);
+    
+    // 3. Merge, remove duplicates, and sort
+    const allSlots = Array.from(new Set([...baseSlots, ...appointmentTimes]));
+    return allSlots.sort((a, b) => a.localeCompare(b));
+  }, [dayConfig, appointments, selectedDate, currentDayAppointments]);
 
   const isPast = (time: string) => {
     const today = getTodayString();
@@ -926,10 +944,9 @@ const AgendaView: React.FC<{
     return slotDate < now;
   };
 
-  const displaySlots = useMemo(() => {
+  const activeSlots = useMemo(() => {
     const items = generatedSlots.map(slot => {
-        const apt = appointments.find(a => {
-          if (a.date !== selectedDate) return false;
+        const apt = currentDayAppointments.find(a => {
           const occupied = getOccupiedSlots(a.time, a.duration || 30);
           return occupied.includes(slot);
         });
@@ -938,19 +955,20 @@ const AgendaView: React.FC<{
         return { slot, apt, isStartSlot };
     });
 
-    const filtered = items.filter(({ slot, apt, isStartSlot }) => {
+    return items.filter(({ slot, apt, isStartSlot }) => {
+        const isCompleted = apt?.status === 'completed' || apt?.status === 'no-show';
+        if (isCompleted) return false;
+        
         if (isPast(slot)) return !!apt && isStartSlot;
         return true;
     });
+  }, [generatedSlots, currentDayAppointments, selectedDate]);
 
-    return filtered.sort((a, b) => {
-        const aCompleted = a.apt?.status === 'completed' || a.apt?.status === 'no-show';
-        const bCompleted = b.apt?.status === 'completed' || b.apt?.status === 'no-show';
-        if (aCompleted && !bCompleted) return 1;
-        if (!aCompleted && bCompleted) return -1;
-        return 0; 
-    });
-  }, [generatedSlots, appointments, selectedDate]);
+  const completedAppointments = useMemo(() => {
+    return currentDayAppointments
+      .filter(a => a.status === 'completed' || a.status === 'no-show')
+      .sort((a, b) => b.time.localeCompare(a.time));
+  }, [currentDayAppointments]);
 
   return (
     <div className="space-y-4">
@@ -1239,7 +1257,7 @@ const AgendaView: React.FC<{
             <h3 className="font-semibold text-slate-800 dark:text-[#FFFFFF] text-sm uppercase tracking-widest">Grade do Dia</h3>
         </div>
 
-        {!dayConfig?.isOpen ? (
+        {(!dayConfig?.isOpen && currentDayAppointments.length === 0) ? (
             <div className="bg-white p-12 rounded-[2rem] border-2 border-dashed border-slate-200 text-center space-y-3">
                 <div className="w-12 h-12 bg-slate-50 rounded-full flex items-center justify-center mx-auto text-slate-300">
                     <Lock size={24} />
@@ -1248,7 +1266,7 @@ const AgendaView: React.FC<{
             </div>
         ) : (
             <div className="grid grid-cols-1 gap-3">
-                {displaySlots.map(({ slot, apt, isStartSlot }) => {
+                {activeSlots.map(({ slot, apt, isStartSlot }) => {
                     const isManualBlocked = dateBlockedSlots.some(s => normalizeTime(s) === slot);
                     const isManualUnblocked = (unblockedSlots[selectedDate] || []).some(s => normalizeTime(s) === slot);
                     const isWeeklyBreak = dayConfig.breaks.some(b => normalizeTime(b) === slot);
@@ -1413,6 +1431,9 @@ const AgendaView: React.FC<{
                                         </div>
                                         <div className="flex flex-col min-w-0">
                                             <div className="flex items-center gap-2">
+                                                {apt.observation?.startsWith('[EXCEPCIONAL]') && (
+                                                    <Zap size={14} className="text-amber-500 fill-amber-500 shrink-0" />
+                                                )}
                                                 <span className={`text-base font-bold truncate tracking-tight ${isActuallyCompleted ? 'text-green-800 line-through opacity-70' : isNoShow ? 'text-amber-800 line-through opacity-70' : 'text-slate-900 dark:text-white'}`}>
                                                     {capitalizeName(apt.clientName)}
                                                 </span>
@@ -1420,7 +1441,7 @@ const AgendaView: React.FC<{
                                                     <span className="bg-amber-100 text-amber-700 text-[8px] font-black px-1.5 py-0.5 rounded-full uppercase tracking-widest shrink-0">FALTA</span>
                                                 )}
                                             </div>
-                                            <span className={`text-xs font-normal uppercase tracking-wide ${isActuallyCompleted ? 'text-green-700/60' : isNoShow ? 'text-amber-700/60' : 'text-slate-500 dark:text-slate-400'}`}>
+                                            <span className={`text-xs font-normal uppercase tracking-wide ${isActuallyCompleted ? 'text-green-700/60' : isNoShow ? 'text-amber-700/60' : 'text-slate-50 dark:text-slate-400'}`}>
                                                 {isActuallyCompleted ? 'Atendimento Finalizado ✨' : isNoShow ? 'Falta Registrada' : apt.service}
                                             </span>
                                         </div>
@@ -1633,6 +1654,157 @@ const AgendaView: React.FC<{
                 })}
             </div>
         )}
+
+        {/* Exceptional Slot - Compact Style */}
+        <div className="mt-6">
+            <div 
+                onClick={() => onAddInSlot(selectedDate, '', true)}
+                className="bg-amber-500/5 dark:bg-amber-500/10 border-2 border-dashed border-amber-500/40 h-[52px] px-4 rounded-2xl flex items-center gap-3 transition-all hover:bg-amber-50/50 dark:hover:bg-amber-900/10 cursor-pointer group"
+            >
+                <Zap size={18} className="text-amber-500 fill-amber-500 shrink-0" />
+                <div className="text-amber-600 dark:text-amber-500 font-black text-[11px] uppercase tracking-widest">
+                    AGENDAR FORA DO EXPEDIENTE
+                </div>
+            </div>
+        </div>
+
+        {/* Completed Section */}
+        {completedAppointments.length > 0 && (
+            <div className="mt-8 space-y-4">
+                <div className="flex items-center gap-3 px-1">
+                    <div className="h-[1px] flex-1 bg-slate-200 dark:bg-slate-800"></div>
+                    <div className="flex items-center gap-2">
+                        <CheckCircle2 size={14} className="text-slate-400" />
+                        <h3 className="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em]">
+                            CONCLUÍDOS ({completedAppointments.length})
+                        </h3>
+                    </div>
+                    <div className="h-[1px] flex-1 bg-slate-200 dark:bg-slate-800"></div>
+                </div>
+
+                <div className="space-y-1.5">
+                    {completedAppointments.map((apt) => {
+                        const isExpanded = expandedCompletedId === apt.id;
+                        const isNoShow = apt.status === 'no-show';
+                        const isRevertOpen = activeRevertMenu === apt.id;
+
+                        return (
+                            <div 
+                                key={apt.id}
+                                className={`border rounded-[12px] shadow-[0_1px_2px_rgba(0,0,0,0.03)] overflow-hidden transition-all duration-300 ${
+                                    isExpanded 
+                                        ? 'bg-white dark:bg-[#1E293B] border-slate-200 dark:border-slate-700 opacity-100' 
+                                        : 'bg-slate-50/50 dark:bg-slate-900/30 border-slate-100 dark:border-slate-800 opacity-70'
+                                }`}
+                            >
+                                {/* Accordion Header */}
+                                <div 
+                                    onClick={() => setExpandedCompletedId(isExpanded ? null : apt.id)}
+                                    className="h-[48px] px-4 flex items-center justify-between cursor-pointer hover:bg-slate-50/30 dark:hover:bg-slate-800/20 transition-colors"
+                                >
+                                    <div className="flex items-center gap-2.5 min-w-0">
+                                        <span className="text-xs font-bold text-slate-400 line-through shrink-0">
+                                            {apt.time}
+                                        </span>
+                                        <div className="flex items-center gap-1.5 min-w-0">
+                                            <span className="text-sm font-semibold text-slate-500 dark:text-slate-400 truncate">
+                                                {capitalizeName(apt.clientName)}
+                                                <span className="text-xs font-normal text-slate-400 ml-1">
+                                                    ({apt.service})
+                                                </span>
+                                            </span>
+                                            {!isNoShow && <Check size={14} className="text-green-500 shrink-0" />}
+                                        </div>
+                                        {isNoShow && (
+                                            <span className="text-[7px] font-black px-1.5 py-0.5 rounded-md bg-amber-50 text-amber-600 border border-amber-100 uppercase tracking-widest shrink-0">
+                                                FALTA
+                                            </span>
+                                        )}
+                                    </div>
+                                    <ChevronRight 
+                                        size={16} 
+                                        className={`text-slate-300 transition-transform duration-300 ${isExpanded ? 'rotate-90' : ''}`} 
+                                    />
+                                </div>
+
+                                {/* Accordion Content */}
+                                <AnimatePresence>
+                                    {isExpanded && (
+                                        <motion.div
+                                            initial={{ height: 0, opacity: 0 }}
+                                            animate={{ height: 'auto', opacity: 1 }}
+                                            exit={{ height: 0, opacity: 0 }}
+                                            transition={{ duration: 0.3, ease: 'easeInOut' }}
+                                        >
+                                            <div className="px-4 pb-3 pt-1.5 border-t border-slate-50 dark:border-slate-800/50 relative">
+                                                <div className="grid grid-cols-3 gap-2 bg-slate-50 dark:bg-slate-800/40 p-2 rounded-xl border border-slate-100 dark:border-slate-800/50 w-full">
+                                                    <button 
+                                                        disabled={isNoShow}
+                                                        onClick={(e) => { e.stopPropagation(); handleCameraClick(apt.phone); }}
+                                                        className={`flex flex-col items-center justify-center gap-1 py-1.5 rounded-lg transition-colors ${isNoShow ? 'opacity-20 grayscale' : 'text-amber-600 hover:bg-amber-100/50'}`}
+                                                    >
+                                                        <Camera size={16} />
+                                                        <span className="text-[9px] font-bold uppercase tracking-tight">Foto</span>
+                                                    </button>
+
+                                                    <button 
+                                                        onClick={(e) => { e.stopPropagation(); onOpenCustomer(apt.phone); }}
+                                                        className="flex flex-col items-center justify-center gap-1 py-1.5 rounded-lg transition-colors text-blue-600 hover:bg-blue-100/50"
+                                                    >
+                                                        <User size={16} />
+                                                        <span className="text-[9px] font-bold uppercase tracking-tight">Cliente</span>
+                                                    </button>
+
+                                                    <button 
+                                                        onClick={(e) => { e.stopPropagation(); setActiveRevertMenu(apt.id); }}
+                                                        className="flex flex-col items-center justify-center gap-1 py-1.5 rounded-lg transition-colors border border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800"
+                                                    >
+                                                        <RotateCcw size={16} className="text-slate-900 dark:text-slate-100" />
+                                                        <span className="text-[9px] font-bold uppercase tracking-tight">Retornar</span>
+                                                    </button>
+                                                </div>
+
+                                                {/* Revert Menu Overlay */}
+                                                <AnimatePresence>
+                                                    {isRevertOpen && (
+                                                        <motion.div 
+                                                            initial={{ opacity: 0 }}
+                                                            animate={{ opacity: 1 }}
+                                                            exit={{ opacity: 0 }}
+                                                            className="absolute inset-0 bg-slate-900/95 flex items-center justify-center gap-3 z-20 px-4"
+                                                        >
+                                                            <p className="text-white text-[9px] font-black uppercase tracking-widest flex-1">Retornar atendimento?</p>
+                                                            <div className="flex gap-2">
+                                                                <button 
+                                                                    onClick={() => { 
+                                                                        revertAppointment(apt.id); 
+                                                                        setActiveRevertMenu(null); 
+                                                                        onSuccess?.('Atendimento retornado com sucesso!');
+                                                                    }}
+                                                                    className="h-8 px-4 bg-brand-600 text-white rounded-xl text-[10px] font-black uppercase tracking-widest shadow-lg"
+                                                                >
+                                                                    Sim
+                                                                </button>
+                                                                <button 
+                                                                    onClick={() => setActiveRevertMenu(null)}
+                                                                    className="h-8 px-4 bg-slate-700 text-white rounded-xl text-[10px] font-black uppercase tracking-widest"
+                                                                >
+                                                                    Não
+                                                                </button>
+                                                            </div>
+                                                        </motion.div>
+                                                    )}
+                                                </AnimatePresence>
+                                            </div>
+                                        </motion.div>
+                                    )}
+                                </AnimatePresence>
+                            </div>
+                        );
+                    })}
+                </div>
+            </div>
+        )}
       </div>
 
 
@@ -1842,16 +2014,28 @@ const AddAppointmentModal: React.FC<{
   selectedDate: string; 
   selectedTime?: string; 
   prefilledCustomer?: Customer | null;
+  isExceptional?: boolean;
   onClose: () => void;
   onSuccess?: () => void;
-}> = ({ selectedDate: initialDate, selectedTime: initialTime, prefilledCustomer, onClose, onSuccess }) => {
+}> = ({ selectedDate: initialDate, selectedTime: initialTime, prefilledCustomer, isExceptional = false, onClose, onSuccess }) => {
   useLockBodyScroll();
   const { addAppointment, appointments, weeklySchedule, services } = useStore();
+
+  const getRoundedCurrentTime = () => {
+    const now = new Date();
+    const minutes = now.getMinutes();
+    const roundedMinutes = Math.round(minutes / 15) * 15;
+    const d = new Date(now.getTime());
+    d.setMinutes(roundedMinutes);
+    d.setSeconds(0);
+    return d.toTimeString().substring(0, 5);
+  };
+
   const [formData, setFormData] = useState({
     name: prefilledCustomer?.name || '',
     phone: prefilledCustomer?.phone || '',
     date: initialDate,
-    time: initialTime || '',
+    time: isExceptional ? getRoundedCurrentTime() : (initialTime || ''),
     serviceIds: [] as string[],
     observation: ''
   });
@@ -1861,6 +2045,12 @@ const AddAppointmentModal: React.FC<{
   const dayOfWeek = new Date(formData.date + 'T12:00:00').getDay();
   const dayConfig = weeklySchedule[dayOfWeek];
   const generatedSlots = useMemo(() => dayConfig?.isOpen ? generateTimeSlots(dayConfig.start, dayConfig.end) : [], [dayConfig]);
+
+  const isWithinRegularHours = useMemo(() => {
+    if (!formData.time || !dayConfig?.isOpen) return false;
+    const normalized = normalizeTime(formData.time);
+    return generatedSlots.includes(normalized);
+  }, [formData.time, generatedSlots, dayConfig]);
 
   const isSlotPast = (slot: string) => {
     const today = getTodayString();
@@ -1928,7 +2118,7 @@ const AddAppointmentModal: React.FC<{
       observation: formData.observation,
       status: 'pending',
       createdAt: Date.now()
-    });
+    }, isExceptional);
     onSuccess?.();
     onClose();
   };
@@ -1953,7 +2143,12 @@ const AddAppointmentModal: React.FC<{
         className="bg-white dark:bg-slate-900 w-[90%] max-w-md rounded-[32px] shadow-2xl flex flex-col max-h-[85vh] relative z-[200] border border-white/20 dark:border-slate-800 overflow-hidden"
       >
         <header className="px-6 pt-6 pb-4 flex justify-between items-center shrink-0 bg-white dark:bg-slate-900 sticky top-0 z-10 mb-6">
-          <h2 className="text-lg font-bold text-slate-800 dark:text-white uppercase tracking-tight">Novo Agendamento</h2>
+          <div className="flex items-center gap-2">
+            {isExceptional && <Zap size={20} className="text-amber-500 fill-amber-500" />}
+            <h2 className="text-lg font-bold text-slate-800 dark:text-white uppercase tracking-tight">
+              {isExceptional ? 'Agendamento Excepcional' : 'Novo Agendamento'}
+            </h2>
+          </div>
           <button onClick={onClose} className="w-10 h-10 rounded-full bg-slate-100 dark:bg-slate-800 flex items-center justify-center text-slate-400 hover:bg-slate-200 dark:hover:bg-slate-700 transition-colors">
             <X size={20} />
           </button>
@@ -1961,6 +2156,25 @@ const AddAppointmentModal: React.FC<{
         
         <form onSubmit={handleSubmit} className="flex flex-col flex-1 overflow-hidden">
           <div className="px-6 pb-6 space-y-6 overflow-y-auto flex-1 min-h-0 pr-4">
+            {isExceptional && (
+              <div className="space-y-4">
+                <div className="bg-amber-50 dark:bg-amber-900/20 border border-amber-100 dark:border-amber-900/30 p-4 rounded-2xl flex items-start gap-3">
+                  <AlertTriangle size={18} className="text-amber-500 shrink-0 mt-0.5" />
+                  <p className="text-[11px] font-medium text-amber-800 dark:text-amber-200 leading-relaxed">
+                    Atenção: Este agendamento está fora do horário padrão. O horário deve ser inserido manualmente.
+                  </p>
+                </div>
+                
+                {isWithinRegularHours && (
+                  <div className="bg-red-50 dark:bg-red-900/20 border border-red-100 dark:border-red-900/30 p-4 rounded-2xl flex items-start gap-3 animate-in fade-in slide-in-from-top-2">
+                    <XCircle size={18} className="text-red-500 shrink-0 mt-0.5" />
+                    <p className="text-[11px] font-bold text-red-800 dark:text-red-200 leading-relaxed">
+                      Este horário está dentro do expediente normal. Por favor, use a grade principal para agendar neste horário.
+                    </p>
+                  </div>
+                )}
+              </div>
+            )}
             <Input 
               label="Nome" 
               value={formData.name} 
@@ -2001,27 +2215,39 @@ const AddAppointmentModal: React.FC<{
               onChange={e => { setFormData({...formData, date: e.target.value, time: ''}); setShowErrorMsg(false); }} 
               requiredField
             />
-            <div className="space-y-3">
-              <label className={`text-[10px] font-bold uppercase tracking-widest ml-1 flex items-center gap-1 ${errors.time ? 'text-red-500' : 'text-slate-400 dark:text-slate-500'}`}>
-                Horário
-                <span className="text-red-500">*</span>
-              </label>
-              <div className={`grid grid-cols-4 gap-2 p-1 rounded-2xl transition-all ${errors.time ? 'ring-2 ring-red-500 bg-red-50/50' : ''}`}>
-                  {generatedSlots.map(slot => {
-                    const available = isSlotAvailable(slot);
-                    if (isSlotPast(slot)) return null;
-                    return (
-                      <button key={slot} type="button" disabled={!available} onClick={() => { setFormData({...formData, time: slot}); setErrors(prev => ({...prev, time: false})); setShowErrorMsg(false); }} className={`py-2 rounded-xl text-xs font-bold transition-all border ${formData.time === slot ? 'bg-brand-600 text-white border-brand-600' : !available ? 'bg-slate-50 dark:bg-slate-800 text-slate-200 dark:text-slate-700 border-slate-100 dark:border-slate-700' : 'bg-white dark:bg-slate-900 text-slate-600 dark:text-slate-400 border-slate-200 dark:border-slate-800'}`}>{slot}</button>
-                    );
-                  })}
-              </div>
-              {errors.time && (
-                <div className="flex items-center gap-1 text-red-500 text-[10px] font-bold ml-1">
-                  <AlertTriangle size={12} />
-                  <span>Selecione um horário disponível</span>
+
+            {isExceptional ? (
+              <Input 
+                label="Horário (Manual)" 
+                type="time" 
+                value={formData.time} 
+                onChange={e => { setFormData({...formData, time: e.target.value}); setErrors(prev => ({...prev, time: false})); setShowErrorMsg(false); }} 
+                requiredField
+                error={errors.time}
+              />
+            ) : (
+              <div className="space-y-3">
+                <label className={`text-[10px] font-bold uppercase tracking-widest ml-1 flex items-center gap-1 ${errors.time ? 'text-red-500' : 'text-slate-400 dark:text-slate-500'}`}>
+                  Horário
+                  <span className="text-red-500">*</span>
+                </label>
+                <div className={`grid grid-cols-4 gap-2 p-1 rounded-2xl transition-all ${errors.time ? 'ring-2 ring-red-500 bg-red-50/50' : ''}`}>
+                    {generatedSlots.map(slot => {
+                      const available = isSlotAvailable(slot);
+                      if (isSlotPast(slot)) return null;
+                      return (
+                        <button key={slot} type="button" disabled={!available} onClick={() => { setFormData({...formData, time: slot}); setErrors(prev => ({...prev, time: false})); setShowErrorMsg(false); }} className={`py-2 rounded-xl text-xs font-bold transition-all border ${formData.time === slot ? 'bg-brand-600 text-white border-brand-600' : !available ? 'bg-slate-50 dark:bg-slate-800 text-slate-200 dark:text-slate-700 border-slate-100 dark:border-slate-700' : 'bg-white dark:bg-slate-900 text-slate-600 dark:text-slate-400 border-slate-200 dark:border-slate-800'}`}>{slot}</button>
+                      );
+                    })}
                 </div>
-              )}
-            </div>
+                {errors.time && (
+                  <div className="flex items-center gap-1 text-red-500 text-[10px] font-bold ml-1">
+                    <AlertTriangle size={12} />
+                    <span>Selecione um horário disponível</span>
+                  </div>
+                )}
+              </div>
+            )}
             <div className="space-y-2">
               <label className="text-[10px] font-bold text-slate-400 dark:text-slate-500 uppercase tracking-widest ml-1 flex items-center gap-1">
                 Observação
@@ -2033,7 +2259,12 @@ const AddAppointmentModal: React.FC<{
           
           <footer className="px-6 pt-4 pb-2 shrink-0 bg-white dark:bg-slate-900 sticky bottom-0 z-10">
             {showErrorMsg && <p className="text-red-500 text-[13px] font-bold text-center mb-4">Preencha todos os campos obrigatórios</p>}
-            <Button type="submit" fullWidth className="h-14 font-black uppercase tracking-widest shadow-xl shadow-brand-500/20 text-sm px-4">
+            <Button 
+              type="submit" 
+              fullWidth 
+              disabled={isExceptional && isWithinRegularHours}
+              className="h-14 font-black uppercase tracking-widest shadow-xl shadow-brand-500/20 text-sm px-4 disabled:opacity-50"
+            >
               Agendar Atendimento
             </Button>
           </footer>

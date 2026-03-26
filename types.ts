@@ -62,7 +62,7 @@ export interface AppState {
   barberProfile: BarberProfile;
   isDarkMode: boolean;
   toggleDarkMode: () => void;
-  addAppointment: (apt: Omit<Appointment, 'id' | 'createdAt' | 'status'>) => Promise<void>;
+  addAppointment: (apt: Appointment, isExceptional?: boolean) => Promise<void>;
   updateAppointment: (id: string, updates: Partial<Appointment>) => void;
   finishAppointment: (id: string) => void;
   revertAppointment: (id: string) => void;

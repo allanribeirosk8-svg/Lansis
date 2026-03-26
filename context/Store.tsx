@@ -353,26 +353,74 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
     }
   }, [isDarkMode]);
 
-  const addAppointment = useCallback(async (apt: Appointment) => {
+  const addAppointment = useCallback(async (apt: Appointment, isExceptional?: boolean) => {
     console.log("1. Iniciando criação do agendamento");
-    console.log("2. Dados do agendamento:", apt);
+    
+    // 1. Time normalization
+    const normalizedTimeValue = normalizeTime(apt.time);
+    if (!normalizedTimeValue) {
+      console.error("Horário inválido");
+      return;
+    }
+
+    // 2. Exceptional handling
+    let finalObservation = apt.observation || '';
+    if (isExceptional && !finalObservation.startsWith('[EXCEPCIONAL]')) {
+      finalObservation = `[EXCEPCIONAL] ${finalObservation}`.trim();
+    }
+
+    const finalApt = {
+      ...apt,
+      time: normalizedTimeValue,
+      observation: finalObservation
+    };
+
+    // 3. Conflict validation
+    const isConflict = appointmentsRef.current.some(a => 
+      a.date === finalApt.date && 
+      a.time === finalApt.time && 
+      a.id !== finalApt.id
+    );
+
+    if (isConflict) {
+      console.error("Este horário já está ocupado por outro agendamento.");
+      alert("Este horário já está ocupado por outro agendamento.");
+      return;
+    }
+
+    console.log("2. Dados do agendamento:", finalApt);
     
     setAppointments(prev => {
-      const next = [...prev, apt];
+      const next = [...prev, finalApt];
       console.log("5. Estado local atualizado:", next);
       return next;
     });
     
-    const normalizedPhone = normalizePhone(apt.phone);
+    const normalizedPhone = normalizePhone(finalApt.phone);
     
     setCustomers(prev => {
       const existing = prev[normalizedPhone];
-      if (existing) return { ...prev, [normalizedPhone]: { ...existing, name: apt.clientName, phone: apt.phone } };
+      if (existing) return { ...prev, [normalizedPhone]: { ...existing, name: finalApt.clientName, phone: finalApt.phone } };
       return {
         ...prev,
-        [normalizedPhone]: { phone: apt.phone, name: apt.clientName, cutCount: 0, history: [], photos: [] }
+        [normalizedPhone]: { phone: finalApt.phone, name: finalApt.clientName, cutCount: 0, history: [], photos: [] }
       };
     });
+
+    // Optional: Add to unblocked_slots for consistency if exceptional
+    if (isExceptional) {
+      setUnblockedSlots(prev => {
+        const dateSlots = prev[finalApt.date] || [];
+        if (!dateSlots.includes(finalApt.time)) {
+          const next = { ...prev, [finalApt.date]: [...dateSlots, finalApt.time] };
+          if (isSupabaseConfigured()) {
+            supabaseService.saveUnblockedSlot(finalApt.date, finalApt.time, true).catch(console.error);
+          }
+          return next;
+        }
+        return prev;
+      });
+    }
 
     try {
       const { data: { session } } = isSupabaseConfigured() 
@@ -382,27 +430,26 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
       if (session) {
         console.log("3. Enviando para Supabase...");
         try {
-          const savedApt = await supabaseService.saveAppointment(apt);
+          const savedApt = await supabaseService.saveAppointment(finalApt);
           console.log("4. Resposta do Supabase:", { data: savedApt, error: null });
           
           const normalizedSavedApt = normalizeAppointment(savedApt);
 
           // Update state with the real ID from Supabase
-          // Optimistically update state with the real ID
           setAppointments(prev => {
-            const next = prev.map(a => a.id === apt.id ? normalizedSavedApt : a);
+            const next = prev.map(a => a.id === finalApt.id ? normalizedSavedApt : a);
             console.log("5. Estado local atualizado (com ID real):", next);
             return next;
           });
           
           // Mark this date to skip the next fetch to avoid race conditions
-          skipNextFetchRef.current[apt.date] = true;
+          skipNextFetchRef.current[finalApt.date] = true;
           
           // Also save/update customer
           const currentCustomers = await supabaseService.getCustomers();
           const existingCust = currentCustomers.find((c: any) => normalizePhone(c.phone) === normalizedPhone);
           if (!existingCust) {
-            await supabaseService.saveCustomer({ phone: apt.phone, name: apt.clientName, cutCount: 0, history: [], photos: [] });
+            await supabaseService.saveCustomer({ phone: finalApt.phone, name: finalApt.clientName, cutCount: 0, history: [], photos: [] });
           }
         } catch (err) {
           console.log("4. Resposta do Supabase:", { data: null, error: err });

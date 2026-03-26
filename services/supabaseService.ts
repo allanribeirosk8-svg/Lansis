@@ -277,6 +277,7 @@ export const supabaseService = {
       price: Number(a.price),
       duration: a.duration,
       status: a.status,
+      observation: a.observation,
       createdAt: new Date(a.created_at).getTime()
     })) as Appointment[];
   },
@@ -302,6 +303,7 @@ export const supabaseService = {
       price: Number(a.price),
       duration: a.duration,
       status: a.status,
+      observation: a.observation,
       createdAt: new Date(a.created_at).getTime()
     })) as Appointment[];
   },
@@ -320,7 +322,8 @@ export const supabaseService = {
       service: appointment.service,
       price: appointment.price,
       duration: appointment.duration,
-      status: appointment.status
+      status: appointment.status,
+      observation: appointment.observation
     };
 
     if (isUUID(appointment.id)) {
@@ -341,6 +344,7 @@ export const supabaseService = {
       price: Number(a.price),
       duration: a.duration,
       status: a.status,
+      observation: a.observation,
       createdAt: new Date(a.created_at).getTime()
     } as Appointment;
   },
