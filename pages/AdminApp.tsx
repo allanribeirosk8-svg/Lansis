@@ -771,6 +771,7 @@ const AgendaView: React.FC<{
   
   useEffect(() => {
     fetchAppointmentsByDate(selectedDate);
+    setViewDate(new Date(selectedDate + 'T12:00:00'));
   }, [selectedDate]);
 
   const [activeSlotMenu, setActiveSlotMenu] = useState<string | null>(null);
@@ -1095,8 +1096,7 @@ const AgendaView: React.FC<{
                           >
                             {d}
                             {count > 0 && (
-                              <div className={`absolute top-0.5 right-0.5 w-3.5 h-3.5 rounded-full flex items-center justify-center text-[7px] font-bold border
-                                ${isSelected ? 'bg-white text-brand-600 border-brand-500' : isToday ? 'bg-brand-700 text-white border-brand-50' : isClosed ? 'bg-red-700 text-white border-red-50' : 'bg-brand-500 text-white border-white dark:border-slate-900'}`}>
+                              <div className="absolute top-0.5 right-0.5 w-3.5 h-3.5 rounded-full flex items-center justify-center text-[7px] font-bold border bg-brand-500 text-white border-white dark:border-slate-900">
                                 {count > 9 ? '9+' : count}
                               </div>
                             )}
@@ -1202,8 +1202,7 @@ const AgendaView: React.FC<{
                       {day.dayNum}
                     </span>
                     {count > 0 && (
-                      <div className={`absolute -top-1 -right-1 w-4 h-4 rounded-full flex items-center justify-center text-[9px] font-bold border-2
-                        ${isSelected ? 'bg-white text-brand-600 border-brand-500' : isToday ? 'bg-brand-700 text-white border-[#BBDEFB]' : isClosed ? 'bg-red-700 text-white border-[#FFEBEE]' : 'bg-brand-500 text-white border-white dark:border-slate-900'}`}>
+                      <div className="absolute -top-1 -right-1 w-4 h-4 rounded-full flex items-center justify-center text-[9px] font-bold border-2 bg-brand-500 text-white border-white dark:border-slate-900">
                         {count > 9 ? '9+' : count}
                       </div>
                     )}
@@ -1221,15 +1220,6 @@ const AgendaView: React.FC<{
           </div>
         )}
       </div>
-
-      {/* Date Informative Banner */}
-      {selectedDate !== getTodayString() && (
-        <div className="mx-2 px-4 py-2 bg-[#FFFDE7] rounded-xl flex items-center gap-2 border border-[#FFF9C4] animate-in fade-in slide-in-from-top-2 duration-300 max-h-[36px]">
-          <span className="text-[#F57F17] text-[11px] font-bold flex items-center gap-1.5">
-            <span>📅</span> Você está vendo: <span>{formatDateLong(selectedDate)}</span>
-          </span>
-        </div>
-      )}
 
       {/* Summary Cards */}
       <div className="grid grid-cols-2 gap-3 px-2 h-[75px]">
@@ -1275,13 +1265,17 @@ const AgendaView: React.FC<{
                     // If it's occupied by a duration but not the start slot
                     if (apt && !isStartSlot) {
                         return (
-                            <div key={slot} className="bg-[#F0F0F0] dark:bg-[#2A2A2A] border border-slate-100 dark:border-[#444444] p-3 rounded-2xl flex items-center justify-between opacity-60 dark:opacity-80">
-                                <div className="text-lg font-black text-slate-400 dark:text-[#AAAAAA] w-14">{slot}</div>
-                                <div className="text-[10px] font-bold text-slate-500 dark:text-[#AAAAAA] italic">
-                                    Ocupado ({apt.service} de {apt.clientName.split(' ')[0]})
-                                </div>
-                                <div className="w-10 h-10 flex items-center justify-center text-slate-300 dark:text-[#888888]">
-                                    <Clock size={20} />
+                            <div key={slot} className="bg-[#F0F0F0] dark:bg-[#2A2A2A] border border-slate-100 dark:border-[#444444] p-3 rounded-2xl flex items-center gap-4 opacity-50 pointer-events-none">
+                                <div className="text-lg font-black text-slate-400 dark:text-[#AAAAAA] w-14 shrink-0">{slot}</div>
+                                <div className="flex-1 min-w-0 flex items-center gap-1.5 text-xs text-slate-500 dark:text-[#AAAAAA] truncate">
+                                    <span className="font-semibold flex items-center gap-1 shrink-0">
+                                        <Lock size={14} />
+                                        Ocupado
+                                    </span>
+                                    <span className="text-slate-300 dark:text-slate-600">|</span>
+                                    <span className="font-normal truncate">
+                                        {apt.service} de {capitalizeName(apt.clientName)}
+                                    </span>
                                 </div>
                             </div>
                         );
@@ -1429,11 +1423,8 @@ const AgendaView: React.FC<{
                                         <div className={`text-base font-bold shrink-0 mt-1 ${isActuallyCompleted ? 'text-green-700' : isNoShow ? 'text-amber-700' : 'text-slate-500'}`}>
                                             {apt.time}
                                         </div>
-                                        <div className="flex flex-col min-w-0">
+                                        <div className="flex flex-col gap-1.5 min-w-0">
                                             <div className="flex items-center gap-2">
-                                                {apt.observation?.startsWith('[EXCEPCIONAL]') && (
-                                                    <Zap size={14} className="text-amber-500 fill-amber-500 shrink-0" />
-                                                )}
                                                 <span className={`text-base font-bold truncate tracking-tight ${isActuallyCompleted ? 'text-green-800 line-through opacity-70' : isNoShow ? 'text-amber-800 line-through opacity-70' : 'text-slate-900 dark:text-white'}`}>
                                                     {capitalizeName(apt.clientName)}
                                                 </span>
@@ -1441,32 +1432,40 @@ const AgendaView: React.FC<{
                                                     <span className="bg-amber-100 text-amber-700 text-[8px] font-black px-1.5 py-0.5 rounded-full uppercase tracking-widest shrink-0">FALTA</span>
                                                 )}
                                             </div>
-                                            <span className={`text-xs font-normal uppercase tracking-wide ${isActuallyCompleted ? 'text-green-700/60' : isNoShow ? 'text-amber-700/60' : 'text-slate-50 dark:text-slate-400'}`}>
-                                                {isActuallyCompleted ? 'Atendimento Finalizado ✨' : isNoShow ? 'Falta Registrada' : apt.service}
-                                            </span>
+                                            <div className="flex flex-col gap-1.5">
+                                                <span className={`text-xs font-normal uppercase tracking-wide ${isActuallyCompleted ? 'text-green-700/60' : isNoShow ? 'text-amber-700/60' : 'text-slate-400 dark:text-slate-500'}`}>
+                                                    {isActuallyCompleted ? 'Atendimento Finalizado ✨' : isNoShow ? 'Falta Registrada' : apt.service}
+                                                </span>
+                                                {apt.observation?.includes('[EXCEPCIONAL]') && (
+                                                    <div className="inline-flex items-center gap-1 bg-amber-100 text-amber-700 text-[10px] font-black px-2 py-0.5 rounded-full w-fit shrink-0">
+                                                        <Zap size={10} className="fill-amber-700" />
+                                                        <span>EXCEPCIONAL</span>
+                                                    </div>
+                                                )}
+                                                {apt.observation && (() => {
+                                                    const cleanObs = apt.observation.replace('[EXCEPCIONAL]', '').trim();
+                                                    if (!cleanObs) return null;
+                                                    return (
+                                                        <p className={`text-[10px] italic leading-tight ${isActuallyCompleted ? 'text-green-800 line-through opacity-40' : isNoShow ? 'text-amber-800 line-through opacity-40' : 'text-slate-500'}`}>
+                                                            Obs: {cleanObs}
+                                                        </p>
+                                                    );
+                                                })()}
+                                            </div>
                                         </div>
                                     </div>
                                 </div>
 
-                            {/* Conteúdo Central (Observação) */}
-                            {apt.observation && (
-                                <div className="px-4 py-2 border-b border-slate-50/50">
-                                    <p className={`text-[10px] italic leading-tight ${isActuallyCompleted ? 'text-green-800 line-through opacity-40' : isNoShow ? 'text-amber-800 line-through opacity-40' : 'text-slate-500'}`}>
-                                        Obs: {apt.observation}
-                                    </p>
-                                </div>
-                            )}
-
                             {/* Rodapé - Barra de Ferramentas */}
-                            <div className="px-4 py-3 flex items-center justify-between">
+                            <div className="px-4 py-2 flex items-center justify-between">
                                 <div className="flex items-center gap-4">
                                     <div className="flex flex-col items-center gap-1">
                                         <button 
                                             disabled={isNoShow}
                                             onClick={() => handleCameraClick(apt.phone)}
-                                            className={`w-10 h-10 flex items-center justify-center transition-colors rounded-xl ${isNoShow ? 'text-slate-200' : 'text-[#F59E0B] hover:bg-amber-50'}`}
+                                            className={`w-8 h-8 flex items-center justify-center transition-colors rounded-xl ${isNoShow ? 'text-slate-200' : 'text-[#F59E0B] hover:bg-amber-50'}`}
                                         >
-                                            <Camera size={20} />
+                                            <Camera size={16} />
                                         </button>
                                         <span className="text-[10px] font-medium text-slate-400">Foto</span>
                                     </div>
@@ -1474,9 +1473,9 @@ const AgendaView: React.FC<{
                                     <div className="flex flex-col items-center gap-1">
                                         <button 
                                             onClick={() => onOpenCustomer(apt.phone)}
-                                            className={`w-10 h-10 flex items-center justify-center rounded-xl transition-colors ${isNoShow ? 'text-amber-600 hover:bg-amber-50' : 'text-[#3B82F6] hover:bg-amber-50'}`}
+                                            className={`w-8 h-8 flex items-center justify-center rounded-xl transition-colors ${isNoShow ? 'text-amber-600 hover:bg-amber-50' : 'text-[#3B82F6] hover:bg-amber-50'}`}
                                         >
-                                            <User size={20} />
+                                            <User size={16} />
                                         </button>
                                         <span className="text-[10px] font-medium text-slate-400">Cliente</span>
                                     </div>
@@ -1485,9 +1484,9 @@ const AgendaView: React.FC<{
                                         <button 
                                             disabled={isActuallyCompleted || isNoShow}
                                             onClick={() => onReschedule(apt)}
-                                            className={`w-10 h-10 flex items-center justify-center transition-colors rounded-xl ${isActuallyCompleted || isNoShow ? 'text-slate-200' : 'text-[#84CC16] hover:bg-lime-50'}`}
+                                            className={`w-8 h-8 flex items-center justify-center transition-colors rounded-xl ${isActuallyCompleted || isNoShow ? 'text-slate-200' : 'text-[#84CC16] hover:bg-lime-50'}`}
                                         >
-                                            <Edit3 size={20} />
+                                            <Edit3 size={16} />
                                         </button>
                                         <span className="text-[10px] font-medium text-slate-400">Editar</span>
                                     </div>
@@ -1496,9 +1495,9 @@ const AgendaView: React.FC<{
                                         <button 
                                             disabled={isActuallyCompleted || isNoShow}
                                             onClick={() => setActiveNoShowMenu(apt.id)}
-                                            className={`w-10 h-10 flex items-center justify-center transition-colors rounded-xl ${isActuallyCompleted || isNoShow ? 'text-slate-200' : 'text-[#B45309] hover:bg-amber-50'}`}
+                                            className={`w-8 h-8 flex items-center justify-center transition-colors rounded-xl ${isActuallyCompleted || isNoShow ? 'text-slate-200' : 'text-[#B45309] hover:bg-amber-50'}`}
                                         >
-                                            <ThumbsDown size={20} />
+                                            <ThumbsDown size={16} />
                                         </button>
                                         <span className="text-[10px] font-medium text-slate-400">Falta</span>
                                     </div>
@@ -1691,10 +1690,10 @@ const AgendaView: React.FC<{
                         return (
                             <div 
                                 key={apt.id}
-                                className={`border rounded-[12px] shadow-[0_1px_2px_rgba(0,0,0,0.03)] overflow-hidden transition-all duration-300 ${
+                                className={`border rounded-[12px] shadow-[0_1px_2px_rgba(0,0,0,0.03)] overflow-hidden transition-all duration-300 border-l-[3px] border-l-[#10B981] ${
                                     isExpanded 
-                                        ? 'bg-white dark:bg-[#1E293B] border-slate-200 dark:border-slate-700 opacity-100' 
-                                        : 'bg-slate-50/50 dark:bg-slate-900/30 border-slate-100 dark:border-slate-800 opacity-70'
+                                        ? 'bg-green-50 dark:bg-[rgba(16,185,129,0.08)] border-[rgba(16,185,129,0.2)] opacity-100' 
+                                        : 'bg-green-50 dark:bg-[rgba(16,185,129,0.08)] border-[rgba(16,185,129,0.2)] opacity-70'
                                 }`}
                             >
                                 {/* Accordion Header */}
@@ -1703,11 +1702,11 @@ const AgendaView: React.FC<{
                                     className="h-[48px] px-4 flex items-center justify-between cursor-pointer hover:bg-slate-50/30 dark:hover:bg-slate-800/20 transition-colors"
                                 >
                                     <div className="flex items-center gap-2.5 min-w-0">
-                                        <span className="text-xs font-bold text-slate-400 line-through shrink-0">
+                                        <span className={`text-xs font-bold line-through shrink-0 ${isExpanded ? 'text-slate-400' : 'text-slate-600 dark:text-slate-400 opacity-70'}`}>
                                             {apt.time}
                                         </span>
                                         <div className="flex items-center gap-1.5 min-w-0">
-                                            <span className="text-sm font-semibold text-slate-500 dark:text-slate-400 truncate">
+                                            <span className={`text-sm font-semibold truncate ${isExpanded ? 'text-slate-500 dark:text-slate-400' : 'text-slate-700 dark:text-slate-300 opacity-70'}`}>
                                                 {capitalizeName(apt.clientName)}
                                                 <span className="text-xs font-normal text-slate-400 ml-1">
                                                     ({apt.service})
@@ -1723,7 +1722,7 @@ const AgendaView: React.FC<{
                                     </div>
                                     <ChevronRight 
                                         size={16} 
-                                        className={`text-slate-300 transition-transform duration-300 ${isExpanded ? 'rotate-90' : ''}`} 
+                                        className={`text-[#10B981] transition-transform duration-300 ${isExpanded ? 'rotate-90' : ''}`} 
                                     />
                                 </div>
 
@@ -1737,31 +1736,39 @@ const AgendaView: React.FC<{
                                             transition={{ duration: 0.3, ease: 'easeInOut' }}
                                         >
                                             <div className="px-4 pb-3 pt-1.5 border-t border-slate-50 dark:border-slate-800/50 relative">
-                                                <div className="grid grid-cols-3 gap-2 bg-slate-50 dark:bg-slate-800/40 p-2 rounded-xl border border-slate-100 dark:border-slate-800/50 w-full">
-                                                    <button 
-                                                        disabled={isNoShow}
-                                                        onClick={(e) => { e.stopPropagation(); handleCameraClick(apt.phone); }}
-                                                        className={`flex flex-col items-center justify-center gap-1 py-1.5 rounded-lg transition-colors ${isNoShow ? 'opacity-20 grayscale' : 'text-amber-600 hover:bg-amber-100/50'}`}
-                                                    >
-                                                        <Camera size={16} />
-                                                        <span className="text-[9px] font-bold uppercase tracking-tight">Foto</span>
-                                                    </button>
+                                                <div className="flex items-center justify-between bg-slate-50 dark:bg-slate-800/40 p-2 rounded-xl border border-slate-100 dark:border-slate-800/50 w-full">
+                                                    <div className="flex gap-4">
+                                                        <div className="flex flex-col items-center gap-1">
+                                                            <button 
+                                                                disabled={isNoShow}
+                                                                onClick={(e) => { e.stopPropagation(); handleCameraClick(apt.phone); }}
+                                                                className={`w-8 h-8 flex items-center justify-center transition-colors rounded-xl ${isNoShow ? 'text-slate-200 opacity-20 grayscale' : 'text-[#F59E0B] hover:bg-amber-50'}`}
+                                                            >
+                                                                <Camera size={16} />
+                                                            </button>
+                                                            <span className="text-[10px] font-medium text-slate-400">Foto</span>
+                                                        </div>
 
-                                                    <button 
-                                                        onClick={(e) => { e.stopPropagation(); onOpenCustomer(apt.phone); }}
-                                                        className="flex flex-col items-center justify-center gap-1 py-1.5 rounded-lg transition-colors text-blue-600 hover:bg-blue-100/50"
-                                                    >
-                                                        <User size={16} />
-                                                        <span className="text-[9px] font-bold uppercase tracking-tight">Cliente</span>
-                                                    </button>
+                                                        <div className="flex flex-col items-center gap-1">
+                                                            <button 
+                                                                onClick={(e) => { e.stopPropagation(); onOpenCustomer(apt.phone); }}
+                                                                className="w-8 h-8 flex items-center justify-center rounded-xl transition-colors text-[#3B82F6] hover:bg-blue-50"
+                                                            >
+                                                                <User size={16} />
+                                                            </button>
+                                                            <span className="text-[10px] font-medium text-slate-400">Cliente</span>
+                                                        </div>
+                                                    </div>
 
-                                                    <button 
-                                                        onClick={(e) => { e.stopPropagation(); setActiveRevertMenu(apt.id); }}
-                                                        className="flex flex-col items-center justify-center gap-1 py-1.5 rounded-lg transition-colors border border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800"
-                                                    >
-                                                        <RotateCcw size={16} className="text-slate-900 dark:text-slate-100" />
-                                                        <span className="text-[9px] font-bold uppercase tracking-tight">Retornar</span>
-                                                    </button>
+                                                    <div className="flex-1 flex justify-end">
+                                                        <button 
+                                                            onClick={(e) => { e.stopPropagation(); setActiveRevertMenu(apt.id); }}
+                                                            className="flex items-center gap-1.5 py-1 px-3 text-red-400 hover:text-red-500 transition-colors text-[11px] font-bold uppercase tracking-tight bg-transparent border-none outline-none"
+                                                        >
+                                                            <RotateCcw size={14} />
+                                                            <span>Retornar</span>
+                                                        </button>
+                                                    </div>
                                                 </div>
 
                                                 {/* Revert Menu Overlay */}
@@ -2529,6 +2536,7 @@ const ProfileModal: React.FC<{
 const ServicesView: React.FC<{ onSuccess?: (msg: string) => void }> = ({ onSuccess }) => {
   const { services, addService, removeService, updateService, reorderServices } = useStore();
   const [formData, setFormData] = useState({ name: '', price: '', duration: '30' });
+  const [errors, setErrors] = useState({ name: '', price: '' });
   const [editingId, setEditingId] = useState<string | null>(null);
 
   const durationOptions = useMemo(() => {
@@ -2555,13 +2563,31 @@ const ServicesView: React.FC<{ onSuccess?: (msg: string) => void }> = ({ onSucce
   const handlePriceChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const formatted = formatCurrencyInput(e.target.value);
     setFormData({ ...formData, price: formatted });
+    if (errors.price) setErrors(prev => ({ ...prev, price: '' }));
   };
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    if (!formData.name || !formData.price || !formData.duration) return;
     
+    const newErrors = { name: '', price: '' };
+    let hasError = false;
+
+    if (!formData.name.trim()) {
+      newErrors.name = 'Informe o nome do serviço';
+      hasError = true;
+    }
+
     const numericPrice = parseInt(formData.price.replace(/\D/g, '')) / 100;
+    if (!formData.price || numericPrice <= 0) {
+      newErrors.price = 'Informe um preço válido';
+      hasError = true;
+    }
+
+    if (hasError) {
+      setErrors(newErrors);
+      return;
+    }
+    
     const duration = parseInt(formData.duration);
     
     if (duration % 15 !== 0) {
@@ -2584,6 +2610,7 @@ const ServicesView: React.FC<{ onSuccess?: (msg: string) => void }> = ({ onSucce
       onSuccess?.('Serviço adicionado com sucesso!');
     }
     setFormData({ name: '', price: '', duration: '30' });
+    setErrors({ name: '', price: '' });
     setEditingId(null);
   };
 
@@ -2593,6 +2620,7 @@ const ServicesView: React.FC<{ onSuccess?: (msg: string) => void }> = ({ onSucce
       price: s.price.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' }), 
       duration: s.duration.toString() 
     });
+    setErrors({ name: '', price: '' });
     setEditingId(s.id);
   };
 
@@ -2605,7 +2633,11 @@ const ServicesView: React.FC<{ onSuccess?: (msg: string) => void }> = ({ onSucce
             label="Nome do Serviço" 
             placeholder="Ex: Corte de Cabelo"
             value={formData.name} 
-            onChange={e => setFormData({...formData, name: e.target.value})} 
+            onChange={e => {
+              setFormData({...formData, name: e.target.value});
+              if (errors.name) setErrors(prev => ({ ...prev, name: '' }));
+            }} 
+            errorMessage={errors.name}
           />
           <div className="flex gap-3">
             <div className="flex-1">
@@ -2614,6 +2646,7 @@ const ServicesView: React.FC<{ onSuccess?: (msg: string) => void }> = ({ onSucce
                 placeholder="R$ 0,00"
                 value={formData.price} 
                 onChange={handlePriceChange} 
+                errorMessage={errors.price}
               />
             </div>
             <div className="flex-1 flex flex-col gap-1">
