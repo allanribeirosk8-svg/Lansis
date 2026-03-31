@@ -112,14 +112,14 @@ const PhotoActionSheet: React.FC<{
             onClick={() => onSelect('camera')}
             className="w-full h-14 bg-slate-50 dark:bg-slate-800 rounded-2xl flex items-center justify-center gap-3 text-slate-700 dark:text-white font-bold hover:bg-slate-100 transition-colors"
           >
-            <Camera size={20} className="text-brand-500" />
+            <Camera size={20} className="text-indigo-500" />
             Tirar foto agora
           </button>
           <button 
             onClick={() => onSelect('gallery')}
             className="w-full h-14 bg-slate-50 dark:bg-slate-800 rounded-2xl flex items-center justify-center gap-3 text-slate-700 dark:text-white font-bold hover:bg-slate-100 transition-colors"
           >
-            <Plus size={20} className="text-brand-500" />
+            <Plus size={20} className="text-indigo-500" />
             Escolher da galeria
           </button>
           <button 
@@ -169,7 +169,7 @@ const PhotoDescriptionModal: React.FC<{
               placeholder="Ex: Degradê com franja"
               value={description}
               onChange={e => setDescription(e.target.value)}
-              className="w-full bg-slate-50 dark:bg-slate-800 border-none rounded-2xl p-4 text-sm text-slate-700 dark:text-white focus:ring-2 focus:ring-brand-500 h-20 resize-none"
+              className="w-full bg-slate-50 dark:bg-slate-800 border-none rounded-2xl p-4 text-sm text-slate-700 dark:text-white focus:ring-2 focus:ring-indigo-500 h-20 resize-none"
             />
           </div>
           
@@ -177,7 +177,7 @@ const PhotoDescriptionModal: React.FC<{
             <button onClick={onClose} className="flex-1 h-12 rounded-2xl text-slate-400 font-bold uppercase tracking-widest text-[10px] bg-slate-50 dark:bg-slate-800">Cancelar</button>
             <button 
               onClick={() => onConfirm(description)}
-              className="flex-1 h-12 bg-brand-600 text-white rounded-2xl font-black uppercase tracking-widest text-[10px] shadow-lg shadow-brand-200"
+              className="flex-1 h-12 bg-indigo-600 text-white rounded-2xl font-black uppercase tracking-widest text-[10px] shadow-lg shadow-indigo-200"
             >
               Confirmar
             </button>
@@ -186,6 +186,29 @@ const PhotoDescriptionModal: React.FC<{
       </motion.div>
     </div>
   );
+};
+
+const containerVariants = {
+  hidden: { opacity: 0 },
+  visible: {
+    opacity: 1,
+    transition: {
+      staggerChildren: 0.05
+    }
+  }
+};
+
+const itemVariants = {
+  hidden: { y: 20, opacity: 0 },
+  visible: {
+    y: 0,
+    opacity: 1,
+    transition: {
+      type: "spring",
+      stiffness: 300,
+      damping: 24
+    }
+  }
 };
 
 const SettingsModal: React.FC<{ 
@@ -219,7 +242,7 @@ const SettingsModal: React.FC<{
             className="w-full flex items-center justify-between p-4 rounded-2xl bg-slate-50 dark:bg-slate-800 hover:bg-slate-100 dark:hover:bg-slate-700 transition-all group"
           >
             <div className="flex items-center gap-4">
-              <div className="w-10 h-10 rounded-xl bg-white dark:bg-slate-900 flex items-center justify-center text-brand-600 shadow-sm">
+              <div className="w-10 h-10 rounded-xl bg-white dark:bg-slate-900 flex items-center justify-center text-indigo-600 shadow-sm">
                 <Calendar size={20} />
               </div>
               <span className="font-bold text-slate-700 dark:text-slate-200">Padrão Semanal</span>
@@ -236,7 +259,7 @@ const SettingsModal: React.FC<{
             </div>
             <button 
               onClick={toggleDarkMode}
-              className={`w-12 h-6 rounded-full transition-all relative ${isDarkMode ? 'bg-brand-600' : 'bg-slate-200'}`}
+              className={`w-12 h-6 rounded-full transition-all relative ${isDarkMode ? 'bg-indigo-600' : 'bg-slate-200'}`}
             >
               <div className={`absolute top-1 w-4 h-4 rounded-full bg-white transition-all ${isDarkMode ? 'left-7' : 'left-1'}`} />
             </button>
@@ -389,8 +412,8 @@ export const AdminApp: React.FC = () => {
   useEffect(() => {
     const checkSession = async () => {
       if (isSupabaseConfigured()) {
-        const { data } = await supabase.auth.getSession();
-        const session = data?.session;
+        const response = await supabase.auth.getSession();
+        const session = response?.data?.session;
         if (session) {
           setIsAuthenticated(true);
         }
@@ -493,7 +516,7 @@ export const AdminApp: React.FC = () => {
             </Button>
           </form>
           <div className="text-center">
-             <Link to="/" className="text-[11px] text-slate-400 font-black uppercase tracking-[0.2em] hover:text-brand-500 transition-colors">
+             <Link to="/" className="text-[11px] text-slate-400 font-black uppercase tracking-[0.2em] hover:text-indigo-500 transition-colors">
                Sou Cliente
              </Link>
           </div>
@@ -525,7 +548,7 @@ export const AdminApp: React.FC = () => {
           {activeTab === 'agenda' ? (
             <button 
               onClick={() => setShowProfileModal(true)}
-              className="w-10 h-10 rounded-full bg-slate-100 flex items-center justify-center overflow-hidden border border-slate-200 hover:border-brand-300 transition-all"
+              className="w-10 h-10 rounded-full bg-slate-100 flex items-center justify-center overflow-hidden border border-slate-200 hover:border-indigo-300 transition-all"
             >
               {barberProfile.photo ? (
                 <img src={barberProfile.photo} alt={barberProfile.name} className="w-full h-full object-cover" referrerPolicy="no-referrer" />
@@ -716,9 +739,9 @@ export const AdminApp: React.FC = () => {
                     if(item.id !== 'clientes') setTargetCustomerPhone(null);
                 }}
                 className={`flex-1 flex flex-col items-center justify-center transition-all gap-0.5 h-full min-h-[44px]
-                  ${activeTab === item.id ? 'text-brand-600' : 'text-slate-300 hover:text-slate-400 dark:text-[#888888] dark:hover:text-[#AAAAAA]'}`}
+                  ${activeTab === item.id ? 'text-indigo-600' : 'text-slate-300 hover:text-slate-400 dark:text-[#888888] dark:hover:text-[#AAAAAA]'}`}
               >
-                <div className={`p-1.5 rounded-xl transition-all duration-300 relative ${activeTab === item.id ? 'bg-brand-50 dark:bg-brand-500/10' : 'bg-transparent'}`}>
+                <div className={`p-1.5 rounded-xl transition-all duration-300 relative ${activeTab === item.id ? 'bg-indigo-50 dark:bg-indigo-500/10' : 'bg-transparent'}`}>
                   <div className={`transition-transform ${activeTab === item.id ? 'scale-105' : ''}`}>
                     {item.icon}
                   </div>
@@ -998,7 +1021,7 @@ const AgendaView: React.FC<{
                     setViewDate(newDate);
                   }
                 }}
-                className="p-1.5 text-brand-600 hover:bg-brand-50 rounded-full transition-colors"
+                className="p-1.5 text-indigo-600 hover:bg-indigo-50 rounded-full transition-colors"
               >
                 <ChevronLeft size={18} />
               </button>
@@ -1024,7 +1047,7 @@ const AgendaView: React.FC<{
                 animate={{ rotate: isCalendarExpanded ? 180 : 0 }}
                 transition={{ duration: 0.3 }}
               >
-                <ChevronRight size={14} className="text-brand-600 rotate-90" />
+                <ChevronRight size={14} className="text-indigo-600 rotate-90" />
               </motion.div>
             </button>
 
@@ -1034,7 +1057,7 @@ const AgendaView: React.FC<{
                   setSlideDirection(1);
                   setViewDate(new Date(viewDate.getFullYear(), viewDate.getMonth() + 1, 1));
                 }}
-                className="p-1.5 text-brand-600 hover:bg-brand-50 rounded-full transition-colors"
+                className="p-1.5 text-indigo-600 hover:bg-indigo-50 rounded-full transition-colors"
               >
                 <ChevronRight size={18} />
               </button>
@@ -1104,11 +1127,11 @@ const AgendaView: React.FC<{
                               setIsCalendarExpanded(false);
                             }}
                             className={`h-9 w-full rounded-xl flex items-center justify-center text-[12px] font-bold transition-all relative
-                              ${isSelected ? 'bg-brand-500 text-white shadow-sm' : isToday ? 'bg-brand-50 text-brand-600' : isClosed ? 'bg-red-50 text-red-600' : 'hover:bg-slate-50 dark:hover:bg-slate-800 text-slate-700 dark:text-slate-200'}`}
+                              ${isSelected ? 'bg-indigo-500 text-white shadow-sm' : isToday ? 'bg-indigo-50 text-indigo-600' : isClosed ? 'bg-red-50 text-red-600' : 'hover:bg-slate-50 dark:hover:bg-slate-800 text-slate-700 dark:text-slate-200'}`}
                           >
                             {d}
                             {count > 0 && (
-                              <div className="absolute top-0.5 right-0.5 w-3.5 h-3.5 rounded-full flex items-center justify-center text-[7px] font-bold border bg-brand-500 text-white border-white dark:border-slate-900">
+                              <div className="absolute top-0.5 right-0.5 w-3.5 h-3.5 rounded-full flex items-center justify-center text-[7px] font-bold border bg-indigo-500 text-white border-white dark:border-slate-900">
                                 {count > 9 ? '9+' : count}
                               </div>
                             )}
@@ -1148,7 +1171,7 @@ const AgendaView: React.FC<{
                         setViewMode('days');
                       }}
                       className={`h-11 rounded-xl flex items-center justify-center font-bold text-sm transition-all
-                        ${viewDate.getFullYear() === year ? 'bg-brand-500 text-white shadow-sm' : 'bg-slate-50 dark:bg-slate-800 text-slate-600 dark:text-slate-300 hover:bg-slate-100'}`}
+                        ${viewDate.getFullYear() === year ? 'bg-indigo-500 text-white shadow-sm' : 'bg-slate-50 dark:bg-slate-800 text-slate-600 dark:text-slate-300 hover:bg-slate-100'}`}
                     >
                       {year}
                     </button>
@@ -1170,7 +1193,7 @@ const AgendaView: React.FC<{
                   exit={{ x: -20, opacity: 0, width: 0, marginRight: 0 }}
                   transition={{ duration: 0.25, ease: "easeOut" }}
                   onClick={() => setSelectedDate(getTodayString())}
-                  className="flex items-center justify-center gap-1.5 px-3 h-10 rounded-xl bg-brand-50 text-brand-600 hover:bg-brand-100 active:scale-95 shrink-0 overflow-hidden whitespace-nowrap"
+                  className="flex items-center justify-center gap-1.5 px-3 h-10 rounded-xl bg-indigo-50 text-indigo-600 hover:bg-indigo-100 active:scale-95 shrink-0 overflow-hidden whitespace-nowrap"
                 >
                   <RotateCcw size={12} strokeWidth={3} />
                   <span className="text-[12px] font-black uppercase tracking-tight">Hoje</span>
@@ -1180,7 +1203,7 @@ const AgendaView: React.FC<{
 
             <button 
               onClick={() => navigateWeek('prev')}
-              className="w-8 h-10 flex items-center justify-center text-slate-400 hover:text-brand-500 transition-colors"
+              className="w-8 h-10 flex items-center justify-center text-slate-400 hover:text-indigo-500 transition-colors"
             >
               <ChevronLeft size={20} />
             </button>
@@ -1193,12 +1216,11 @@ const AgendaView: React.FC<{
                 const count = getAppointmentsCount(day.dateStr);
                 
                 return (
-                  <button
-                    key={day.dateStr}
+                  <button 
                     onClick={() => setSelectedDate(day.dateStr)}
                     className={`flex-1 flex flex-col items-center justify-center rounded-xl transition-all py-1.5 relative
                       ${isSelected 
-                        ? 'bg-brand-500 text-white shadow-md' 
+                        ? 'bg-indigo-500 text-white shadow-md' 
                         : isToday 
                           ? 'bg-[#BBDEFB] text-[#0D47A1]' 
                           : isClosed
@@ -1214,7 +1236,7 @@ const AgendaView: React.FC<{
                       {day.dayNum}
                     </span>
                     {count > 0 && (
-                      <div className="absolute -top-1 -right-1 w-4 h-4 rounded-full flex items-center justify-center text-[9px] font-bold border-2 bg-brand-500 text-white border-white dark:border-slate-900">
+                      <div className="absolute -top-1 -right-1 w-4 h-4 rounded-full flex items-center justify-center text-[9px] font-bold border-2 bg-indigo-500 text-white border-white dark:border-slate-900">
                         {count > 9 ? '9+' : count}
                       </div>
                     )}
@@ -1225,7 +1247,7 @@ const AgendaView: React.FC<{
 
             <button 
               onClick={() => navigateWeek('next')}
-              className="w-8 h-10 flex items-center justify-center text-slate-400 hover:text-brand-500 transition-colors"
+              className="w-8 h-10 flex items-center justify-center text-slate-400 hover:text-indigo-500 transition-colors"
             >
               <ChevronRight size={20} />
             </button>
@@ -1235,7 +1257,7 @@ const AgendaView: React.FC<{
 
       {/* Summary Cards */}
       <div className="grid grid-cols-2 gap-3 px-2 h-[75px]">
-        <div className="bg-brand-600 rounded-2xl p-3 flex flex-col justify-center shadow-lg shadow-brand-500/20 border border-brand-500 relative overflow-hidden">
+        <div className="bg-indigo-600 rounded-2xl p-3 flex flex-col justify-center shadow-lg shadow-indigo-500/20 border border-indigo-500 relative overflow-hidden">
           <span className="text-[9px] font-black text-white/70 uppercase tracking-widest leading-none mb-1 relative z-10">{stats.dayLabel}</span>
           <div className="flex flex-col relative z-10">
             <span className="text-[18px] font-black text-white leading-tight">{formatCurrency(stats.dayRevenue)}</span>
@@ -1246,16 +1268,16 @@ const AgendaView: React.FC<{
         <div className="bg-slate-50 dark:bg-slate-800/50 rounded-2xl border border-slate-100 dark:border-slate-800 p-3 flex flex-col justify-center shadow-sm relative overflow-hidden">
           <span className="text-[9px] font-black text-slate-400 uppercase tracking-widest leading-none mb-1 relative z-10">{stats.weekLabel}</span>
           <div className="flex flex-col relative z-10">
-            <span className="text-[18px] font-black text-brand-600 leading-tight">{formatCurrency(stats.weekRevenue)}</span>
+            <span className="text-[18px] font-black text-indigo-600 leading-tight">{formatCurrency(stats.weekRevenue)}</span>
             <span className="text-[11px] font-medium text-slate-500 dark:text-slate-400 leading-none">{stats.weekCount} {stats.weekCount === 1 ? 'atendimento' : 'atendimentos'}</span>
           </div>
-          <DollarSign size={44} strokeWidth={1.5} className="absolute -bottom-2 -right-2 text-brand-600 opacity-10" />
+          <DollarSign size={44} strokeWidth={1.5} className="absolute -bottom-2 -right-2 text-indigo-600 opacity-10" />
         </div>
       </div>
 
       <div className="space-y-4 animate-in fade-in slide-in-from-top-4 duration-500">
         <div className="flex items-center gap-2 px-2">
-            <div className="w-1 h-4 bg-brand-500 rounded-full"></div>
+            <div className="w-1 h-4 bg-indigo-500 rounded-full"></div>
             <h3 className="font-semibold text-slate-800 dark:text-[#FFFFFF] text-sm uppercase tracking-widest">Grade do Dia</h3>
         </div>
 
@@ -1267,7 +1289,12 @@ const AgendaView: React.FC<{
                 <p className="text-slate-400 font-bold text-sm uppercase tracking-widest">Fechado hoje</p>
             </div>
         ) : (
-            <div className="grid grid-cols-1 gap-3">
+            <motion.div 
+                variants={containerVariants}
+                initial="hidden"
+                animate="visible"
+                className="grid grid-cols-1 gap-3"
+            >
                 {activeSlots.map(({ slot, apt, isStartSlot }) => {
                     const isManualBlocked = dateBlockedSlots.some(s => normalizeTime(s) === slot);
                     const isManualUnblocked = (unblockedSlots[selectedDate] || []).some(s => normalizeTime(s) === slot);
@@ -1277,7 +1304,7 @@ const AgendaView: React.FC<{
                     // If it's occupied by a duration but not the start slot
                     if (apt && !isStartSlot) {
                         return (
-                            <div key={slot} className="bg-[#F0F0F0] dark:bg-[#2A2A2A] border border-slate-100 dark:border-[#444444] p-3 rounded-2xl flex items-center gap-4 opacity-50 pointer-events-none">
+                            <motion.div key={slot} variants={itemVariants} className="bg-[#F0F0F0] dark:bg-[#2A2A2A] border border-slate-100 dark:border-[#444444] p-3 rounded-2xl flex items-center gap-4 opacity-50 pointer-events-none">
                                 <div className="text-lg font-black text-slate-400 dark:text-[#AAAAAA] w-14 shrink-0">{slot}</div>
                                 <div className="flex-1 min-w-0 flex items-center gap-1.5 text-xs text-slate-500 dark:text-[#AAAAAA] truncate">
                                     <span className="font-semibold flex items-center gap-1 shrink-0">
@@ -1289,7 +1316,7 @@ const AgendaView: React.FC<{
                                         {apt.service} de {capitalizeName(apt.clientName)}
                                     </span>
                                 </div>
-                            </div>
+                            </motion.div>
                         );
                     }
 
@@ -1308,7 +1335,7 @@ const AgendaView: React.FC<{
 
                     if (isBlocked && !apt) {
                          return (
-                            <div key={slot} className="relative">
+                            <motion.div key={slot} variants={itemVariants} className="relative">
                                 <div 
                                     onClick={() => {
                                         if (isManualBlocked) {
@@ -1361,19 +1388,19 @@ const AgendaView: React.FC<{
                                         </motion.div>
                                     )}
                                 </AnimatePresence>
-                            </div>
+                            </motion.div>
                          );
                     }
 
                     if (!apt) {
                         return (
-                            <div key={slot} className="relative group">
+                            <motion.div key={slot} variants={itemVariants} className="relative group">
                                 <div 
                                     onClick={() => setActiveSlotMenu(isQuickActionOpen ? null : slot)} 
-                                    className={`slot-trigger bg-white dark:bg-[#2A2A2A] border-2 border-dashed border-slate-100 dark:border-[#555555] p-3 rounded-2xl flex items-center gap-4 transition-all hover:border-brand-300 cursor-pointer group ${past ? 'opacity-40 grayscale pointer-events-none' : ''}`}
+                                    className={`slot-trigger bg-white dark:bg-[#2A2A2A] border-2 border-dashed border-slate-100 dark:border-[#555555] p-3 rounded-2xl flex items-center gap-4 transition-all hover:border-indigo-300 cursor-pointer group ${past ? 'opacity-40 grayscale pointer-events-none' : ''}`}
                                 >
                                     <div className="text-lg font-black text-slate-800 dark:text-[#F0F0F0] w-14 shrink-0">{slot}</div>
-                                    <div className="flex items-center gap-2 text-slate-300 dark:text-[#BBBBBB] font-black text-[10px] uppercase tracking-widest group-hover:text-brand-400 transition-colors">
+                                    <div className="flex items-center gap-2 text-slate-300 dark:text-[#BBBBBB] font-black text-[10px] uppercase tracking-widest group-hover:text-indigo-400 transition-colors">
                                         <Plus size={16} strokeWidth={3} />
                                         DISPONÍVEL
                                     </div>
@@ -1385,12 +1412,12 @@ const AgendaView: React.FC<{
                                             initial={{ x: -10, opacity: 0 }}
                                             animate={{ x: 0, opacity: 1 }}
                                             exit={{ x: -10, opacity: 0 }}
-                                            className="menu-container absolute top-0 bottom-0 right-0 left-[calc(3.5rem+1rem+0.75rem)] bg-white/90 backdrop-blur-md shadow-lg rounded-r-2xl flex items-center z-50 overflow-hidden border-y-2 border-r-2 border-brand-100"
+                                            className="menu-container absolute top-0 bottom-0 right-0 left-[calc(3.5rem+1rem+0.75rem)] bg-white/90 backdrop-blur-md shadow-lg rounded-r-2xl flex items-center z-50 overflow-hidden border-y-2 border-r-2 border-indigo-100"
                                         >
                                             <div className="flex-1 h-full flex items-stretch">
                                                 <button 
                                                     onClick={(e) => { e.stopPropagation(); onAddInSlot(selectedDate, slot); setActiveSlotMenu(null); }}
-                                                    className="flex-1 flex flex-col items-center justify-center gap-1 bg-brand-500 text-white hover:bg-brand-600 transition-colors"
+                                                    className="flex-1 flex flex-col items-center justify-center gap-1 bg-indigo-500 text-white hover:bg-indigo-600 transition-colors"
                                                 >
                                                     <Calendar size={18} />
                                                     <span className="text-[9px] font-black uppercase tracking-widest">Agendar</span>
@@ -1412,7 +1439,7 @@ const AgendaView: React.FC<{
                                         </motion.div>
                                     )}
                                 </AnimatePresence>
-                            </div>
+                            </motion.div>
                         );
                     }
 
@@ -1420,13 +1447,14 @@ const AgendaView: React.FC<{
                         <motion.div 
                             key={apt.id} 
                             layout
+                            variants={itemVariants}
                             initial={false}
                             animate={isFinishing ? { scale: [1, 1.05, 1] } : { scale: 1 }}
                             transition={{ duration: 0.4 }}
                             className={`relative rounded-2xl shadow-sm border overflow-hidden transition-all duration-500 flex
                                 ${isActuallyCompleted ? 'bg-[#D1FAE5] border-green-200 opacity-60' : 
                                   isNoShow ? 'bg-amber-50 border-amber-200 opacity-50' : 
-                                  isFinishing ? 'bg-[#D1FAE5] border-green-200' : 'bg-[#EEF4FF] border-blue-100'}`}
+                                  isFinishing ? 'bg-[#D1FAE5] border-green-200' : 'bg-indigo-50 border-indigo-100'}`}
                         >
                             <div className="flex-1 min-w-0">
                                 {/* Header do Card */}
@@ -1485,7 +1513,7 @@ const AgendaView: React.FC<{
                                     <div className="flex flex-col items-center gap-1">
                                         <button 
                                             onClick={() => onOpenCustomer(apt.phone)}
-                                            className={`w-8 h-8 flex items-center justify-center rounded-xl transition-colors ${isNoShow ? 'text-amber-600 hover:bg-amber-50' : 'text-[#3B82F6] hover:bg-amber-50'}`}
+                                            className={`w-8 h-8 flex items-center justify-center rounded-xl transition-colors ${isNoShow ? 'text-amber-600 hover:bg-amber-50' : 'text-indigo-600 hover:bg-indigo-50'}`}
                                         >
                                             <User size={16} />
                                         </button>
@@ -1646,7 +1674,7 @@ const AgendaView: React.FC<{
                                                     setActiveRevertMenu(null); 
                                                     onSuccess?.('Atendimento retornado com sucesso!');
                                                 }}
-                                                className="h-8 px-4 bg-brand-600 text-white rounded-xl text-[10px] font-black uppercase tracking-widest shadow-lg"
+                                                className="h-8 px-4 bg-indigo-600 text-white rounded-xl text-[10px] font-black uppercase tracking-widest shadow-lg"
                                             >
                                                 Sim
                                             </button>
@@ -1663,7 +1691,7 @@ const AgendaView: React.FC<{
                         </motion.div>
                     );
                 })}
-            </div>
+            </motion.div>
         )}
 
         {/* Exceptional Slot - Compact Style */}
@@ -1699,8 +1727,9 @@ const AgendaView: React.FC<{
                         const isRevertOpen = activeRevertMenu === apt.id;
 
                         return (
-                            <div 
+                            <motion.div 
                                 key={apt.id}
+                                layout
                                 className={`border rounded-[12px] shadow-[0_1px_2px_rgba(0,0,0,0.03)] overflow-hidden transition-all duration-300 border-l-[3px] border-l-[#10B981] ${
                                     isExpanded 
                                         ? 'bg-green-50 dark:bg-[rgba(16,185,129,0.08)] border-[rgba(16,185,129,0.2)] opacity-100' 
@@ -1763,7 +1792,7 @@ const AgendaView: React.FC<{
                                                         <div className="flex flex-col items-center gap-1">
                                                             <button 
                                                                 onClick={(e) => { e.stopPropagation(); onOpenCustomer(apt.phone); }}
-                                                                className="w-8 h-8 flex items-center justify-center rounded-xl transition-colors text-[#3B82F6] hover:bg-blue-50"
+                                                                className="w-8 h-8 flex items-center justify-center rounded-xl transition-colors text-indigo-600 hover:bg-indigo-50"
                                                             >
                                                                 <User size={16} />
                                                             </button>
@@ -1799,7 +1828,7 @@ const AgendaView: React.FC<{
                                                                         setActiveRevertMenu(null); 
                                                                         onSuccess?.('Atendimento retornado com sucesso!');
                                                                     }}
-                                                                    className="h-8 px-4 bg-brand-600 text-white rounded-xl text-[10px] font-black uppercase tracking-widest shadow-lg"
+                                                                    className="h-8 px-4 bg-indigo-600 text-white rounded-xl text-[10px] font-black uppercase tracking-widest shadow-lg"
                                                                 >
                                                                     Sim
                                                                 </button>
@@ -1817,7 +1846,7 @@ const AgendaView: React.FC<{
                                         </motion.div>
                                     )}
                                 </AnimatePresence>
-                            </div>
+                            </motion.div>
                         );
                     })}
                 </div>
@@ -1860,7 +1889,7 @@ const AgendaView: React.FC<{
               exit={{ scale: 0.95, opacity: 0 }}
               className="bg-white w-[90%] max-w-sm rounded-[32px] shadow-2xl p-8 relative z-[200] border border-white/20 text-center space-y-6"
             >
-              <div className="w-16 h-16 bg-brand-50 rounded-full flex items-center justify-center mx-auto text-brand-600">
+            <div className="w-16 h-16 bg-indigo-50 rounded-full flex items-center justify-center mx-auto text-indigo-600">
                 <Repeat size={32} />
               </div>
               <div className="space-y-2">
@@ -1885,7 +1914,7 @@ const AgendaView: React.FC<{
                     setWeeklyUnlockSlot(null);
                     onSuccess?.('Removido do padrão semanal!');
                   }}
-                  className="w-full h-14 bg-brand-600 text-white rounded-2xl font-black uppercase tracking-widest text-[10px] shadow-lg shadow-brand-500/20 hover:bg-brand-700 transition-all"
+                  className="w-full h-14 bg-indigo-600 text-white rounded-2xl font-black uppercase tracking-widest text-[10px] shadow-lg shadow-indigo-500/20 hover:bg-indigo-700 transition-all"
                 >
                   Remover do padrão semanal
                 </button>
@@ -2017,7 +2046,7 @@ const AddCustomerModal: React.FC<{ onClose: () => void, onSuccess: (msg: string)
               type="submit" 
               fullWidth 
               disabled={!!duplicateError || isValidating}
-              className="h-14 font-black uppercase tracking-widest shadow-xl shadow-brand-500/20 disabled:opacity-50 disabled:shadow-none"
+              className="h-14 font-black uppercase tracking-widest shadow-xl shadow-indigo-500/20 disabled:opacity-50 disabled:shadow-none"
             >
               {isValidating ? 'Validando...' : 'Cadastrar Cliente'}
             </Button>
@@ -2359,11 +2388,11 @@ const AddAppointmentModal: React.FC<{
                               onClick={() => handleSelectCustomer(customer)}
                               className="w-full flex items-center gap-3 py-2 px-3 hover:bg-slate-50 dark:hover:bg-slate-700/50 transition-colors border-b border-slate-50 dark:border-slate-700/50 last:border-0"
                             >
-                              <div className="w-10 h-10 rounded-full bg-brand-100 dark:bg-brand-900/30 flex items-center justify-center overflow-hidden shrink-0 shadow-sm">
+                              <div className="w-10 h-10 rounded-full bg-indigo-100 dark:bg-indigo-900/30 flex items-center justify-center overflow-hidden shrink-0 shadow-sm">
                                 {customer.avatar ? (
                                   <img src={customer.avatar} alt={customer.name} className="w-full h-full object-cover" />
                                 ) : (
-                                  <User size={20} className="text-brand-600 dark:text-brand-400" />
+                                  <User size={20} className="text-indigo-600 dark:text-indigo-400" />
                                 )}
                               </div>
                               <div className="flex-1 text-left min-w-0">
@@ -2379,9 +2408,9 @@ const AddAppointmentModal: React.FC<{
                         <button
                           type="button"
                           onClick={handleCreateNew}
-                          className="w-full flex items-center gap-3 p-4 bg-brand-50 dark:bg-brand-900/10 hover:bg-brand-100 dark:hover:bg-brand-900/20 transition-colors text-brand-600 dark:text-brand-400"
+                          className="w-full flex items-center gap-3 p-4 bg-indigo-50 dark:bg-indigo-900/10 hover:bg-indigo-100 dark:hover:bg-indigo-900/20 transition-colors text-indigo-600 dark:text-indigo-400"
                         >
-                          <div className="w-10 h-10 rounded-full bg-brand-100 dark:bg-brand-900/30 flex items-center justify-center shrink-0">
+                          <div className="w-10 h-10 rounded-full bg-indigo-100 dark:bg-indigo-900/30 flex items-center justify-center shrink-0">
                             <UserPlus size={20} />
                           </div>
                           <div className="text-left">
@@ -2394,17 +2423,17 @@ const AddAppointmentModal: React.FC<{
                   )}
                 </div>
               ) : (
-                <div className={`p-4 rounded-2xl border-2 transition-all flex flex-col sm:flex-row items-start sm:items-center gap-3 sm:gap-4 relative group bg-brand-50/30 border-brand-200 dark:bg-brand-900/10 dark:border-brand-900/30`}>
+                <div className={`p-4 rounded-2xl border-2 transition-all flex flex-col sm:flex-row items-start sm:items-center gap-3 sm:gap-4 relative group bg-indigo-50/30 border-indigo-200 dark:bg-indigo-900/10 dark:border-indigo-900/30`}>
                   <div className="flex items-center gap-3 w-full sm:w-auto">
                     <div className="w-12 h-12 rounded-full bg-white dark:bg-slate-700 flex items-center justify-center overflow-hidden shrink-0 shadow-sm">
                       {selectedCustomer?.avatar ? (
                         <img src={selectedCustomer.avatar} alt={selectedCustomer.name} className="w-full h-full object-cover" />
                       ) : (
-                        <User size={24} className="text-brand-600 dark:text-brand-400" />
+                        <User size={24} className="text-indigo-600 dark:text-indigo-400" />
                       )}
                     </div>
                     <div className="sm:hidden flex-1 min-w-0">
-                      <p className="text-[10px] font-bold text-brand-600 dark:text-brand-400 uppercase tracking-widest mb-0.5">
+                      <p className="text-[10px] font-bold text-indigo-600 dark:text-indigo-400 uppercase tracking-widest mb-0.5">
                         {selectedCustomer ? 'Cliente Selecionado' : 'Novo Cliente'}
                       </p>
                       {selectedCustomer && (
@@ -2416,14 +2445,14 @@ const AddAppointmentModal: React.FC<{
                   </div>
 
                   <div className="flex-1 w-full min-w-0 flex flex-col">
-                    <p className="hidden sm:block text-[10px] font-bold text-brand-600 dark:text-brand-400 uppercase tracking-widest mb-1 ml-1">
+                    <p className="hidden sm:block text-[10px] font-bold text-indigo-600 dark:text-indigo-400 uppercase tracking-widest mb-1 ml-1">
                       {selectedCustomer ? 'Cliente Selecionado' : 'Novo Cliente'}
                     </p>
                     <div className="relative flex w-full">
                       <input 
                         value={formData.name}
                         onChange={e => setFormData({...formData, name: e.target.value})}
-                        className="bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 px-3 h-10 rounded-xl text-base font-semibold text-slate-800 dark:text-white tracking-tight focus:ring-2 focus:ring-brand-500 outline-none flex-1 w-full min-w-0 shadow-sm transition-all"
+                        className="bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 px-3 h-10 rounded-xl text-base font-semibold text-slate-800 dark:text-white tracking-tight focus:ring-2 focus:ring-indigo-500 outline-none flex-1 w-full min-w-0 shadow-sm transition-all"
                         placeholder="Nome do Cliente"
                       />
                     </div>
@@ -2486,7 +2515,7 @@ const AddAppointmentModal: React.FC<{
                         <button 
                           type="button"
                           onClick={() => handleSelectCustomer(duplicateCustomer)}
-                          className="flex-1 bg-blue-600 hover:bg-blue-700 text-white text-[10px] font-bold py-2 rounded-xl transition-colors"
+                          className="flex-1 bg-indigo-600 hover:bg-indigo-700 text-white text-[10px] font-bold py-2 rounded-xl transition-colors"
                         >
                           Usar {capitalizeName(duplicateCustomer.name.split(' ')[0])}
                         </button>
@@ -2512,7 +2541,7 @@ const AddAppointmentModal: React.FC<{
                         onChange={e => setSaveToContacts(e.target.checked)}
                         className="peer sr-only"
                       />
-                      <div className="w-5 h-5 border-2 border-slate-300 dark:border-slate-600 rounded-md peer-checked:bg-brand-500 peer-checked:border-brand-500 transition-all" />
+                      <div className="w-5 h-5 border-2 border-slate-300 dark:border-slate-600 rounded-md peer-checked:bg-indigo-500 peer-checked:border-indigo-500 transition-all" />
                       <Check size={14} className="absolute left-0.5 text-white opacity-0 peer-checked:opacity-100 transition-opacity" />
                     </div>
                     <span className="text-xs font-bold text-slate-600 dark:text-slate-300 uppercase tracking-tight">Salvar nos contatos</span>
@@ -2527,7 +2556,7 @@ const AddAppointmentModal: React.FC<{
               </label>
               <div className={`flex flex-wrap gap-2 p-1 rounded-2xl transition-all ${errors.services ? 'ring-2 ring-red-500 bg-red-50/50' : ''}`}>
                 {services.map(s => (
-                  <button key={s.id} type="button" onClick={() => toggleService(s.id)} className={`px-3 py-1.5 rounded-xl text-[10px] font-black uppercase transition-all border ${formData.serviceIds.includes(s.id) ? 'bg-brand-500 text-white border-brand-500 shadow-md' : 'bg-white dark:bg-slate-800 text-slate-400 border-slate-100 dark:border-slate-700'}`}>{s.name}</button>
+                  <button key={s.id} type="button" onClick={() => toggleService(s.id)} className={`px-3 py-1.5 rounded-xl text-[10px] font-black uppercase transition-all border ${formData.serviceIds.includes(s.id) ? 'bg-indigo-500 text-white border-indigo-500 shadow-md' : 'bg-white dark:bg-slate-800 text-slate-400 border-slate-100 dark:border-slate-700'}`}>{s.name}</button>
                 ))}
               </div>
               {errors.services && (
@@ -2566,7 +2595,7 @@ const AddAppointmentModal: React.FC<{
                       const available = isSlotAvailable(slot);
                       if (isSlotPast(slot)) return null;
                       return (
-                        <button key={slot} type="button" disabled={!available} onClick={() => { setFormData({...formData, time: slot}); setErrors(prev => ({...prev, time: false})); setShowErrorMsg(false); }} className={`py-2 rounded-xl text-xs font-bold transition-all border ${formData.time === slot ? 'bg-brand-600 text-white border-brand-600' : !available ? 'bg-slate-50 dark:bg-slate-800 text-slate-200 dark:text-slate-700 border-slate-100 dark:border-slate-700' : 'bg-white dark:bg-slate-900 text-slate-600 dark:text-slate-400 border-slate-200 dark:border-slate-800'}`}>{slot}</button>
+                        <button key={slot} type="button" disabled={!available} onClick={() => { setFormData({...formData, time: slot}); setErrors(prev => ({...prev, time: false})); setShowErrorMsg(false); }} className={`py-2 rounded-xl text-xs font-bold transition-all border ${formData.time === slot ? 'bg-indigo-600 text-white border-indigo-600' : !available ? 'bg-slate-50 dark:bg-slate-800 text-slate-200 dark:text-slate-700 border-slate-100 dark:border-slate-700' : 'bg-white dark:bg-slate-900 text-slate-600 dark:text-slate-400 border-slate-200 dark:border-slate-800'}`}>{slot}</button>
                       );
                     })}
                 </div>
@@ -2593,7 +2622,7 @@ const AddAppointmentModal: React.FC<{
               type="submit" 
               fullWidth 
               disabled={isExceptional && isWithinRegularHours}
-              className={`h-14 font-black uppercase tracking-widest shadow-xl shadow-brand-500/20 text-sm px-4 disabled:opacity-50 transition-colors duration-300 ${isButtonFlashing ? '!bg-amber-500 !shadow-amber-500/40' : ''}`}
+              className={`h-14 font-black uppercase tracking-widest shadow-xl shadow-indigo-500/20 text-sm px-4 disabled:opacity-50 transition-colors duration-300 ${isButtonFlashing ? '!bg-amber-500 !shadow-amber-500/40' : ''}`}
             >
               Agendar Atendimento
             </Button>
@@ -2706,7 +2735,7 @@ const RescheduleModal: React.FC<{
               </label>
               <div className={`flex flex-wrap gap-2 p-1 rounded-2xl transition-all ${errors.services ? 'ring-2 ring-red-500 bg-red-50/50' : ''}`}>
                 {services.map(s => (
-                  <button key={s.id} type="button" onClick={() => toggleService(s.id)} className={`px-3 py-1.5 rounded-xl text-[10px] font-black uppercase border transition-all ${serviceIds.includes(s.id) ? 'bg-brand-500 text-white border-brand-500' : 'bg-white dark:bg-slate-800 text-slate-400 border-slate-100 dark:border-slate-700'}`}>{s.name}</button>
+                  <button key={s.id} type="button" onClick={() => toggleService(s.id)} className={`px-3 py-1.5 rounded-xl text-[10px] font-black uppercase border transition-all ${serviceIds.includes(s.id) ? 'bg-indigo-500 text-white border-indigo-500' : 'bg-white dark:bg-slate-800 text-slate-400 border-slate-100 dark:border-slate-700'}`}>{s.name}</button>
                 ))}
               </div>
               {errors.services && (
@@ -2734,7 +2763,7 @@ const RescheduleModal: React.FC<{
                     const available = isSlotAvailable(slot);
                     if (isSlotPast(slot)) return null;
                     return (
-                      <button key={slot} type="button" disabled={!available} onClick={() => { setNewTime(slot); setErrors(prev => ({...prev, time: false})); setShowErrorMsg(false); }} className={`py-2 rounded-xl text-xs font-bold transition-all border ${newTime === slot ? 'bg-brand-600 text-white border-brand-600' : !available ? 'bg-slate-50 dark:bg-slate-800 text-slate-200 dark:text-slate-700 border-slate-100 dark:border-slate-700' : 'bg-white dark:bg-slate-900 text-slate-600 dark:text-slate-400 border-slate-200 dark:border-slate-800'}`}>{slot}</button>
+                      <button key={slot} type="button" disabled={!available} onClick={() => { setNewTime(slot); setErrors(prev => ({...prev, time: false})); setShowErrorMsg(false); }} className={`py-2 rounded-xl text-xs font-bold transition-all border ${newTime === slot ? 'bg-indigo-600 text-white border-indigo-600' : !available ? 'bg-slate-50 dark:bg-slate-800 text-slate-200 dark:text-slate-700 border-slate-100 dark:border-slate-700' : 'bg-white dark:bg-slate-900 text-slate-600 dark:text-slate-400 border-slate-200 dark:border-slate-800'}`}>{slot}</button>
                     );
                   })}
               </div>
@@ -2756,7 +2785,7 @@ const RescheduleModal: React.FC<{
           
           <footer className="p-6 border-t border-slate-50 dark:border-slate-800 shrink-0 bg-white dark:bg-slate-900 sticky bottom-0 z-10 pb-[calc(1.5rem+env(safe-area-inset-bottom))]">
             {showErrorMsg && <p className="text-red-500 text-[13px] font-bold text-center mb-4">Preencha todos os campos obrigatórios</p>}
-            <Button type="submit" fullWidth className="h-14 font-black uppercase tracking-widest shadow-xl shadow-brand-500/20">
+            <Button type="submit" fullWidth className="h-14 font-black uppercase tracking-widest shadow-xl shadow-indigo-500/20">
               Salvar Alterações
             </Button>
           </footer>
@@ -2812,8 +2841,8 @@ const ProfileModal: React.FC<{
                 </header>
                 
                 <div className="flex border-b border-slate-50 dark:border-slate-800 shrink-0 bg-white dark:bg-slate-900 sticky top-[88px] z-10">
-                   <button onClick={() => setModalTab('personal')} className={`flex-1 py-3 text-[10px] font-black uppercase tracking-widest transition-colors ${modalTab === 'personal' ? 'text-brand-600 border-b-2 border-brand-600' : 'text-slate-300'}`}>Pessoal</button>
-                   <button onClick={() => setModalTab('business')} className={`flex-1 py-3 text-[10px] font-black uppercase tracking-widest transition-colors ${modalTab === 'business' ? 'text-brand-600 border-b-2 border-brand-600' : 'text-slate-300'}`}>Negócio</button>
+                   <button onClick={() => setModalTab('personal')} className={`flex-1 py-3 text-[10px] font-black uppercase tracking-widest transition-colors ${modalTab === 'personal' ? 'text-indigo-600 border-b-2 border-indigo-600' : 'text-slate-300'}`}>Pessoal</button>
+                   <button onClick={() => setModalTab('business')} className={`flex-1 py-3 text-[10px] font-black uppercase tracking-widest transition-colors ${modalTab === 'business' ? 'text-indigo-600 border-b-2 border-indigo-600' : 'text-slate-300'}`}>Negócio</button>
                 </div>
                 
                 <form onSubmit={handleSubmit} className="flex flex-col flex-1 overflow-hidden">
@@ -2846,7 +2875,7 @@ const ProfileModal: React.FC<{
                   </div>
                   
                   <footer className="p-6 border-t border-slate-50 dark:border-slate-800 shrink-0 bg-white dark:bg-slate-900 sticky bottom-0 z-10 pb-[calc(1.5rem+env(safe-area-inset-bottom))]">
-                    <Button type="submit" fullWidth className="h-14 font-black uppercase tracking-widest shadow-xl shadow-brand-500/20">
+                    <Button type="submit" fullWidth className="h-14 font-black uppercase tracking-widest shadow-xl shadow-indigo-500/20">
                       Salvar Perfil
                     </Button>
                   </footer>
@@ -2977,7 +3006,7 @@ const ServicesView: React.FC<{ onSuccess?: (msg: string) => void }> = ({ onSucce
               <select 
                 value={formData.duration} 
                 onChange={e => setFormData({...formData, duration: e.target.value})}
-                className="w-full px-4 py-2.5 rounded-xl border border-slate-100 dark:border-[#444444] bg-white dark:bg-[#2A2A2A] text-slate-800 dark:text-[#F0F0F0] text-sm focus:outline-none focus:ring-2 focus:ring-brand-100 transition-colors h-[42px]"
+                className="w-full px-4 py-2.5 rounded-xl border border-slate-100 dark:border-[#444444] bg-white dark:bg-[#2A2A2A] text-slate-800 dark:text-[#F0F0F0] text-sm focus:outline-none focus:ring-2 focus:ring-indigo-100 transition-colors h-[42px]"
               >
                 {durationOptions.map(opt => (
                   <option key={opt.value} value={opt.value}>{opt.label}</option>
@@ -3010,7 +3039,7 @@ const ServicesView: React.FC<{ onSuccess?: (msg: string) => void }> = ({ onSucce
               
               <div className="flex-1 min-w-0">
                 <p className="font-bold text-slate-800 dark:text-[#FFFFFF] text-base truncate">{s.name}</p>
-                <p className="text-brand-600 dark:text-brand-400 font-medium text-xs">
+                <p className="text-indigo-600 dark:text-indigo-400 font-medium text-xs">
                   {formatCurrency(s.price)} | {s.duration} min
                 </p>
               </div>
@@ -3018,7 +3047,7 @@ const ServicesView: React.FC<{ onSuccess?: (msg: string) => void }> = ({ onSucce
               <div className="flex gap-1">
                 <button 
                   onClick={() => startEditing(s)} 
-                  className="p-2 text-slate-400 hover:text-brand-500 transition-colors"
+                  className="p-2 text-slate-400 hover:text-indigo-500 transition-colors"
                 >
                   <Edit3 size={18} />
                 </button>
@@ -3086,7 +3115,7 @@ const WeeklyConfigModal: React.FC<{ onClose: () => void }> = ({ onClose }) => {
                       key={idx} 
                       onClick={() => setSelectedDay(idx)} 
                       className={`flex flex-col items-center py-2.5 rounded-xl transition-all 
-                        ${isSelected ? 'bg-brand-600 text-white shadow-md' : 'bg-slate-50 dark:bg-slate-800 text-slate-400 dark:text-slate-500'}`}
+                        ${isSelected ? 'bg-indigo-600 text-white shadow-md' : 'bg-slate-50 dark:bg-slate-800 text-slate-400 dark:text-slate-500'}`}
                     >
                       <span className="text-[9px] font-bold uppercase tracking-tighter">{name.substring(0, 3)}</span>
                       {dayConfig && (
@@ -3152,7 +3181,7 @@ const WeeklyConfigModal: React.FC<{ onClose: () => void }> = ({ onClose }) => {
         </div>
         
         <footer className="px-6 pt-4 pb-6 shrink-0 bg-white dark:bg-slate-900 sticky bottom-0 z-10 border-t border-slate-100 dark:border-slate-800">
-          <Button fullWidth onClick={onClose} className="h-14 font-black uppercase tracking-widest shadow-xl shadow-brand-500/20">
+          <Button fullWidth onClick={onClose} className="h-14 font-black uppercase tracking-widest shadow-xl shadow-indigo-500/20">
             Salvar e Fechar
           </Button>
         </footer>
@@ -3279,7 +3308,7 @@ const CustomersView: React.FC<{
       {/* FAB */}
       <button 
         onClick={onAddCustomer}
-        className="fixed bottom-24 right-6 w-14 h-14 bg-brand-500 text-white rounded-full shadow-2xl flex items-center justify-center hover:bg-brand-600 active:scale-90 transition-all z-50 pointer-events-auto"
+        className="fixed bottom-24 right-6 w-14 h-14 bg-indigo-500 text-white rounded-full shadow-2xl flex items-center justify-center hover:bg-indigo-600 active:scale-90 transition-all z-50 pointer-events-auto"
       >
         <Plus size={28} strokeWidth={3} />
       </button>
@@ -3324,7 +3353,8 @@ const CustomerDetail: React.FC<{
     
     setIsLoadingData(true);
     try {
-      const { data: { session } } = await supabase.auth.getSession();
+      const response = await supabase.auth.getSession();
+      const session = response?.data?.session;
       if (!session) return;
 
       // Fetch history (completed and no-show appointments)
@@ -3433,13 +3463,13 @@ const CustomerDetail: React.FC<{
   return (
     <div className="animate-fade-in pb-10">
       <div className="flex items-center justify-between mb-6">
-        <button onClick={onBack} className="text-[10px] font-black text-slate-400 flex items-center gap-1 uppercase tracking-widest hover:text-brand-600 transition-colors">
+        <button onClick={onBack} className="text-[10px] font-black text-slate-400 flex items-center gap-1 uppercase tracking-widest hover:text-indigo-600 transition-colors">
           <ChevronLeft size={16} />
           Voltar
         </button>
         <button 
           onClick={() => onNewAppointment(customer)}
-          className="text-[10px] font-black text-white flex items-center gap-2 bg-brand-500 px-4 py-2 rounded-full uppercase tracking-widest shadow-md shadow-brand-100 active:scale-95 transition-all"
+          className="text-[10px] font-black text-white flex items-center gap-2 bg-indigo-500 px-4 py-2 rounded-full uppercase tracking-widest shadow-md shadow-indigo-100 active:scale-95 transition-all"
         >
           <Calendar size={14} />
           Novo Agendamento
@@ -3464,7 +3494,7 @@ const CustomerDetail: React.FC<{
             </div>
             <button 
               onClick={() => { setPhotoType('avatar'); setShowActionSheet(true); }}
-              className="absolute bottom-0 right-0 w-8 h-8 bg-brand-600 text-white rounded-full flex items-center justify-center border-2 border-white dark:border-slate-800 shadow-lg hover:bg-brand-700 transition-colors"
+              className="absolute bottom-0 right-0 w-8 h-8 bg-indigo-600 text-white rounded-full flex items-center justify-center border-2 border-white dark:border-slate-800 shadow-lg hover:bg-indigo-700 transition-colors"
             >
               <Camera size={14} />
             </button>
@@ -3496,7 +3526,7 @@ const CustomerDetail: React.FC<{
           </>
         )}
         <div className="flex justify-center gap-3">
-          <div className="bg-brand-500 text-white px-6 py-2 rounded-2xl shadow-lg shadow-brand-100 flex-1 max-w-[120px]">
+          <div className="bg-indigo-500 text-white px-6 py-2 rounded-2xl shadow-lg shadow-indigo-100 flex-1 max-w-[120px]">
             <span className="font-black text-xl">{customer.cutCount}</span>
             <span className="text-[8px] ml-2 uppercase font-black tracking-widest opacity-80">
               {customer.cutCount === 1 ? 'corte' : 'cortes'}
@@ -3548,7 +3578,7 @@ const CustomerDetail: React.FC<{
         </div>
         <div className="flex justify-between items-center">
             <h3 className="font-semibold text-slate-800 dark:text-slate-100 text-sm uppercase tracking-widest">Fotos</h3>
-            <button onClick={() => { setPhotoType('history'); setShowActionSheet(true); }} className="text-[9px] bg-brand-600 text-white px-4 py-2 rounded-xl font-black uppercase tracking-widest">+ Adicionar foto</button>
+            <button onClick={() => { setPhotoType('history'); setShowActionSheet(true); }} className="text-[9px] bg-indigo-600 text-white px-4 py-2 rounded-xl font-black uppercase tracking-widest">+ Adicionar foto</button>
             <input type="file" accept="image/*" capture="environment" ref={cameraInputRef} className="hidden" onChange={handleFileChange} />
             <input type="file" accept="image/*" ref={galleryInputRef} className="hidden" onChange={handleFileChange} />
         </div>
@@ -3845,7 +3875,7 @@ const ReportsView: React.FC = () => {
         <div className="p-4 space-y-4">
           <div className="flex items-center justify-between">
             <h4 className="text-xs font-bold text-slate-700 dark:text-white">Selecionar Ano</h4>
-            <button onClick={() => setViewMode('days')} className="text-[10px] font-bold text-brand-600">Voltar</button>
+            <button onClick={() => setViewMode('days')} className="text-[10px] font-bold text-indigo-600">Voltar</button>
           </div>
           <div className="grid grid-cols-3 gap-2">
             {years.map(year => (
@@ -3856,7 +3886,7 @@ const ReportsView: React.FC = () => {
                   setViewMode('days');
                 }}
                 className={`h-10 rounded-xl flex items-center justify-center text-[11px] font-bold transition-all
-                  ${viewDate.getFullYear() === year ? 'bg-brand-500 text-white shadow-sm' : 'bg-slate-50 dark:bg-slate-800 text-slate-600 dark:text-slate-300 hover:bg-slate-100'}`}
+                  ${viewDate.getFullYear() === year ? 'bg-indigo-500 text-white shadow-sm' : 'bg-slate-50 dark:bg-slate-800 text-slate-600 dark:text-slate-300 hover:bg-slate-100'}`}
               >
                 {year}
               </button>
@@ -3896,7 +3926,7 @@ const ReportsView: React.FC = () => {
             setShowSelector(false);
           }}
           className={`h-8 w-full rounded-lg flex items-center justify-center text-[11px] font-bold transition-all relative
-            ${isSelected || isWeekSelected ? 'bg-brand-500 text-white shadow-sm' : isToday ? 'bg-brand-50 text-brand-600' : 'hover:bg-slate-50 dark:hover:bg-slate-800 text-slate-700 dark:text-slate-200'}
+            ${isSelected || isWeekSelected ? 'bg-indigo-500 text-white shadow-sm' : isToday ? 'bg-indigo-50 text-indigo-600' : 'hover:bg-slate-50 dark:hover:bg-slate-800 text-slate-700 dark:text-slate-200'}
             ${isBefore2026 && (period === 'semana' || period === 'mes') ? 'opacity-20 cursor-not-allowed' : ''}`}
         >
           {d}
@@ -3913,16 +3943,16 @@ const ReportsView: React.FC = () => {
     return (
       <div className="p-4 space-y-4">
         <div className="flex items-center justify-between">
-          <button onClick={() => setViewDate(new Date(viewDate.getFullYear(), viewDate.getMonth() - 1, 1))} className="p-1 text-slate-400 hover:text-brand-600">
+          <button onClick={() => setViewDate(new Date(viewDate.getFullYear(), viewDate.getMonth() - 1, 1))} className="p-1 text-slate-400 hover:text-indigo-600">
             <ChevronLeft size={16} />
           </button>
           <button 
             onClick={() => setViewMode('years')}
-            className="text-xs font-bold text-slate-700 dark:text-white capitalize hover:text-brand-600 transition-colors"
+            className="text-xs font-bold text-slate-700 dark:text-white capitalize hover:text-indigo-600 transition-colors"
           >
             {viewDate.toLocaleDateString('pt-BR', { month: 'long', year: 'numeric' })}
           </button>
-          <button onClick={() => setViewDate(new Date(viewDate.getFullYear(), viewDate.getMonth() + 1, 1))} className="p-1 text-slate-400 hover:text-brand-600">
+          <button onClick={() => setViewDate(new Date(viewDate.getFullYear(), viewDate.getMonth() + 1, 1))} className="p-1 text-slate-400 hover:text-indigo-600">
             <ChevronRight size={16} />
           </button>
         </div>
@@ -3943,13 +3973,13 @@ const ReportsView: React.FC = () => {
     return (
       <div className="p-4 space-y-4">
         <div className="flex items-center justify-between">
-          <button onClick={() => setViewDate(new Date(viewDate.getFullYear() - 1, viewDate.getMonth(), 1))} className="p-1 text-slate-400 hover:text-brand-600">
+          <button onClick={() => setViewDate(new Date(viewDate.getFullYear() - 1, viewDate.getMonth(), 1))} className="p-1 text-slate-400 hover:text-indigo-600">
             <ChevronLeft size={16} />
           </button>
           <span className="text-xs font-bold text-slate-700 dark:text-white">
             {viewDate.getFullYear()}
           </span>
-          <button onClick={() => setViewDate(new Date(viewDate.getFullYear() + 1, viewDate.getMonth(), 1))} className="p-1 text-slate-400 hover:text-brand-600">
+          <button onClick={() => setViewDate(new Date(viewDate.getFullYear() + 1, viewDate.getMonth(), 1))} className="p-1 text-slate-400 hover:text-indigo-600">
             <ChevronRight size={16} />
           </button>
         </div>
@@ -3967,7 +3997,7 @@ const ReportsView: React.FC = () => {
                   setShowSelector(false);
                 }}
                 className={`h-10 rounded-xl flex items-center justify-center text-[11px] font-bold transition-all
-                  ${isSelected ? 'bg-brand-500 text-white shadow-sm' : 'bg-slate-50 dark:bg-slate-800 text-slate-600 dark:text-slate-300 hover:bg-slate-100'}
+                  ${isSelected ? 'bg-indigo-500 text-white shadow-sm' : 'bg-slate-50 dark:bg-slate-800 text-slate-600 dark:text-slate-300 hover:bg-slate-100'}
                   ${isBefore2026 ? 'opacity-20 cursor-not-allowed' : ''}`}
               >
                 {m}
@@ -3996,7 +4026,7 @@ const ReportsView: React.FC = () => {
               setShowSelector(false);
             }}
             className={`h-10 rounded-xl flex items-center justify-center text-[11px] font-bold transition-all
-              ${currentDate.getFullYear() === year ? 'bg-brand-500 text-white shadow-sm' : 'bg-slate-50 dark:bg-slate-800 text-slate-600 dark:text-slate-300 hover:bg-slate-100'}`}
+              ${currentDate.getFullYear() === year ? 'bg-indigo-500 text-white shadow-sm' : 'bg-slate-50 dark:bg-slate-800 text-slate-600 dark:text-slate-300 hover:bg-slate-100'}`}
           >
             {year}
           </button>
@@ -4019,7 +4049,7 @@ const ReportsView: React.FC = () => {
                 setShowSelector(false);
               }}
               className={`flex-1 py-2 text-[10px] font-black uppercase tracking-widest rounded-xl transition-all ${
-                period === p ? 'bg-brand-600 text-white shadow-md' : 'text-slate-400 dark:text-[#AAAAAA] hover:text-slate-600'
+                period === p ? 'bg-indigo-600 text-white shadow-md' : 'text-slate-400 dark:text-[#AAAAAA] hover:text-slate-600'
               }`}
             >
               {p === 'dia' ? 'Dia' : p === 'semana' ? 'Semana' : p === 'mes' ? 'Mês' : 'Ano'}
@@ -4071,7 +4101,7 @@ const ReportsView: React.FC = () => {
             key={t}
             onClick={() => setActiveTab(t)}
             className={`flex-1 py-3 text-[11px] font-bold uppercase tracking-wider transition-all relative ${
-              activeTab === t ? 'text-brand-600' : 'text-slate-400'
+              activeTab === t ? 'text-indigo-600' : 'text-slate-400'
             }`}
           >
             <div className="flex items-center justify-center gap-2">
@@ -4081,7 +4111,7 @@ const ReportsView: React.FC = () => {
               {t === 'servicos' ? 'SERVIÇOS' : t.charAt(0).toUpperCase() + t.slice(1)}
             </div>
             {activeTab === t && (
-              <motion.div layoutId="activeTab" className="absolute bottom-0 left-0 right-0 h-0.5 bg-brand-600" />
+              <motion.div layoutId="activeTab" className="absolute bottom-0 left-0 right-0 h-0.5 bg-indigo-600" />
             )}
           </button>
         ))}
@@ -4108,7 +4138,7 @@ const ReportsView: React.FC = () => {
               </div>
 
               <div className="bg-white dark:bg-slate-900 py-3 px-4 rounded-3xl shadow-soft border border-slate-100 dark:border-[#444444] flex flex-col items-center text-center">
-                <div className="w-7 h-7 bg-blue-50 dark:bg-blue-500/10 text-[#3B82F6] rounded-full flex items-center justify-center mb-1">
+                <div className="w-7 h-7 bg-indigo-50 dark:bg-indigo-500/10 text-[#6366F1] rounded-full flex items-center justify-center mb-1">
                   <Scissors size={14} />
                 </div>
                 <p className="text-lg font-bold text-slate-800 dark:text-[#FFFFFF]">{stats.current.count}</p>
@@ -4251,14 +4281,14 @@ const ReportsView: React.FC = () => {
             className="space-y-4"
           >
             {stats.highestTicketService && (
-              <div className="bg-brand-600 p-4 rounded-3xl shadow-lg flex items-center gap-4 text-white">
+              <div className="bg-indigo-600 p-4 rounded-3xl shadow-lg flex items-center gap-4 text-white">
                 <div className="w-10 h-10 bg-white/20 rounded-2xl flex items-center justify-center">
                   <Award size={20} />
                 </div>
                 <div>
-                  <p className="text-[9px] font-black uppercase tracking-widest text-brand-100">Maior Ticket Médio</p>
+                  <p className="text-[9px] font-black uppercase tracking-widest text-indigo-100">Maior Ticket Médio</p>
                   <p className="text-sm font-bold">{stats.highestTicketService.name}</p>
-                  <p className="text-xs text-brand-100">{formatCurrency(stats.highestTicketService.ticket)} por atendimento</p>
+                  <p className="text-xs text-indigo-100">{formatCurrency(stats.highestTicketService.ticket)} por atendimento</p>
                 </div>
               </div>
             )}
@@ -4324,7 +4354,7 @@ const ReportsView: React.FC = () => {
                       <p className="text-[10px] text-slate-400">{service.count} realizados</p>
                     </div>
                     <div className="text-right">
-                      <p className="text-sm font-bold text-brand-600">{formatCurrency(service.revenue)}</p>
+                      <p className="text-sm font-bold text-indigo-600">{formatCurrency(service.revenue)}</p>
                       <p className="text-[9px] text-slate-400">Ticket: {formatCurrency(service.ticket)}</p>
                     </div>
                   </div>
