@@ -15,7 +15,19 @@ const getSupabase = () => {
     return null;
   }
 
-  return createClient(supabaseUrl, supabaseAnonKey);
+  return createClient(supabaseUrl, supabaseAnonKey, {
+    auth: {
+      persistSession: true,
+      autoRefreshToken: true,
+      detectSessionInUrl: true,
+      // Disable Web Locks synchronization to avoid errors in iframe/multi-tab environments
+      lock: (async (name: any, callback: any) => {
+        if (typeof callback === 'function') return await callback();
+        if (typeof name === 'function') return await name();
+        return Promise.resolve();
+      }) as any
+    }
+  });
 };
 
 let instance: any = null;

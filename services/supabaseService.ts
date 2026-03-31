@@ -6,7 +6,8 @@ import { normalizePhone, normalizeTime } from '../utils/helpers';
 export const supabaseService = {
   // Helper to get current user ID
   async getUserId() {
-    const { data: { user } } = await supabase.auth.getUser();
+    const { data } = await supabase.auth.getUser();
+    const user = data?.user;
     if (!user) return null;
     return user.id;
   },
@@ -19,7 +20,8 @@ export const supabaseService = {
     const { data, error } = await supabase.from('profiles').select('*').eq('id', userId).single();
     if (error && error.code === 'PGRST116') {
       // Auto-create profile if missing
-      const { data: { user } } = await supabase.auth.getUser();
+      const { data } = await supabase.auth.getUser();
+      const user = data?.user;
       const newProfile = {
         id: userId,
         name: user?.user_metadata?.name || 'Barbeiro',

@@ -9,6 +9,7 @@ import { Customer, ServiceItem, Appointment, BarberProfile } from '../types';
 import { Link } from 'react-router-dom';
 import { motion, AnimatePresence, Reorder } from 'motion/react';
 import confetti from 'canvas-confetti';
+import { SetupWizard } from '../components/SetupWizard';
 import { 
   Calendar, 
   Ban, 
@@ -34,6 +35,7 @@ import {
   ChevronsRight,
   ChevronsLeft,
   Search,
+  UserPlus,
   Camera,
   AlertTriangle,
   Instagram,
@@ -58,7 +60,8 @@ import {
   Award,
   UserX,
   PieChart as PieChartIcon,
-  LayoutDashboard
+  LayoutDashboard,
+  Pencil
 } from 'lucide-react';
 import { FaWhatsapp } from 'react-icons/fa';
 import { 
@@ -309,7 +312,7 @@ const useScrollDirection = () => {
 };
 
 export const AdminApp: React.FC = () => {
-  const { barberProfile, appointments, isDarkMode, toggleDarkMode } = useStore();
+  const { barberProfile, appointments, isDarkMode, toggleDarkMode, isLoading, services } = useStore();
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [activeTab, setActiveTab] = useState<'agenda' | 'clientes' | 'servicos' | 'relatorios'>('agenda');
   const [selectedDate, setSelectedDate] = useState(getTodayString());
@@ -386,7 +389,8 @@ export const AdminApp: React.FC = () => {
   useEffect(() => {
     const checkSession = async () => {
       if (isSupabaseConfigured()) {
-        const { data: { session } } = await supabase.auth.getSession();
+        const { data } = await supabase.auth.getSession();
+        const session = data?.session;
         if (session) {
           setIsAuthenticated(true);
         }
@@ -395,11 +399,12 @@ export const AdminApp: React.FC = () => {
     checkSession();
 
     if (isSupabaseConfigured()) {
-      const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
+      const { data } = supabase.auth.onAuthStateChange((_event, session) => {
         setIsAuthenticated(!!session);
       });
+      const subscription = data?.subscription;
 
-      return () => subscription.unsubscribe();
+      return () => subscription?.unsubscribe();
     }
   }, []);
 
@@ -495,6 +500,13 @@ export const AdminApp: React.FC = () => {
         </div>
       </div>
     );
+  }
+
+  // Check if setup is needed
+  const isSetupNeeded = !isLoading && barberProfile.shopName === 'Meu Corte' && barberProfile.name === 'Barbeiro';
+
+  if (isSetupNeeded) {
+    return <SetupWizard />;
   }
 
   return (
@@ -1670,15 +1682,14 @@ const AgendaView: React.FC<{
         {/* Completed Section */}
         {completedAppointments.length > 0 && (
             <div className="mt-8 space-y-4">
-                <div className="flex items-center gap-3 px-1">
-                    <div className="h-[1px] flex-1 bg-slate-200 dark:bg-slate-800"></div>
+                <div className="flex items-center gap-2 px-2">
+                    <div className="w-1 h-4 bg-green-500 rounded-full"></div>
                     <div className="flex items-center gap-2">
-                        <CheckCircle2 size={14} className="text-slate-400" />
-                        <h3 className="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em]">
+                        <CheckCircle2 size={18} className="text-green-500" />
+                        <h3 className="font-semibold text-slate-500 dark:text-slate-400 text-sm uppercase tracking-widest">
                             CONCLUÍDOS ({completedAppointments.length})
                         </h3>
                     </div>
-                    <div className="h-[1px] flex-1 bg-slate-200 dark:bg-slate-800"></div>
                 </div>
 
                 <div className="space-y-1.5">
@@ -2026,7 +2037,7 @@ const AddAppointmentModal: React.FC<{
   onSuccess?: () => void;
 }> = ({ selectedDate: initialDate, selectedTime: initialTime, prefilledCustomer, isExceptional = false, onClose, onSuccess }) => {
   useLockBodyScroll();
-  const { addAppointment, appointments, weeklySchedule, services } = useStore();
+  const { addAppointment, appointments, weeklySchedule, services, customers, addCustomer } = useStore();
 
   const getRoundedCurrentTime = () => {
     const now = new Date();
@@ -2038,6 +2049,12 @@ const AddAppointmentModal: React.FC<{
     return d.toTimeString().substring(0, 5);
   };
 
+  const [searchTerm, setSearchTerm] = useState('');
+  const [selectedCustomer, setSelectedCustomer] = useState<Customer | null>(prefilledCustomer || null);
+  const [isNewCustomer, setIsNewCustomer] = useState(false);
+  const [saveToContacts, setSaveToContacts] = useState(true);
+  const [showDropdown, setShowDropdown] = useState(false);
+
   const [formData, setFormData] = useState({
     name: prefilledCustomer?.name || '',
     phone: prefilledCustomer?.phone || '',
@@ -2046,6 +2063,88 @@ const AddAppointmentModal: React.FC<{
     serviceIds: [] as string[],
     observation: ''
   });
+
+  const [duplicateCustomer, setDuplicateCustomer] = useState<Customer | null>(null);
+  const [isDuplicateDetected, setIsDuplicateDetected] = useState(false);
+  const [isButtonFlashing, setIsButtonFlashing] = useState(false);
+  const warningRef = useRef<HTMLDivElement>(null);
+
+  // Filter customers based on search term
+  const filteredCustomers = useMemo(() => {
+    if (searchTerm.length < 2) return [];
+    
+    const searchDigits = searchTerm.replace(/\D/g, '');
+    const termLower = searchTerm.toLowerCase();
+    
+    return (Object.values(customers) as Customer[]).filter(c => {
+      const normalizedName = c.name.toLowerCase();
+      const customerDigits = c.phone.replace(/\D/g, '');
+      
+      // Flexible search logic (ignoring 9th digit if necessary)
+      // Brazilian numbers: (XX) 9 XXXX-XXXX (11 digits)
+      const customerWithoutNinth = customerDigits.replace(/^(\d{2})(\d{1})(\d{8})$/, '$1$3');
+      
+      const nameMatch = normalizedName.includes(termLower);
+      const phoneMatch = searchDigits.length > 0 && (
+        customerDigits.includes(searchDigits) || 
+        customerWithoutNinth.includes(searchDigits)
+      );
+
+      return nameMatch || phoneMatch;
+    }).slice(0, 5); // Limit to 5 results for better UI
+  }, [customers, searchTerm]);
+
+  const isSearchPhone = /^\d+$/.test(searchTerm.replace(/\D/g, '')) && searchTerm.replace(/\D/g, '').length >= 8;
+  const searchNormalized = searchTerm.replace(/\D/g, '');
+  const phoneAlreadyExists = isSearchPhone && (Object.values(customers) as Customer[]).some(c => c.phone.replace(/\D/g, '') === searchNormalized);
+
+  const handleSelectCustomer = (customer: Customer) => {
+    setSelectedCustomer(customer);
+    setFormData(prev => ({
+      ...prev,
+      name: capitalizeName(customer.name),
+      phone: customer.phone
+    }));
+    setSearchTerm('');
+    setShowDropdown(false);
+    setIsNewCustomer(false);
+    setDuplicateCustomer(null);
+  };
+
+  const handleCreateNew = () => {
+    setIsNewCustomer(true);
+    const digitsOnly = searchTerm.replace(/\D/g, '');
+    const hasLetters = /[a-zA-Z]/.test(searchTerm);
+
+    if (!hasLetters && digitsOnly.length > 0) {
+      setFormData(prev => ({
+        ...prev,
+        name: '',
+        phone: formatPhone(digitsOnly)
+      }));
+    } else {
+      setFormData(prev => ({
+        ...prev,
+        name: capitalizeName(searchTerm),
+        phone: ''
+      }));
+    }
+    setSelectedCustomer(null);
+    setSearchTerm('');
+    setShowDropdown(false);
+    setDuplicateCustomer(null);
+  };
+
+  const clearSelectedCustomer = () => {
+    setSelectedCustomer(null);
+    setIsNewCustomer(false);
+    setDuplicateCustomer(null);
+    setFormData(prev => ({
+      ...prev,
+      name: '',
+      phone: ''
+    }));
+  };
   const [errors, setErrors] = useState<{name?: boolean, phone?: boolean, time?: boolean, services?: boolean}>({});
   const [showErrorMsg, setShowErrorMsg] = useState(false);
 
@@ -2100,7 +2199,40 @@ const AddAppointmentModal: React.FC<{
     return requiredSlots.every(s => generatedSlots.includes(s) && !bookedSlots.includes(s));
   };
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const executeFinalSave = async (data: typeof formData, isNew: boolean, save: boolean) => {
+    // If new customer and "save to contacts" is checked
+    if (isNew && save) {
+      try {
+        await addCustomer({
+          phone: normalizePhone(data.phone),
+          name: capitalizeName(data.name),
+          cutCount: 0,
+          history: [],
+          photos: []
+        });
+      } catch (err) {
+        console.error("Error saving customer:", err);
+      }
+    }
+
+    addAppointment({
+      id: Date.now().toString(),
+      clientName: capitalizeName(data.name),
+      phone: normalizePhone(data.phone),
+      date: data.date,
+      time: data.time,
+      service: selectedServices.map(s => s.name).join(', '),
+      price: totalPrice,
+      duration: totalDuration,
+      observation: data.observation,
+      status: 'pending',
+      createdAt: Date.now()
+    }, isExceptional);
+    onSuccess?.();
+    onClose();
+  };
+
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     const newErrors = {
       name: !formData.name.trim(),
@@ -2113,21 +2245,37 @@ const AddAppointmentModal: React.FC<{
       setShowErrorMsg(true);
       return;
     }
-    addAppointment({
-      id: Date.now().toString(),
-      clientName: capitalizeName(formData.name),
-      phone: formData.phone,
-      date: formData.date,
-      time: formData.time,
-      service: selectedServices.map(s => s.name).join(', '),
-      price: totalPrice,
-      duration: totalDuration,
-      observation: formData.observation,
-      status: 'pending',
-      createdAt: Date.now()
-    }, isExceptional);
-    onSuccess?.();
-    onClose();
+
+    if (isNewCustomer && !duplicateCustomer) {
+      const normalizedInputPhone = formData.phone.replace(/\D/g, '');
+      const existing = (Object.values(customers) as Customer[]).find(c => c.phone.replace(/\D/g, '') === normalizedInputPhone);
+      
+      if (existing) {
+        setDuplicateCustomer(existing);
+        setIsDuplicateDetected(true);
+        setIsButtonFlashing(true);
+        
+        // Trigger button flash reset
+        setTimeout(() => setIsButtonFlashing(false), 300);
+
+        // Scroll to warning
+        setTimeout(() => {
+          warningRef.current?.scrollIntoView({
+            behavior: 'smooth',
+            block: 'center'
+          });
+        }, 100);
+
+        // Reset shake after animation
+        setTimeout(() => {
+          setIsDuplicateDetected(false);
+        }, 400);
+
+        return;
+      }
+    }
+
+    await executeFinalSave(formData, isNewCustomer, saveToContacts);
   };
 
   return (
@@ -2182,21 +2330,196 @@ const AddAppointmentModal: React.FC<{
                 )}
               </div>
             )}
-            <Input 
-              label="Nome" 
-              value={formData.name} 
-              onChange={e => { setFormData({...formData, name: e.target.value}); setErrors(prev => ({...prev, name: false})); setShowErrorMsg(false); }} 
-              requiredField
-              error={errors.name}
-            />
-            <Input 
-              label="WhatsApp" 
-              value={formData.phone} 
-              onChange={e => { setFormData({...formData, phone: formatPhone(e.target.value)}); setErrors(prev => ({...prev, phone: false})); setShowErrorMsg(false); }} 
-              maxLength={15} 
-              requiredField
-              error={errors.phone}
-            />
+            {/* Client Selection Section */}
+            <div className="relative space-y-4">
+              {!selectedCustomer && !isNewCustomer ? (
+                <div className="relative">
+                  <Input 
+                    label="Buscar ou adicionar cliente..." 
+                    value={searchTerm} 
+                    onChange={e => {
+                      setSearchTerm(e.target.value);
+                      setShowDropdown(true);
+                      setShowErrorMsg(false);
+                    }}
+                    onFocus={() => setShowDropdown(true)}
+                    placeholder="Digite nome ou WhatsApp..."
+                    autoFocus
+                    icon={<Search size={18} className="text-slate-400" />}
+                  />
+                  
+                  {showDropdown && searchTerm.length >= 2 && (
+                    <div className="absolute top-full left-0 right-0 mt-2 bg-white dark:bg-slate-800 rounded-2xl shadow-2xl border border-slate-100 dark:border-slate-700 overflow-hidden z-[300] animate-in fade-in slide-in-from-top-2">
+                      {filteredCustomers.length > 0 ? (
+                        <div className="max-h-[200px] overflow-y-auto">
+                          {filteredCustomers.map(customer => (
+                            <button
+                              key={customer.phone}
+                              type="button"
+                              onClick={() => handleSelectCustomer(customer)}
+                              className="w-full flex items-center gap-3 py-2 px-3 hover:bg-slate-50 dark:hover:bg-slate-700/50 transition-colors border-b border-slate-50 dark:border-slate-700/50 last:border-0"
+                            >
+                              <div className="w-10 h-10 rounded-full bg-brand-100 dark:bg-brand-900/30 flex items-center justify-center overflow-hidden shrink-0 shadow-sm">
+                                {customer.avatar ? (
+                                  <img src={customer.avatar} alt={customer.name} className="w-full h-full object-cover" />
+                                ) : (
+                                  <User size={20} className="text-brand-600 dark:text-brand-400" />
+                                )}
+                              </div>
+                              <div className="flex-1 text-left min-w-0">
+                                <p className="text-sm font-semibold text-slate-800 dark:text-white truncate">{capitalizeName(customer.name)}</p>
+                                <p className="text-xs text-slate-500 dark:text-slate-400">{customer.phone}</p>
+                              </div>
+                            </button>
+                          ))}
+                        </div>
+                      ) : null}
+                      
+                      {!phoneAlreadyExists && (
+                        <button
+                          type="button"
+                          onClick={handleCreateNew}
+                          className="w-full flex items-center gap-3 p-4 bg-brand-50 dark:bg-brand-900/10 hover:bg-brand-100 dark:hover:bg-brand-900/20 transition-colors text-brand-600 dark:text-brand-400"
+                        >
+                          <div className="w-10 h-10 rounded-full bg-brand-100 dark:bg-brand-900/30 flex items-center justify-center shrink-0">
+                            <UserPlus size={20} />
+                          </div>
+                          <div className="text-left">
+                            <p className="text-sm font-bold uppercase tracking-tight">Criar novo cliente</p>
+                            <p className="text-xs opacity-80">"{capitalizeName(searchTerm)}"</p>
+                          </div>
+                        </button>
+                      )}
+                    </div>
+                  )}
+                </div>
+              ) : (
+                <div className={`p-4 rounded-2xl border-2 transition-all flex flex-col sm:flex-row items-start sm:items-center gap-3 sm:gap-4 relative group bg-brand-50/30 border-brand-200 dark:bg-brand-900/10 dark:border-brand-900/30`}>
+                  <div className="flex items-center gap-3 w-full sm:w-auto">
+                    <div className="w-12 h-12 rounded-full bg-white dark:bg-slate-700 flex items-center justify-center overflow-hidden shrink-0 shadow-sm">
+                      {selectedCustomer?.avatar ? (
+                        <img src={selectedCustomer.avatar} alt={selectedCustomer.name} className="w-full h-full object-cover" />
+                      ) : (
+                        <User size={24} className="text-brand-600 dark:text-brand-400" />
+                      )}
+                    </div>
+                    <div className="sm:hidden flex-1 min-w-0">
+                      <p className="text-[10px] font-bold text-brand-600 dark:text-brand-400 uppercase tracking-widest mb-0.5">
+                        {selectedCustomer ? 'Cliente Selecionado' : 'Novo Cliente'}
+                      </p>
+                      {selectedCustomer && (
+                        <p className="text-xs text-slate-500 dark:text-slate-400 font-medium truncate">
+                          {selectedCustomer.phone}
+                        </p>
+                      )}
+                    </div>
+                  </div>
+
+                  <div className="flex-1 w-full min-w-0 flex flex-col">
+                    <p className="hidden sm:block text-[10px] font-bold text-brand-600 dark:text-brand-400 uppercase tracking-widest mb-1 ml-1">
+                      {selectedCustomer ? 'Cliente Selecionado' : 'Novo Cliente'}
+                    </p>
+                    <div className="relative flex w-full">
+                      <input 
+                        value={formData.name}
+                        onChange={e => setFormData({...formData, name: e.target.value})}
+                        className="bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 px-3 h-10 rounded-xl text-base font-semibold text-slate-800 dark:text-white tracking-tight focus:ring-2 focus:ring-brand-500 outline-none flex-1 w-full min-w-0 shadow-sm transition-all"
+                        placeholder="Nome do Cliente"
+                      />
+                    </div>
+                    <div className="hidden sm:block mt-1 ml-1">
+                      {selectedCustomer && (
+                        <p className="text-xs text-slate-500 dark:text-slate-400 font-medium">
+                          {selectedCustomer.phone}
+                        </p>
+                      )}
+                    </div>
+                  </div>
+                  
+                  <button 
+                    type="button" 
+                    onClick={clearSelectedCustomer}
+                    className="absolute top-3 right-3 sm:relative sm:top-0 sm:right-0 w-8 h-8 rounded-full bg-white dark:bg-slate-700 text-slate-400 hover:text-red-500 shadow-sm flex items-center justify-center transition-all hover:scale-110"
+                  >
+                    <X size={16} />
+                  </button>
+                </div>
+              )}
+
+              {isNewCustomer && (
+                <motion.div 
+                  initial={{ opacity: 0, y: -10 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  className="space-y-4 pt-2"
+                >
+                  <div className="relative">
+                    <Input 
+                      label="WhatsApp do Novo Cliente" 
+                      value={formData.phone} 
+                      onChange={e => { 
+                        setFormData({...formData, phone: formatPhone(e.target.value)}); 
+                        setErrors(prev => ({...prev, phone: false})); 
+                        setShowErrorMsg(false); 
+                        setDuplicateCustomer(null);
+                      }} 
+                      maxLength={15} 
+                      requiredField
+                      error={errors.phone}
+                      warning={!!duplicateCustomer}
+                      className={isDuplicateDetected ? 'animate-shake' : ''}
+                      placeholder="(00) 00000-0000"
+                    />
+                  </div>
+
+                  {duplicateCustomer && (
+                    <div 
+                      ref={warningRef}
+                      className="bg-amber-50 dark:bg-amber-900/20 border border-amber-200 dark:border-amber-800 p-4 rounded-2xl space-y-3 animate-in fade-in slide-in-from-top-2"
+                    >
+                      <div className="flex items-start gap-2">
+                        <AlertTriangle size={16} className="text-amber-500 shrink-0 mt-0.5" />
+                        <p className="text-[11px] text-amber-800 dark:text-amber-200 leading-tight">
+                          ⚠️ Este número já está cadastrado como <strong>{capitalizeName(duplicateCustomer.name)}</strong>. O que deseja fazer?
+                        </p>
+                      </div>
+                      <div className="flex gap-2">
+                        <button 
+                          type="button"
+                          onClick={() => handleSelectCustomer(duplicateCustomer)}
+                          className="flex-1 bg-blue-600 hover:bg-blue-700 text-white text-[10px] font-bold py-2 rounded-xl transition-colors"
+                        >
+                          Usar {capitalizeName(duplicateCustomer.name.split(' ')[0])}
+                        </button>
+                        <button 
+                          type="button"
+                          onClick={() => {
+                            setSaveToContacts(false);
+                            executeFinalSave(formData, isNewCustomer, false);
+                          }}
+                          className="flex-1 text-slate-500 dark:text-slate-400 text-[10px] font-bold py-2 rounded-xl hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors"
+                        >
+                          Continuar assim mesmo
+                        </button>
+                      </div>
+                    </div>
+                  )}
+                  
+                  <label className="flex items-center gap-3 p-4 rounded-2xl bg-slate-50 dark:bg-slate-800/50 cursor-pointer group transition-colors hover:bg-slate-100 dark:hover:bg-slate-800">
+                    <div className="relative flex items-center">
+                      <input 
+                        type="checkbox" 
+                        checked={saveToContacts}
+                        onChange={e => setSaveToContacts(e.target.checked)}
+                        className="peer sr-only"
+                      />
+                      <div className="w-5 h-5 border-2 border-slate-300 dark:border-slate-600 rounded-md peer-checked:bg-brand-500 peer-checked:border-brand-500 transition-all" />
+                      <Check size={14} className="absolute left-0.5 text-white opacity-0 peer-checked:opacity-100 transition-opacity" />
+                    </div>
+                    <span className="text-xs font-bold text-slate-600 dark:text-slate-300 uppercase tracking-tight">Salvar nos contatos</span>
+                  </label>
+                </motion.div>
+              )}
+            </div>
             <div className="space-y-3">
               <label className={`text-[10px] font-bold uppercase tracking-widest ml-1 flex items-center gap-1 ${errors.services ? 'text-red-500' : 'text-slate-400 dark:text-slate-500'}`}>
                 Serviços
@@ -2270,7 +2593,7 @@ const AddAppointmentModal: React.FC<{
               type="submit" 
               fullWidth 
               disabled={isExceptional && isWithinRegularHours}
-              className="h-14 font-black uppercase tracking-widest shadow-xl shadow-brand-500/20 text-sm px-4 disabled:opacity-50"
+              className={`h-14 font-black uppercase tracking-widest shadow-xl shadow-brand-500/20 text-sm px-4 disabled:opacity-50 transition-colors duration-300 ${isButtonFlashing ? '!bg-amber-500 !shadow-amber-500/40' : ''}`}
             >
               Agendar Atendimento
             </Button>
@@ -3004,16 +3327,25 @@ const CustomerDetail: React.FC<{
       const { data: { session } } = await supabase.auth.getSession();
       if (!session) return;
 
-      // Fetch history (completed appointments)
+      // Fetch history (completed and no-show appointments)
       const { data: appointmentsData, error: aptError } = await supabase
         .from('appointments')
         .select('*')
         .eq('user_id', session.user.id)
         .eq('phone', customer.phone)
-        .eq('status', 'completed')
+        .in('status', ['completed', 'no-show'])
         .order('date', { ascending: false });
 
       if (aptError) throw aptError;
+
+      // Recalculate counts to ensure they match history
+      const actualCutCount = (appointmentsData || []).filter(a => a.status === 'completed').length;
+      const actualNoShowCount = (appointmentsData || []).filter(a => a.status === 'no-show').length;
+
+      if (actualCutCount !== customer.cutCount || actualNoShowCount !== (customer.noShowCount || 0)) {
+        console.log(`Sincronizando contadores para ${customer.name}: Cortes ${customer.cutCount} -> ${actualCutCount}, Faltas ${customer.noShowCount || 0} -> ${actualNoShowCount}`);
+        updateCustomer(customer.phone, { cutCount: actualCutCount, noShowCount: actualNoShowCount });
+      }
 
       // Fetch photos
       const { data: photosData, error: photoError } = await supabase
@@ -3029,8 +3361,9 @@ const CustomerDetail: React.FC<{
       const normalizedHistory = (appointmentsData || []).map(apt => ({
         date: apt.date.substring(0, 10),
         time: apt.time.substring(0, 5),
-        service: apt.service,
-        price: Number(apt.price)
+        service: apt.status === 'no-show' ? 'Falta registrada' : apt.service,
+        price: apt.status === 'no-show' ? 0 : Number(apt.price),
+        status: apt.status
       }));
       setLocalHistory(normalizedHistory);
 
@@ -3189,8 +3522,8 @@ const CustomerDetail: React.FC<{
           ) : localHistory.length === 0 ? (
             <div className="p-8 text-center text-slate-400 text-xs italic">Nenhum histórico encontrado.</div>
           ) : (
-            localHistory.map((h, i) => {
-              const isNoShow = h.service.includes('Falta registrada');
+            localHistory.map((h: any, i) => {
+              const isNoShow = h.status === 'no-show' || h.service.includes('Falta registrada');
               return (
                 <div key={i} className={`p-4 flex justify-between items-center ${isNoShow ? 'bg-amber-50/30 dark:bg-amber-900/10' : ''}`}>
                   <div>

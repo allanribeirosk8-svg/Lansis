@@ -89,6 +89,17 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
     date: normalizeDate(apt.date)
   });
 
+  const getSupabaseSession = useCallback(async () => {
+    if (!isSupabaseConfigured()) return null;
+    try {
+      const { data } = await supabase.auth.getSession();
+      return data?.session || null;
+    } catch (e) {
+      console.error("Error getting Supabase session", e);
+      return null;
+    }
+  }, []);
+
   const fetchAppointmentsByDate = useCallback(async (date: string) => {
     try {
       if (skipNextFetchRef.current[date]) {
@@ -99,7 +110,7 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
       const isConfigured = isSupabaseConfigured();
       if (!isConfigured) return;
 
-      const { data: { session } } = await supabase.auth.getSession();
+      const session = await getSupabaseSession();
       if (!session) return;
 
       const dbApts = await supabaseService.getAppointmentsByDate(date);
@@ -134,7 +145,7 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
       const isConfigured = isSupabaseConfigured();
       
       if (isConfigured) {
-        const { data: { session } } = await supabase.auth.getSession();
+        const session = await getSupabaseSession();
         
         // Se o barbeiro está logado, usa APENAS Supabase
         if (session) {
@@ -423,9 +434,7 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
     }
 
     try {
-      const { data: { session } } = isSupabaseConfigured() 
-        ? await supabase.auth.getSession() 
-        : { data: { session: null } };
+      const session = await getSupabaseSession();
 
       if (session) {
         console.log("3. Enviando para Supabase...");
@@ -446,11 +455,15 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
           skipNextFetchRef.current[finalApt.date] = true;
           
           // Also save/update customer
-          const currentCustomers = await supabaseService.getCustomers();
-          const existingCust = currentCustomers.find((c: any) => normalizePhone(c.phone) === normalizedPhone);
-          if (!existingCust) {
-            await supabaseService.saveCustomer({ phone: finalApt.phone, name: finalApt.clientName, cutCount: 0, history: [], photos: [] });
-          }
+          // Instead of fetching all customers, we just upsert the current one.
+          // Supabase upsert will handle creation or update based on the phone (PK).
+          await supabaseService.saveCustomer({ 
+            phone: finalApt.phone, 
+            name: finalApt.clientName, 
+            cutCount: 0, 
+            history: [], 
+            photos: [] 
+          });
         } catch (err) {
           console.log("4. Resposta do Supabase:", { data: null, error: err });
           throw err;
@@ -477,7 +490,7 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
 
     if (updatedApt) {
       try {
-        const { data: { session } } = isSupabaseConfigured() ? await supabase.auth.getSession() : { data: { session: null } };
+        const session = await getSupabaseSession();
         if (session) {
           const savedApt = await supabaseService.saveAppointment(updatedApt);
           const normalizedSavedApt = normalizeAppointment(savedApt);
@@ -730,9 +743,7 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
     }
 
     // Chamar Supabase com o objeto já montado (nunca null)
-    const { data: { session } } = isSupabaseConfigured()
-      ? await supabase.auth.getSession()
-      : { data: { session: null } };
+    const session = await getSupabaseSession();
 
     if (session) {
       try {
@@ -756,7 +767,7 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
     });
     
     const sync = async () => {
-      const { data: { session } } = isSupabaseConfigured() ? await supabase.auth.getSession() : { data: { session: null } };
+      const session = await getSupabaseSession();
       if (session) supabaseService.saveBlockedSlot(date, time, isNowBlocked).catch(console.error);
     };
     sync();
@@ -766,7 +777,7 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
       const dateSlots = prev[date] || [];
       if (dateSlots.includes(time)) {
         const syncUnblock = async () => {
-          const { data: { session } } = isSupabaseConfigured() ? await supabase.auth.getSession() : { data: { session: null } };
+          const session = await getSupabaseSession();
           if (session) supabaseService.saveUnblockedSlot(date, time, false).catch(console.error);
         };
         syncUnblock();
@@ -789,7 +800,7 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
     });
 
     const sync = async () => {
-      const { data: { session } } = isSupabaseConfigured() ? await supabase.auth.getSession() : { data: { session: null } };
+      const session = await getSupabaseSession();
       if (session) supabaseService.saveUnblockedSlot(date, time, isNowUnblocked).catch(console.error);
     };
     sync();
@@ -799,7 +810,7 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
       const dateSlots = prev[date] || [];
       if (dateSlots.includes(time)) {
         const syncBlock = async () => {
-          const { data: { session } } = isSupabaseConfigured() ? await supabase.auth.getSession() : { data: { session: null } };
+          const session = await getSupabaseSession();
           if (session) supabaseService.saveBlockedSlot(date, time, false).catch(console.error);
         };
         syncBlock();
@@ -810,18 +821,23 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
   }, []);
 
   const updateDayConfig = useCallback(async (day: number, config: Partial<DayConfig>) => {
+    let newConfig: DayConfig | null = null;
     setWeeklySchedule(prev => {
-      const newConfig = { ...prev[day], ...config };
-      const sync = async () => {
-        const { data: { session } } = isSupabaseConfigured() ? await supabase.auth.getSession() : { data: { session: null } };
-        if (session) supabaseService.saveWeeklySchedule(day, newConfig).catch(console.error);
-      };
-      sync();
+      newConfig = { ...prev[day], ...config };
       return {
         ...prev,
         [day]: newConfig
       };
     });
+
+    if (newConfig) {
+      try {
+        const session = await getSupabaseSession();
+        if (session) await supabaseService.saveWeeklySchedule(day, newConfig);
+      } catch (e) {
+        console.error("Supabase sync error in updateDayConfig", e);
+      }
+    }
   }, []);
 
   const toggleWeeklyBreak = useCallback(async (day: number, time: string) => {
@@ -831,7 +847,7 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
       const newBreaks = breaks.includes(time) ? breaks.filter(t => t !== time) : [...breaks, time];
       const newConfig = { ...currentConfig, breaks: newBreaks };
       const sync = async () => {
-        const { data: { session } } = isSupabaseConfigured() ? await supabase.auth.getSession() : { data: { session: null } };
+        const session = await getSupabaseSession();
         if (session) supabaseService.saveWeeklySchedule(day, newConfig).catch(console.error);
       };
       sync();
@@ -847,7 +863,7 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
     });
 
     try {
-      const { data: { session } } = isSupabaseConfigured() ? await supabase.auth.getSession() : { data: { session: null } };
+      const session = await getSupabaseSession();
       if (session) {
         const savedServices = await supabaseService.saveServices(newList);
         setServices(savedServices);
@@ -861,7 +877,7 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
     setServices(prev => {
       const newList = prev.filter(s => s.id !== id);
       const sync = async () => {
-        const { data: { session } } = isSupabaseConfigured() ? await supabase.auth.getSession() : { data: { session: null } };
+        const session = await getSupabaseSession();
         if (session) supabaseService.deleteService(id).catch(console.error);
       };
       sync();
@@ -873,7 +889,7 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
     setServices(prev => {
       const newList = prev.map(s => s.id === service.id ? service : s);
       const sync = async () => {
-        const { data: { session } } = isSupabaseConfigured() ? await supabase.auth.getSession() : { data: { session: null } };
+        const session = await getSupabaseSession();
         if (session) {
           const savedServices = await supabaseService.saveServices(newList);
           setServices(savedServices);
@@ -887,7 +903,7 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
   const updateBarberProfile = useCallback(async (profile: BarberProfile) => {
     setBarberProfile(profile);
     try {
-      const { data: { session } } = isSupabaseConfigured() ? await supabase.auth.getSession() : { data: { session: null } };
+      const session = await getSupabaseSession();
       if (session) await supabaseService.updateProfile(profile);
     } catch (e) {
       console.error("Supabase sync error in updateBarberProfile", e);
@@ -906,7 +922,7 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
 
     if (isNew) {
       try {
-        const { data: { session } } = isSupabaseConfigured() ? await supabase.auth.getSession() : { data: { session: null } };
+        const session = await getSupabaseSession();
         if (session) {
           await supabaseService.saveCustomer(customer);
           console.log("Customer saved to Supabase successfully");
@@ -921,7 +937,7 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
   const reorderServices = useCallback(async (newServices: ServiceItem[]) => {
     setServices(newServices);
     const sync = async () => {
-      const { data: { session } } = isSupabaseConfigured() ? await supabase.auth.getSession() : { data: { session: null } };
+      const session = await getSupabaseSession();
       if (session) {
         const savedServices = await supabaseService.saveServices(newServices);
         setServices(savedServices);
