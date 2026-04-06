@@ -2,8 +2,10 @@ import React, { useState } from 'react';
 import { supabase } from '../lib/supabase';
 import { motion, AnimatePresence } from 'motion/react';
 import { Loader2, Mail, Lock, LogIn, UserPlus, AlertCircle } from 'lucide-react';
+import { useNavigate } from 'react-router-dom';
 
 export const Auth: React.FC = () => {
+  const navigate = useNavigate();
   const [isSignUp, setIsSignUp] = useState(false);
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
@@ -28,6 +30,7 @@ export const Auth: React.FC = () => {
           password,
         });
         if (signInError) throw signInError;
+        navigate('/admin');
       }
     } catch (err: any) {
       setError(err.message || 'Ocorreu um erro na autenticação.');
@@ -40,6 +43,9 @@ export const Auth: React.FC = () => {
     try {
       const { error: googleError } = await supabase.auth.signInWithOAuth({
         provider: 'google',
+        options: {
+          redirectTo: window.location.origin + '/#/admin'
+        }
       });
       if (googleError) throw googleError;
     } catch (err: any) {

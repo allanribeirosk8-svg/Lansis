@@ -336,11 +336,8 @@ const useScrollDirection = () => {
 
 export const AdminApp: React.FC = () => {
   const { barberProfile, appointments, isDarkMode, toggleDarkMode, isLoading, services } = useStore();
-  const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [activeTab, setActiveTab] = useState<'agenda' | 'clientes' | 'servicos' | 'relatorios'>('agenda');
   const [selectedDate, setSelectedDate] = useState(getTodayString());
-  const [credentials, setCredentials] = useState({ user: '', pass: '' });
-  const [error, setError] = useState('');
   const [showAddModal, setShowAddModal] = useState(false);
   const [showAddCustomerModal, setShowAddCustomerModal] = useState(false);
   const [showWeeklyModal, setShowWeeklyModal] = useState(false);
@@ -407,60 +404,11 @@ export const AdminApp: React.FC = () => {
     return appointments.filter(a => a.date === today && a.status === 'pending').length;
   }, [appointments]);
 
-  const [isLoggingIn, setIsLoggingIn] = useState(false);
-
-  useEffect(() => {
-    const checkSession = async () => {
-      if (isSupabaseConfigured()) {
-        const response = await supabase.auth.getSession();
-        const session = response?.data?.session;
-        if (session) {
-          setIsAuthenticated(true);
-        }
-      }
-    };
-    checkSession();
-
-    if (isSupabaseConfigured()) {
-      const { data } = supabase.auth.onAuthStateChange((_event, session) => {
-        setIsAuthenticated(!!session);
-      });
-      const subscription = data?.subscription;
-
-      return () => subscription?.unsubscribe();
-    }
-  }, []);
-
-  const handleLogin = async (e: React.FormEvent) => {
-    e.preventDefault();
-    setIsLoggingIn(true);
-    setError('');
-    
-    try {
-      if (!isSupabaseConfigured()) {
-        throw new Error('O Supabase não está configurado. Por favor, adicione as variáveis de ambiente VITE_SUPABASE_URL e VITE_SUPABASE_ANON_KEY.');
-      }
-
-      const { error } = await supabase.auth.signInWithPassword({
-        email: credentials.user,
-        password: credentials.pass,
-      });
-
-      if (error) throw error;
-      setIsAuthenticated(true);
-    } catch (err: any) {
-      setError(err.message || 'Credenciais inválidas');
-    } finally {
-      setIsLoggingIn(false);
-    }
-  };
-
   const handleLogout = async () => {
+    setShowSettingsModal(false);
     if (isSupabaseConfigured()) {
       await supabase.auth.signOut();
     }
-    setIsAuthenticated(false);
-    setShowSettingsModal(false);
   };
 
   const handleNavigateToCustomer = (phone: string) => {
@@ -486,44 +434,6 @@ export const AdminApp: React.FC = () => {
     if (hour >= 12 && hour < 18) return `Boa tarde, ${name}! 👋`;
     return `Boa noite, ${name}! 🌙`;
   };
-
-  if (!isAuthenticated) {
-    return (
-      <div className="min-h-screen flex items-center justify-center bg-slate-50 p-6">
-        <div className="w-full max-w-sm space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-700">
-          <form onSubmit={handleLogin} className="bg-white p-8 rounded-3xl shadow-soft w-full space-y-6">
-            <div className="text-center">
-              <h2 className="text-xl font-bold text-slate-800">Área do Barbeiro</h2>
-              <p className="text-sm text-slate-500">Acesso restrito</p>
-            </div>
-            <Input 
-              label="E-mail" 
-              type="email"
-              value={credentials.user} 
-              onChange={e => setCredentials({...credentials, user: e.target.value})}
-              placeholder="seu@email.com"
-            />
-            <Input 
-              label="Senha" 
-              type="password" 
-              value={credentials.pass} 
-              onChange={e => setCredentials({...credentials, pass: e.target.value})}
-              placeholder="••••••••"
-            />
-            {error && <p className="text-red-500 text-xs text-center bg-red-50 p-3 rounded-xl border border-red-100">{error}</p>}
-            <Button type="submit" fullWidth disabled={isLoggingIn}>
-              {isLoggingIn ? 'Entrando...' : 'Entrar'}
-            </Button>
-          </form>
-          <div className="text-center">
-             <Link to="/" className="text-[11px] text-slate-400 font-black uppercase tracking-[0.2em] hover:text-indigo-500 transition-colors">
-               Sou Cliente
-             </Link>
-          </div>
-        </div>
-      </div>
-    );
-  }
 
   // Check if setup is needed
   const isSetupNeeded = !isLoading && barberProfile.shopName === 'Meu Corte' && barberProfile.name === 'Barbeiro';
@@ -1217,6 +1127,7 @@ const AgendaView: React.FC<{
                 
                 return (
                   <button 
+                    key={day.dateStr}
                     onClick={() => setSelectedDate(day.dateStr)}
                     className={`flex-1 flex flex-col items-center justify-center rounded-xl transition-all py-1.5 relative
                       ${isSelected 

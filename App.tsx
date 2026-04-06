@@ -48,7 +48,14 @@ const App: React.FC = () => {
       <HashRouter>
         <Routes>
           <Route path="/" element={<ClientApp />} />
-          <Route path="/login" element={<Auth />} />
+          <Route 
+            path="/login" 
+            element={
+              <ProtectedRoute>
+                <AdminApp />
+              </ProtectedRoute>
+            } 
+          />
           <Route 
             path="/admin" 
             element={
