@@ -17,27 +17,18 @@ const ProtectedRoute: React.FC<{ children: React.ReactNode }> = ({ children }) =
     }
 
     supabase.auth.getSession().then((response) => {
-      const session = response?.data?.session || null;
+      const session = response?.data?.session;
       setSession(session);
       setLoading(false);
     }).catch(err => {
       console.error("Error getting session:", err);
-      setSession(null);
       setLoading(false);
     });
 
     const { data } = supabase.auth.onAuthStateChange(
-      (event, session) => {
-        console.log('=== ProtectedRoute onAuthStateChange ===');
-        console.log('evento:', event);
-        console.log('session:', session ? 'ativa' : 'nula');
-        
-        if (event === 'SIGNED_OUT') {
-          console.log('=== LOGOUT DETECTADO NO LISTENER ===');
-          setSession(null);
-        } else {
-          setSession(session);
-        }
+      (_event, session) => {
+        console.log('[App] 🔄 Evento de Auth disparado:', _event, 'Sessão existe?', !!session);
+        setSession(session);
       }
     );
 
@@ -48,11 +39,9 @@ const ProtectedRoute: React.FC<{ children: React.ReactNode }> = ({ children }) =
     };
   }, []);
 
-  if (loading) return null;
+  console.log('[App] 🖥️ Renderizando App. Loading:', loading, 'Sessão:', !!session);
 
-  console.log('=== ProtectedRoute render ===');
-  console.log('loading:', loading);
-  console.log('session:', session);
+  if (loading) return null;
 
   if (isSupabaseConfigured() && !session) return <Auth />;
 

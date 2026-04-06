@@ -405,25 +405,11 @@ export const AdminApp: React.FC = () => {
   }, [appointments]);
 
   const handleLogout = async () => {
-    console.log('=== LOGOUT: clicado ===');
-    setShowSettingsModal(false);
-    try {
-      if (isSupabaseConfigured()) {
-        console.log('=== LOGOUT: executando signOut local ===');
-        await supabase.auth.signOut({ scope: 'local' });
-        console.log('=== LOGOUT: signOut concluído ===');
-        
-        // Fallback: Se o listener no App.tsx não reagir em 1.5s, forçamos o reload
-        setTimeout(() => {
-          console.log('=== LOGOUT: verificando fallback ===');
-          window.location.href = '/';
-        }, 1500);
-      }
-    } catch (err) {
-      console.error('Erro ao fazer logout:', err);
-      // Em caso de erro crítico, tenta limpar e recarregar
-      window.location.href = '/';
+    if (isSupabaseConfigured()) {
+      await supabase.auth.signOut();
     }
+    setShowSettingsModal(false);
+    window.location.reload(); // Força o unmount e devolve o controle ao App.tsx
   };
 
   const handleNavigateToCustomer = (phone: string) => {

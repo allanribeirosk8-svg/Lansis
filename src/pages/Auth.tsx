@@ -25,14 +25,17 @@ export const Auth: React.FC = () => {
         });
         if (signUpError) throw signUpError;
       } else {
-        const { error: signInError } = await supabase.auth.signInWithPassword({
+        console.log('[Auth] 🔑 Tentando fazer login com email...');
+        const { data, error: signInError } = await supabase.auth.signInWithPassword({
           email,
           password,
         });
         if (signInError) throw signInError;
+        console.log('[Auth] ✅ Login do Supabase concluído com sucesso. Resposta:', data);
         navigate('/admin');
       }
     } catch (err: any) {
+      console.error('[Auth] ❌ Erro ao tentar logar:', err);
       setError(err.message || 'Ocorreu um erro na autenticação.');
     } finally {
       setLoading(false);
