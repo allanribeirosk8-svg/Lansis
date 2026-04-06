@@ -17,17 +17,29 @@ const ProtectedRoute: React.FC<{ children: React.ReactNode }> = ({ children }) =
     }
 
     supabase.auth.getSession().then((response) => {
-      const session = response?.data?.session;
+      const session = response?.data?.session || null;
       setSession(session);
       setLoading(false);
     }).catch(err => {
       console.error("Error getting session:", err);
+      setSession(null);
       setLoading(false);
     });
 
-    const { data } = supabase.auth.onAuthStateChange((_event, session) => {
-      setSession(session);
-    });
+    const { data } = supabase.auth.onAuthStateChange(
+      (event, session) => {
+        console.log('=== ProtectedRoute onAuthStateChange ===');
+        console.log('evento:', event);
+        console.log('session:', session ? 'ativa' : 'nula');
+        
+        if (event === 'SIGNED_OUT') {
+          console.log('=== LOGOUT DETECTADO NO LISTENER ===');
+          setSession(null);
+        } else {
+          setSession(session);
+        }
+      }
+    );
 
     return () => {
       if (data?.subscription) {
@@ -37,6 +49,11 @@ const ProtectedRoute: React.FC<{ children: React.ReactNode }> = ({ children }) =
   }, []);
 
   if (loading) return null;
+
+  console.log('=== ProtectedRoute render ===');
+  console.log('loading:', loading);
+  console.log('session:', session);
+
   if (isSupabaseConfigured() && !session) return <Auth />;
 
   return <>{children}</>;
