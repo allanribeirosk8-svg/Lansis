@@ -92,8 +92,8 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
   const getSupabaseSession = useCallback(async () => {
     if (!isSupabaseConfigured()) return null;
     try {
-      const response = await supabase.auth.getSession();
-      return response?.data?.session || null;
+      const { data } = await supabase.auth.getSession();
+      return data?.session || null;
     } catch (e) {
       console.error("Error getting Supabase session", e);
       return null;
@@ -226,17 +226,13 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
     loadData();
 
     if (isSupabaseConfigured()) {
-      const { data } = supabase.auth.onAuthStateChange((event) => {
+      const { data: { subscription } } = supabase.auth.onAuthStateChange((event) => {
         if (event === 'SIGNED_IN' || event === 'SIGNED_OUT') {
           loadData();
         }
       });
 
-      return () => {
-        if (data?.subscription) {
-          data.subscription.unsubscribe();
-        }
-      };
+      return () => subscription.unsubscribe();
     }
   }, [loadData]);
 
@@ -247,7 +243,7 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
     let channel: any;
 
     const setupRealtime = async () => {
-      const session = await getSupabaseSession();
+      const { data: { session } } = await supabase.auth.getSession();
       if (!session) return;
 
       channel = supabase
@@ -339,7 +335,9 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
     const syncLocal = async () => {
       if (isLoading) return;
       
-      const session = await getSupabaseSession();
+      const { data: { session } } = isSupabaseConfigured() 
+        ? await supabase.auth.getSession() 
+        : { data: { session: null } };
 
       // Se estiver logado, não queremos sujar o LocalStorage com dados do Supabase
       // ou vice-versa. O LocalStorage fica apenas para o modo "Cliente/Demo"
@@ -526,7 +524,7 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
       };
       
       const sync = async () => {
-        const session = await getSupabaseSession();
+        const { data: { session } } = isSupabaseConfigured() ? await supabase.auth.getSession() : { data: { session: null } };
         if (session) {
           const savedApt = await supabaseService.saveAppointment(updatedApt);
           setAppointments(prev => prev.map(a => a.id === id ? normalizeAppointment(savedApt) : a));
@@ -561,7 +559,7 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
       };
 
       const sync = async () => {
-        const session = await getSupabaseSession();
+        const { data: { session } } = isSupabaseConfigured() ? await supabase.auth.getSession() : { data: { session: null } };
         if (session) {
           const savedApt = await supabaseService.saveAppointment(updatedApt);
           setAppointments(prev => prev.map(a => a.id === id ? normalizeAppointment(savedApt) : a));
@@ -608,7 +606,7 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
       };
 
       const sync = async () => {
-        const session = await getSupabaseSession();
+        const { data: { session } } = isSupabaseConfigured() ? await supabase.auth.getSession() : { data: { session: null } };
         if (session) {
           const savedApt = await supabaseService.saveAppointment(updatedApt);
           setAppointments(prev => prev.map(a => a.id === id ? normalizeAppointment(savedApt) : a));
@@ -653,7 +651,7 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
     });
 
     try {
-      const session = await getSupabaseSession();
+      const { data: { session } } = isSupabaseConfigured() ? await supabase.auth.getSession() : { data: { session: null } };
       if (session) {
         if (aptToDelete) await supabaseService.deleteAppointment(id);
         if (updatedCust) await supabaseService.saveCustomer(updatedCust);
@@ -678,7 +676,7 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
       return { ...prev, [normalizedPhone]: updatedCust };
     });
 
-    const session = await getSupabaseSession();
+    const { data: { session } } = isSupabaseConfigured() ? await supabase.auth.getSession() : { data: { session: null } };
     if (session) {
       supabaseService.addCustomerPhoto(phone, newPhoto).catch(console.error);
     }
@@ -696,7 +694,7 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
     });
 
     if (updatedCust) {
-      const session = await getSupabaseSession();
+      const { data: { session } } = isSupabaseConfigured() ? await supabase.auth.getSession() : { data: { session: null } };
       if (session) {
         supabaseService.saveCustomer(updatedCust).catch(console.error);
       }

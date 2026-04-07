@@ -18,7 +18,7 @@ export const ClientApp: React.FC = () => {
     return (
       <div className="min-h-screen bg-slate-50 flex items-center justify-center p-6 text-center">
         <div className="max-w-xs space-y-4">
-          <div className="w-20 h-20 bg-indigo-100 rounded-full flex items-center justify-center mx-auto text-indigo-500">
+          <div className="w-20 h-20 bg-blue-100 rounded-full flex items-center justify-center mx-auto text-blue-500">
             <Clock size={40} />
           </div>
           <h2 className="text-xl font-bold text-slate-800">Em Breve!</h2>
@@ -242,7 +242,7 @@ export const ClientApp: React.FC = () => {
             </div>
             <div className="flex justify-between items-center">
               <span className="text-[9px] font-black uppercase tracking-widest text-slate-400">Horário</span>
-              <span className="text-xs font-black text-indigo-600">{formData.time}</span>
+              <span className="text-xs font-black text-brand-600">{formData.time}</span>
             </div>
             <div className="flex justify-between items-start">
               <span className="text-[9px] font-black uppercase tracking-widest text-slate-400">Serviço</span>
@@ -257,7 +257,7 @@ export const ClientApp: React.FC = () => {
           </div>
 
           <p className="text-slate-500 mb-4 text-xs leading-relaxed">
-            Olá <span className="font-bold text-indigo-600">{formData.name}</span>, sua reserva em <span className="font-bold text-indigo-600">{barberProfile.shopName}</span> foi realizada com sucesso.
+            Olá <span className="font-bold text-brand-600">{formData.name}</span>, sua reserva em <span className="font-bold text-brand-600">{barberProfile.shopName}</span> foi realizada com sucesso.
           </p>
 
           <div className="space-y-3">
@@ -274,7 +274,7 @@ export const ClientApp: React.FC = () => {
               });
               setLastAptId(null);
               setCanCancel(false);
-            }} className="h-14 rounded-2xl font-black uppercase tracking-widest shadow-lg shadow-indigo-500/20">
+            }} className="h-14 rounded-2xl font-black uppercase tracking-widest shadow-lg shadow-brand-500/20">
               Voltar ao Início
             </Button>
 
@@ -306,7 +306,7 @@ export const ClientApp: React.FC = () => {
                 exit={{ opacity: 0, scale: 0.9, y: 20 }}
                 className="bg-white w-full max-w-sm rounded-[2rem] p-6 sm:p-8 shadow-2xl border border-slate-100 text-center max-h-[90vh] overflow-y-auto"
               >
-                <div className="w-16 h-16 bg-indigo-50 text-indigo-500 rounded-full flex items-center justify-center mx-auto mb-6">
+                <div className="w-16 h-16 bg-blue-50 text-blue-500 rounded-full flex items-center justify-center mx-auto mb-6">
                   <Settings2 size={32} />
                 </div>
                 <h3 className="text-xl font-black text-slate-800 mb-2 uppercase tracking-tight">Alterar ou Cancelar?</h3>
@@ -316,7 +316,7 @@ export const ClientApp: React.FC = () => {
                 <div className="flex flex-col gap-3">
                   <button 
                     onClick={handleAlterAppointment}
-                    className="h-14 rounded-2xl bg-indigo-500 text-white font-black uppercase tracking-widest text-[11px] shadow-lg shadow-indigo-500/20 hover:bg-indigo-600 transition-colors flex items-center justify-center gap-2"
+                    className="h-14 rounded-2xl bg-brand-500 text-white font-black uppercase tracking-widest text-[11px] shadow-lg shadow-brand-500/20 hover:bg-brand-600 transition-colors flex items-center justify-center gap-2"
                   >
                     <Edit3 size={16} />
                     Alterar Agendamento
@@ -348,14 +348,14 @@ export const ClientApp: React.FC = () => {
       <main className="min-h-screen bg-soft-background p-3 sm:p-6 flex flex-col items-center justify-center">
         <div className="w-full max-w-md space-y-4 animate-in fade-in slide-in-from-bottom-4 duration-500">
           <div className="bg-white rounded-[2rem] shadow-2xl overflow-hidden border border-slate-100 relative">
-            <div className="bg-indigo-600 p-6 text-center text-white">
+            <div className="bg-brand-600 p-6 text-center text-white">
               {barberProfile.logo ? (
                   <img src={barberProfile.logo} className="w-12 h-12 rounded-xl mx-auto mb-3 object-cover border-2 border-white/20" alt="Logo" />
               ) : (
                   <h2 className="text-xl font-black uppercase tracking-widest">{barberProfile.shopName}</h2>
               )}
               <h2 className="text-base font-black uppercase tracking-widest opacity-90">Resumo do Corte</h2>
-              <p className="text-indigo-100 text-[9px] font-bold uppercase tracking-[0.3em] mt-1">Confirme seu agendamento</p>
+              <p className="text-brand-100 text-[9px] font-bold uppercase tracking-[0.3em] mt-1">Confirme seu agendamento</p>
             </div>
             
             <div className="p-6 space-y-4 relative">
@@ -377,7 +377,7 @@ export const ClientApp: React.FC = () => {
                     {selectedServices.map(s => (
                       <div key={s.id} className="flex justify-between items-center bg-slate-50 px-3 py-2 rounded-xl border border-slate-100">
                         <span className="text-xs font-bold text-slate-700">{s.name}</span>
-                        <span className="text-xs font-black text-indigo-600">{formatCurrency(s.price)}</span>
+                        <span className="text-xs font-black text-brand-600">{formatCurrency(s.price)}</span>
                       </div>
                     ))}
                   </div>
@@ -390,7 +390,7 @@ export const ClientApp: React.FC = () => {
                   </div>
                   <div className="text-right space-y-0.5">
                     <p className="text-[9px] text-slate-400 font-black uppercase tracking-widest">Horário</p>
-                    <p className="text-lg font-black text-indigo-600">{formData.time}</p>
+                    <p className="text-lg font-black text-brand-600">{formData.time}</p>
                   </div>
                 </div>
 
@@ -425,7 +425,7 @@ export const ClientApp: React.FC = () => {
           </div>
 
           <div className="flex flex-col gap-2">
-            <Button fullWidth onClick={handleFinalize} className="h-14 text-sm font-black uppercase tracking-widest shadow-xl shadow-indigo-500/30">
+            <Button fullWidth onClick={handleFinalize} className="h-14 text-sm font-black uppercase tracking-widest shadow-xl shadow-brand-500/30">
               Confirmar Agendamento
             </Button>
             <button 
@@ -451,7 +451,7 @@ export const ClientApp: React.FC = () => {
               exit={{ opacity: 0, y: -20 }}
               className="fixed top-8 left-1/2 -translate-x-1/2 z-[60] bg-slate-900 text-white px-6 py-3 rounded-2xl shadow-2xl flex items-center gap-3 border border-slate-700 w-[90%] max-w-sm"
             >
-              <div className="w-6 h-6 bg-indigo-500 rounded-full flex items-center justify-center shrink-0">
+              <div className="w-6 h-6 bg-blue-500 rounded-full flex items-center justify-center shrink-0">
                 <CheckCircle2 size={14} strokeWidth={4} />
               </div>
               <span className="text-[10px] font-black uppercase tracking-widest leading-tight">{cancelMessage}</span>
@@ -468,14 +468,14 @@ export const ClientApp: React.FC = () => {
                         className="w-20 h-20 object-cover rounded-[2rem] shadow-2xl border-4 border-white mx-auto mb-2" 
                         alt="Logo Negócio" 
                     />
-                    <div className="absolute -bottom-1 -right-1 bg-indigo-500 text-white p-1 rounded-lg shadow-lg border-2 border-white">
+                    <div className="absolute -bottom-1 -right-1 bg-brand-500 text-white p-1 rounded-lg shadow-lg border-2 border-white">
                         <svg xmlns="http://www.w3.org/2000/svg" className="h-3 w-3" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M5 13l4 4L19 7" />
                         </svg>
                     </div>
                  </div>
              ) : (
-                 <div className="inline-block bg-indigo-500 text-white p-4 rounded-[1.2rem] shadow-xl shadow-indigo-500/20 mb-1">
+                 <div className="inline-block bg-brand-500 text-white p-4 rounded-[1.2rem] shadow-xl shadow-brand-500/20 mb-1">
                     <svg xmlns="http://www.w3.org/2000/svg" className="h-8 w-8" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M14.121 14.121L19 19m-7-7l7-7m-7 7l-2.879 2.879M12 12L9.121 9.121m0 5.758L6 18m3.121-9.121L6 6" />
                     </svg>
@@ -516,13 +516,13 @@ export const ClientApp: React.FC = () => {
               />
             </div>
 
-            <Button fullWidth onClick={handleGoToBooking} className="h-14 rounded-2xl text-sm font-black uppercase tracking-widest shadow-xl shadow-indigo-500/30 active:scale-95">
+            <Button fullWidth onClick={handleGoToBooking} className="h-14 rounded-2xl text-sm font-black uppercase tracking-widest shadow-xl shadow-brand-500/30 active:scale-95">
               Escolher Horário
             </Button>
           </section>
 
           <footer className="text-center flex flex-col gap-2">
-            <Link to="/admin" className="text-[10px] text-slate-300 font-black uppercase tracking-[0.2em] hover:text-indigo-500 transition-colors">
+            <Link to="/admin" className="text-[10px] text-slate-300 font-black uppercase tracking-[0.2em] hover:text-brand-500 transition-colors">
               Sou Barbeiro
             </Link>
           </footer>
@@ -537,7 +537,7 @@ export const ClientApp: React.FC = () => {
         <header className="flex justify-between items-center px-2">
           <button 
             onClick={() => setStep('welcome')}
-            className="flex items-center gap-2 text-slate-400 hover:text-indigo-500 transition-colors"
+            className="flex items-center gap-2 text-slate-400 hover:text-brand-500 transition-colors"
           >
             <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
@@ -568,19 +568,19 @@ export const ClientApp: React.FC = () => {
                     className={`
                       relative flex flex-col justify-between p-3 rounded-xl border transition-all text-left h-full
                       ${isSelected 
-                        ? 'bg-indigo-50 border-indigo-500 ring-1 ring-indigo-500' 
+                        ? 'bg-brand-50 border-brand-500 ring-1 ring-brand-500' 
                         : 'bg-white border-slate-100 hover:border-slate-300'}
                     `}
                   >
                     <div className="pr-4">
-                      <p className={`font-bold text-[11px] leading-tight mb-0.5 ${isSelected ? 'text-indigo-600' : 'text-slate-800'}`}>
+                      <p className={`font-bold text-[11px] leading-tight mb-0.5 ${isSelected ? 'text-brand-600' : 'text-slate-800'}`}>
                         {service.name}
                       </p>
-                      <p className="text-[9px] text-indigo-600 font-black">{formatCurrency(service.price)}</p>
+                      <p className="text-[9px] text-brand-600 font-black">{formatCurrency(service.price)}</p>
                     </div>
                     
                     <div className={`absolute top-2 right-2 w-3.5 h-3.5 rounded-full border flex items-center justify-center transition-colors
-                      ${isSelected ? 'bg-indigo-500 border-indigo-500 text-white' : 'border-slate-200 bg-white'}`}>
+                      ${isSelected ? 'bg-brand-500 border-brand-500 text-white' : 'border-slate-200 bg-white'}`}>
                       {isSelected && <svg xmlns="http://www.w3.org/2000/svg" className="h-2 w-2" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={4}><path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" /></svg>}
                     </div>
                   </button>
@@ -592,7 +592,7 @@ export const ClientApp: React.FC = () => {
             {selectedServices.length > 0 && (
               <div className="bg-slate-50 p-2 rounded-lg flex justify-between items-center mt-1 border border-slate-100 border-dashed">
                 <span className="text-[9px] font-black text-slate-400 uppercase tracking-widest">Total:</span>
-                <span className="text-xs font-black text-indigo-600">{formatCurrency(totalPrice)}</span>
+                <span className="text-xs font-black text-brand-600">{formatCurrency(totalPrice)}</span>
               </div>
             )}
           </div>
@@ -626,10 +626,10 @@ export const ClientApp: React.FC = () => {
                       className={`
                         py-2.5 rounded-xl text-[11px] font-bold transition-all flex flex-col items-center justify-center
                         ${isSelected 
-                          ? 'bg-indigo-600 text-white shadow-lg shadow-indigo-500/30 scale-105 z-10' 
+                          ? 'bg-brand-600 text-white shadow-lg shadow-brand-500/30 scale-105 z-10' 
                           : isUnavailable 
                             ? 'bg-slate-50 text-slate-200 cursor-not-allowed border border-transparent opacity-60' 
-                            : 'bg-white text-slate-600 border-slate-100 hover:border-indigo-500 hover:text-indigo-600'}
+                            : 'bg-white text-slate-600 border-slate-100 hover:border-brand-500 hover:text-brand-600'}
                       `}
                     >
                       <span>{slot}</span>
@@ -646,7 +646,7 @@ export const ClientApp: React.FC = () => {
               Recado para o Barbeiro
             </label>
             <textarea 
-              className="w-full px-4 py-2.5 rounded-xl border border-slate-100 bg-slate-50 text-slate-800 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-indigo-100 min-h-[60px] text-xs transition-all"
+              className="w-full px-4 py-2.5 rounded-xl border border-slate-100 bg-slate-50 text-slate-800 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-brand-100 min-h-[60px] text-xs transition-all"
               placeholder="Opcional..."
               value={formData.observation}
               onChange={e => setFormData({...formData, observation: e.target.value})}
@@ -654,7 +654,7 @@ export const ClientApp: React.FC = () => {
           </div>
 
           <div className="pt-2">
-            <Button type="submit" fullWidth disabled={!formData.time || formData.serviceIds.length === 0} className="h-14 text-sm font-black uppercase tracking-widest rounded-2xl shadow-xl shadow-indigo-500/20">
+            <Button type="submit" fullWidth disabled={!formData.time || formData.serviceIds.length === 0} className="h-14 text-sm font-black uppercase tracking-widest rounded-2xl shadow-xl shadow-brand-500/20">
               Revisar Agendamento
             </Button>
           </div>

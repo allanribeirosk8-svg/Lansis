@@ -105,7 +105,7 @@ const Calendar: React.FC<CalendarProps> = ({
 
         <button 
           onClick={() => setViewMode(viewMode === 'days' ? 'years' : 'days')}
-          className="text-sm font-bold text-slate-700 dark:text-slate-200 hover:text-indigo-600 transition-colors"
+          className="text-sm font-bold text-slate-700 dark:text-slate-200 hover:text-brand-600 transition-colors"
         >
           {formatMonthYear(viewDate)}
         </button>
@@ -159,9 +159,9 @@ const Calendar: React.FC<CalendarProps> = ({
                       }
                     }}
                     className={`h-10 w-full rounded-xl flex items-center justify-center text-xs font-bold transition-all relative
-                      ${isSelected ? 'bg-indigo-500 text-white shadow-md scale-105 z-10' : 
-                        isToday ? 'bg-indigo-50 text-indigo-600 dark:bg-indigo-900/20 dark:text-indigo-400' : 
-                        highlighted ? 'bg-indigo-100 text-indigo-700 dark:bg-indigo-900/40 dark:text-indigo-300' :
+                      ${isSelected ? 'bg-brand-500 text-white shadow-md scale-105 z-10' : 
+                        isToday ? 'bg-brand-50 text-brand-600 dark:bg-brand-900/20 dark:text-brand-400' : 
+                        highlighted ? 'bg-brand-100 text-brand-700 dark:bg-brand-900/40 dark:text-brand-300' :
                         type !== 'current' || isOutOfRange ? 'text-slate-300 dark:text-slate-700' : 
                         closed ? 'text-red-400 dark:text-red-900/50' :
                         'text-slate-600 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-800'}`}
@@ -169,7 +169,7 @@ const Calendar: React.FC<CalendarProps> = ({
                     {date.getDate()}
                     {count > 0 && type === 'current' && (
                       <div className={`absolute -top-1 -right-1 w-4 h-4 rounded-full flex items-center justify-center text-[8px] font-bold border-2
-                        ${isSelected ? 'bg-white text-indigo-600 border-indigo-500' : 'bg-indigo-500 text-white border-white dark:border-slate-900'}`}>
+                        ${isSelected ? 'bg-white text-brand-600 border-brand-500' : 'bg-brand-500 text-white border-white dark:border-slate-900'}`}>
                         {count > 9 ? '9+' : count}
                       </div>
                     )}
@@ -194,7 +194,7 @@ const Calendar: React.FC<CalendarProps> = ({
                   setViewMode('days');
                 }}
                 className={`h-12 rounded-xl flex items-center justify-center font-bold text-sm transition-all
-                  ${viewDate.getFullYear() === year ? 'bg-indigo-500 text-white shadow-sm' : 'bg-slate-50 dark:bg-slate-800 text-slate-600 dark:text-slate-300 hover:bg-slate-100'}`}
+                  ${viewDate.getFullYear() === year ? 'bg-brand-500 text-white shadow-sm' : 'bg-slate-50 dark:bg-slate-800 text-slate-600 dark:text-slate-300 hover:bg-slate-100'}`}
               >
                 {year}
               </button>

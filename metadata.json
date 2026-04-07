@@ -1,5 +1,5 @@
 {
-  "name": "Meu Corte",
+  "name": "Meu corte - 5.0",
   "description": "App de agendamento de barbearia com interface amigável e gestão interna.",
   "requestFramePermissions": [
     "camera"
