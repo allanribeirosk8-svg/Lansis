@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { supabase } from '../lib/supabase';
 import { motion, AnimatePresence } from 'motion/react';
-import { Loader2, Mail, Lock, LogIn, UserPlus, AlertCircle } from 'lucide-react';
+import { Loader2, Mail, Lock, LogIn, UserPlus, AlertCircle, CheckCircle2 } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 
 export const Auth: React.FC = () => {
@@ -11,11 +11,13 @@ export const Auth: React.FC = () => {
   const [password, setPassword] = useState('');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [successMsg, setSuccessMsg] = useState<string | null>(null);
 
   const handleAuth = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
     setError(null);
+    setSuccessMsg(null);
 
     try {
       if (isSignUp) {
@@ -24,15 +26,23 @@ export const Auth: React.FC = () => {
           password,
         });
         if (signUpError) throw signUpError;
+        setSuccessMsg('Conta criada! Verifique sua caixa de entrada (ou spam) para confirmar seu e-mail.');
+        setPassword('');
       } else {
-        console.log('[Auth] 🔑 Tentando fazer login com email...');
+        console.log('[Auth] 🟡 1. Botão clicado. Tentando login com:', email);
         const { data, error: signInError } = await supabase.auth.signInWithPassword({
           email,
           password,
         });
-        if (signInError) throw signInError;
-        console.log('[Auth] ✅ Login do Supabase concluído com sucesso. Resposta:', data);
-        navigate('/admin');
+        console.log('[Auth] 🟢 2. Resposta do Supabase. Erro?', !!signInError, '| Dados:', data);
+        if (signInError) {
+          console.error('[Auth] 🔴 ERRO NO LOGIN:', signInError);
+          throw signInError;
+        }
+        
+        // Navegação Ativa: Força a mudança de rota imediatamente após o OK do Supabase
+        console.log('[Auth] 🔵 3. Comando navigate disparado para /admin');
+        navigate('/admin', { replace: true });
       }
     } catch (err: any) {
       console.error('[Auth] ❌ Erro ao tentar logar:', err);
@@ -173,6 +183,20 @@ export const Auth: React.FC = () => {
                 >
                   <AlertCircle className="w-4 h-4 shrink-0" />
                   <span>{error}</span>
+                </motion.div>
+              )}
+            </AnimatePresence>
+
+            <AnimatePresence>
+              {successMsg && (
+                <motion.div
+                  initial={{ opacity: 0, y: -10 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  exit={{ opacity: 0, y: -10 }}
+                  className="bg-emerald-50 dark:bg-emerald-900/20 text-emerald-600 dark:text-emerald-400 p-3 rounded-lg text-sm flex items-center gap-2"
+                >
+                  <CheckCircle2 className="w-4 h-4 shrink-0" />
+                  <span>{successMsg}</span>
                 </motion.div>
               )}
             </AnimatePresence>

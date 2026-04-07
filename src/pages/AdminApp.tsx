@@ -405,11 +405,15 @@ export const AdminApp: React.FC = () => {
   }, [appointments]);
 
   const handleLogout = async () => {
-    if (isSupabaseConfigured()) {
-      await supabase.auth.signOut();
+    try {
+      if (isSupabaseConfigured()) {
+        await supabase.auth.signOut();
+        // O listener do App.tsx cuidará de redirecionar para /login automaticamente
+      }
+      setShowSettingsModal(false);
+    } catch (error) {
+      console.error("Erro ao fazer logout:", error);
     }
-    setShowSettingsModal(false);
-    window.location.reload(); // Força o unmount e devolve o controle ao App.tsx
   };
 
   const handleNavigateToCustomer = (phone: string) => {

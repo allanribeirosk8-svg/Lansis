@@ -5,25 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Meu Corte</title>
   <meta name="description" content="Agende seu corte de cabelo de forma simples e rápida.">
-  <link rel="manifest" href="manifest.json">
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
-  <script>
-    if ('serviceWorker' in navigator) {
-      window.addEventListener('load', () => {
-        const path = window.location.pathname;
-        const basePath = path.substring(0, path.lastIndexOf('/') + 1);
-        const swUrl = window.location.origin + basePath + 'sw.js';
-        
-        navigator.serviceWorker.register(swUrl)
-          .then(registration => {
-            console.log('ServiceWorker registration successful');
-          })
-          .catch(err => {
-            console.warn('ServiceWorker registration failed: ', err);
-          });
-      });
-    }
-  </script>
   <style>
     body { background-color: #f8fafc; color: #334155; }
     html { scroll-behavior: smooth; }

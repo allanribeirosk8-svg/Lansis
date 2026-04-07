@@ -10,6 +10,8 @@ const ProtectedRoute: React.FC<{ children: React.ReactNode }> = ({ children }) =
   const [session, setSession] = React.useState<any>(null);
   const [loading, setLoading] = React.useState(true);
 
+  console.log('[ProtectedRoute] 🛡️ Renderizando. Loading:', loading, '| Tem Sessão?', !!session);
+
   React.useEffect(() => {
     if (!isSupabaseConfigured()) {
       setLoading(false);
@@ -27,8 +29,11 @@ const ProtectedRoute: React.FC<{ children: React.ReactNode }> = ({ children }) =
 
     const { data } = supabase.auth.onAuthStateChange(
       (_event, session) => {
+        console.log('[ProtectedRoute] 🔄 Evento Supabase:', _event, '| Sessão existe?', !!session);
         console.log('[App] 🔄 Evento de Auth disparado:', _event, 'Sessão existe?', !!session);
         setSession(session);
+        if (_event === 'SIGNED_OUT') setSession(null);
+        setLoading(false); // <- ESTA É A LINHA CRÍTICA A SER ADICIONADA
       }
     );
 
