@@ -9,7 +9,6 @@ import { Customer, ServiceItem, Appointment, BarberProfile } from '../types';
 import { Link } from 'react-router-dom';
 import { motion, AnimatePresence, Reorder } from 'motion/react';
 import confetti from 'canvas-confetti';
-import { SetupWizard } from '../components/SetupWizard';
 import { 
   Calendar, 
   Ban, 
@@ -312,7 +311,7 @@ const useScrollDirection = () => {
 };
 
 export const AdminApp: React.FC = () => {
-  const { barberProfile, appointments, isDarkMode, toggleDarkMode, isLoading, services } = useStore();
+  const { barberProfile, appointments, isDarkMode, toggleDarkMode } = useStore();
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [activeTab, setActiveTab] = useState<'agenda' | 'clientes' | 'servicos' | 'relatorios'>('agenda');
   const [selectedDate, setSelectedDate] = useState(getTodayString());
@@ -389,9 +388,8 @@ export const AdminApp: React.FC = () => {
   useEffect(() => {
     const checkSession = async () => {
       if (isSupabaseConfigured()) {
-        const { data } = await supabase.auth.getSession();
-        const session = data?.session;
-        if (session) {
+        const result = await supabase.auth.getSession();
+        if (result?.data?.session) {
           setIsAuthenticated(true);
         }
       }
@@ -399,12 +397,15 @@ export const AdminApp: React.FC = () => {
     checkSession();
 
     if (isSupabaseConfigured()) {
-      const { data } = supabase.auth.onAuthStateChange((_event, session) => {
+      const authResult = supabase.auth.onAuthStateChange((_event, session) => {
         setIsAuthenticated(!!session);
       });
-      const subscription = data?.subscription;
 
-      return () => subscription?.unsubscribe();
+      return () => {
+        if (authResult?.data?.subscription) {
+          authResult.data.subscription.unsubscribe();
+        }
+      };
     }
   }, []);
 
@@ -418,10 +419,11 @@ export const AdminApp: React.FC = () => {
         throw new Error('O Supabase não está configurado. Por favor, adicione as variáveis de ambiente VITE_SUPABASE_URL e VITE_SUPABASE_ANON_KEY.');
       }
 
-      const { error } = await supabase.auth.signInWithPassword({
+      const result = await supabase.auth.signInWithPassword({
         email: credentials.user,
         password: credentials.pass,
       });
+      const error = result?.error;
 
       if (error) throw error;
       setIsAuthenticated(true);
@@ -500,13 +502,6 @@ export const AdminApp: React.FC = () => {
         </div>
       </div>
     );
-  }
-
-  // Check if setup is needed
-  const isSetupNeeded = !isLoading && barberProfile.shopName === 'Meu Corte' && barberProfile.name === 'Barbeiro';
-
-  if (isSetupNeeded) {
-    return <SetupWizard />;
   }
 
   return (
@@ -3324,7 +3319,8 @@ const CustomerDetail: React.FC<{
     
     setIsLoadingData(true);
     try {
-      const { data: { session } } = await supabase.auth.getSession();
+      const result = await supabase.auth.getSession();
+      const session = result?.data?.session;
       if (!session) return;
 
       // Fetch history (completed and no-show appointments)

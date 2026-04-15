@@ -5,23 +5,40 @@ import { normalizePhone, normalizeTime } from '../utils/helpers';
 // Define database types to fix lint errors
 export const supabaseService = {
   // Helper to get current user ID
-  async getUserId() {
-    const { data } = await supabase.auth.getUser();
-    const user = data?.user;
-    if (!user) return null;
-    return user.id;
+ async getUserId() {
+    try {
+        const result = await supabase.auth.getSession();
+        const error = result?.error;
+        const data = result?.data;
+        
+        if (error) {
+            console.error("Error getting session in getUserId:", error);
+            return null;
+        }
+        return data?.session?.user?.id || null;
+    } catch (e) {
+        console.error("Exception in getUserId:", e);
+        return null;
+    }
+},
+
+  // Get the first barber profile ID for public access
+  async getPublicBarberId() {
+    const { data, error } = await supabase.from('profiles').select('id').limit(1).maybeSingle();
+    if (error || !data) return null;
+    return (data as any).id;
   },
 
   // Profiles
-  async getProfile() {
-    const userId = await this.getUserId();
+  async getProfile(targetUserId?: string) {
+    const userId = targetUserId || await this.getUserId();
     if (!userId) return null;
 
     const { data, error } = await supabase.from('profiles').select('*').eq('id', userId).single();
     if (error && error.code === 'PGRST116') {
       // Auto-create profile if missing
-      const { data } = await supabase.auth.getUser();
-      const user = data?.user;
+      const userResult = await supabase.auth.getUser();
+      const user = userResult?.data?.user;
       const newProfile = {
         id: userId,
         name: user?.user_metadata?.name || 'Barbeiro',
@@ -74,8 +91,8 @@ export const supabaseService = {
   },
 
   // Services
-  async getServices() {
-    const userId = await this.getUserId();
+  async getServices(targetUserId?: string) {
+    const userId = targetUserId || await this.getUserId();
     if (!userId) return [];
 
     const { data, error } = await supabase.from('services').select('*').eq('user_id', userId).order('order_index', { ascending: true });
@@ -126,8 +143,8 @@ export const supabaseService = {
   },
 
   // Customers
-  async getCustomers() {
-    const userId = await this.getUserId();
+  async getCustomers(targetUserId?: string) {
+    const userId = targetUserId || await this.getUserId();
     if (!userId) return [];
 
     const { data, error } = await supabase.from('customers').select('*, customer_photos(*)').eq('user_id', userId);
@@ -146,8 +163,8 @@ export const supabaseService = {
       history: [] // History can be derived from appointments if needed, or stored separately
     })) as Customer[];
   },
-  async saveCustomer(customer: Customer) {
-    const userId = await this.getUserId();
+  async saveCustomer(customer: Customer, targetUserId?: string) {
+    const userId = targetUserId || await this.getUserId();
     if (!userId) throw new Error('User not authenticated');
 
     const { photos, ...rest } = customer;
@@ -263,8 +280,8 @@ export const supabaseService = {
   },
 
   // Appointments
-  async getAppointments() {
-    const userId = await this.getUserId();
+  async getAppointments(targetUserId?: string) {
+    const userId = targetUserId || await this.getUserId();
     if (!userId) return [];
 
     const { data, error } = await supabase.from('appointments').select('*').eq('user_id', userId);
@@ -283,8 +300,8 @@ export const supabaseService = {
       createdAt: new Date(a.created_at).getTime()
     })) as Appointment[];
   },
-  async getAppointmentsByDate(date: string) {
-    const userId = await this.getUserId();
+  async getAppointmentsByDate(date: string, targetUserId?: string) {
+    const userId = targetUserId || await this.getUserId();
     if (!userId) return [];
 
     const { data, error } = await supabase
@@ -309,8 +326,8 @@ export const supabaseService = {
       createdAt: new Date(a.created_at).getTime()
     })) as Appointment[];
   },
-  async saveAppointment(appointment: Appointment) {
-    const userId = await this.getUserId();
+  async saveAppointment(appointment: Appointment, targetUserId?: string) {
+    const userId = targetUserId || await this.getUserId();
     if (!userId) throw new Error('User not authenticated');
 
     const isUUID = (id: string) => /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(id);
@@ -359,8 +376,8 @@ export const supabaseService = {
   },
 
   // Weekly Schedule
-  async getWeeklySchedule() {
-    const userId = await this.getUserId();
+  async getWeeklySchedule(targetUserId?: string) {
+    const userId = targetUserId || await this.getUserId();
     if (!userId) return {};
 
     const { data: schedule, error: sError } = await supabase.from('weekly_schedule').select('*').eq('user_id', userId);
@@ -402,8 +419,8 @@ export const supabaseService = {
   },
 
   // Blocked/Unblocked Slots
-  async getBlockedSlots() {
-    const userId = await this.getUserId();
+  async getBlockedSlots(targetUserId?: string) {
+    const userId = targetUserId || await this.getUserId();
     if (!userId) return {};
 
     const { data, error } = await supabase.from('blocked_slots').select('*').eq('user_id', userId);
@@ -425,8 +442,8 @@ export const supabaseService = {
       await supabase.from('blocked_slots').delete().match({ user_id: userId, date, time: normalizeTime(time) });
     }
   },
-  async getUnblockedSlots() {
-    const userId = await this.getUserId();
+  async getUnblockedSlots(targetUserId?: string) {
+    const userId = targetUserId || await this.getUserId();
     if (!userId) return {};
 
     const { data, error } = await supabase.from('unblocked_slots').select('*').eq('user_id', userId);

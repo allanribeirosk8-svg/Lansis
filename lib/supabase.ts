@@ -41,6 +41,11 @@ export const supabase = new Proxy({} as any, {
       // If accessed but not configured, throw a clear error
       throw new Error('Supabase is not configured. Please set VITE_SUPABASE_URL and VITE_SUPABASE_ANON_KEY in your environment variables.');
     }
-    return instance[prop];
+    
+    const value = instance[prop];
+    if (typeof value === 'function') {
+      return value.bind(instance);
+    }
+    return value;
   }
 }) as ReturnType<typeof createClient>;

@@ -10,24 +10,7 @@ import { CheckCircle2, Clock, X, AlertCircle, Settings2, Edit3, Trash2 } from 'l
 type Step = 'welcome' | 'booking' | 'confirm' | 'success';
 
 export const ClientApp: React.FC = () => {
-  const { appointments, addAppointment, deleteAppointment, blockedSlots, weeklySchedule, services, barberProfile, isLoading } = useStore();
-
-  const isSetupNeeded = !isLoading && barberProfile.shopName === 'Meu Corte' && barberProfile.name === 'Barbeiro';
-
-  if (isSetupNeeded) {
-    return (
-      <div className="min-h-screen bg-slate-50 flex items-center justify-center p-6 text-center">
-        <div className="max-w-xs space-y-4">
-          <div className="w-20 h-20 bg-blue-100 rounded-full flex items-center justify-center mx-auto text-blue-500">
-            <Clock size={40} />
-          </div>
-          <h2 className="text-xl font-bold text-slate-800">Em Breve!</h2>
-          <p className="text-slate-500 text-sm">Estamos preparando o sistema de agendamento para você. Volte em alguns instantes.</p>
-        </div>
-      </div>
-    );
-  }
-
+  const { appointments, addAppointment, deleteAppointment, blockedSlots, weeklySchedule, services, barberProfile } = useStore();
   const [step, setStep] = useState<Step>('welcome');
   const [lastAptId, setLastAptId] = useState<string | null>(null);
   const [canCancel, setCanCancel] = useState(false);

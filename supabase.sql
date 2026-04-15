@@ -117,21 +117,21 @@ ALTER TABLE unblocked_slots ENABLE ROW LEVEL SECURITY;
 
 -- RLS Policies
 -- Profiles
-CREATE POLICY "usuario_le_proprios_dados" ON profiles FOR SELECT USING (auth.uid() = id);
+CREATE POLICY "public_read_profiles" ON profiles FOR SELECT USING (true);
 CREATE POLICY "usuario_insere_proprios_dados" ON profiles FOR INSERT WITH CHECK (auth.uid() = id);
 CREATE POLICY "usuario_atualiza_proprios_dados" ON profiles FOR UPDATE USING (auth.uid() = id);
 CREATE POLICY "usuario_deleta_proprios_dados" ON profiles FOR DELETE USING (auth.uid() = id);
 
 -- Services
-CREATE POLICY "usuario_le_proprios_dados" ON services FOR SELECT USING (auth.uid() = user_id);
+CREATE POLICY "public_read_services" ON services FOR SELECT USING (true);
 CREATE POLICY "usuario_insere_proprios_dados" ON services FOR INSERT WITH CHECK (auth.uid() = user_id);
 CREATE POLICY "usuario_atualiza_proprios_dados" ON services FOR UPDATE USING (auth.uid() = user_id);
 CREATE POLICY "usuario_deleta_proprios_dados" ON services FOR DELETE USING (auth.uid() = user_id);
 
 -- Customers
+CREATE POLICY "public_insert_customers" ON customers FOR INSERT WITH CHECK (true);
+CREATE POLICY "public_update_customers" ON customers FOR UPDATE USING (true);
 CREATE POLICY "usuario_le_proprios_dados" ON customers FOR SELECT USING (auth.uid() = user_id);
-CREATE POLICY "usuario_insere_proprios_dados" ON customers FOR INSERT WITH CHECK (auth.uid() = user_id);
-CREATE POLICY "usuario_atualiza_proprios_dados" ON customers FOR UPDATE USING (auth.uid() = user_id);
 CREATE POLICY "usuario_deleta_proprios_dados" ON customers FOR DELETE USING (auth.uid() = user_id);
 
 -- Customer Photos
@@ -141,31 +141,31 @@ CREATE POLICY "usuario_atualiza_proprios_dados" ON customer_photos FOR UPDATE US
 CREATE POLICY "usuario_deleta_proprios_dados" ON customer_photos FOR DELETE USING (auth.uid() = user_id);
 
 -- Appointments
-CREATE POLICY "usuario_le_proprios_dados" ON appointments FOR SELECT USING (auth.uid() = user_id);
-CREATE POLICY "usuario_insere_proprios_dados" ON appointments FOR INSERT WITH CHECK (auth.uid() = user_id);
+CREATE POLICY "public_read_appointments" ON appointments FOR SELECT USING (true);
+CREATE POLICY "public_insert_appointments" ON appointments FOR INSERT WITH CHECK (true);
 CREATE POLICY "usuario_atualiza_proprios_dados" ON appointments FOR UPDATE USING (auth.uid() = user_id);
 CREATE POLICY "usuario_deleta_proprios_dados" ON appointments FOR DELETE USING (auth.uid() = user_id);
 
 -- Weekly Schedule
-CREATE POLICY "usuario_le_proprios_dados" ON weekly_schedule FOR SELECT USING (auth.uid() = user_id);
+CREATE POLICY "public_read_weekly_schedule" ON weekly_schedule FOR SELECT USING (true);
 CREATE POLICY "usuario_insere_proprios_dados" ON weekly_schedule FOR INSERT WITH CHECK (auth.uid() = user_id);
 CREATE POLICY "usuario_atualiza_proprios_dados" ON weekly_schedule FOR UPDATE USING (auth.uid() = user_id);
 CREATE POLICY "usuario_deleta_proprios_dados" ON weekly_schedule FOR DELETE USING (auth.uid() = user_id);
 
 -- Weekly Breaks
-CREATE POLICY "usuario_le_proprios_dados" ON weekly_breaks FOR SELECT USING (auth.uid() = user_id);
+CREATE POLICY "public_read_weekly_breaks" ON weekly_breaks FOR SELECT USING (true);
 CREATE POLICY "usuario_insere_proprios_dados" ON weekly_breaks FOR INSERT WITH CHECK (auth.uid() = user_id);
 CREATE POLICY "usuario_atualiza_proprios_dados" ON weekly_breaks FOR UPDATE USING (auth.uid() = user_id);
 CREATE POLICY "usuario_deleta_proprios_dados" ON weekly_breaks FOR DELETE USING (auth.uid() = user_id);
 
 -- Blocked Slots
-CREATE POLICY "usuario_le_proprios_dados" ON blocked_slots FOR SELECT USING (auth.uid() = user_id);
+CREATE POLICY "public_read_blocked_slots" ON blocked_slots FOR SELECT USING (true);
 CREATE POLICY "usuario_insere_proprios_dados" ON blocked_slots FOR INSERT WITH CHECK (auth.uid() = user_id);
 CREATE POLICY "usuario_atualiza_proprios_dados" ON blocked_slots FOR UPDATE USING (auth.uid() = user_id);
 CREATE POLICY "usuario_deleta_proprios_dados" ON blocked_slots FOR DELETE USING (auth.uid() = user_id);
 
 -- Unblocked Slots
-CREATE POLICY "usuario_le_proprios_dados" ON unblocked_slots FOR SELECT USING (auth.uid() = user_id);
+CREATE POLICY "public_read_unblocked_slots" ON unblocked_slots FOR SELECT USING (true);
 CREATE POLICY "usuario_insere_proprios_dados" ON unblocked_slots FOR INSERT WITH CHECK (auth.uid() = user_id);
 CREATE POLICY "usuario_atualiza_proprios_dados" ON unblocked_slots FOR UPDATE USING (auth.uid() = user_id);
 CREATE POLICY "usuario_deleta_proprios_dados" ON unblocked_slots FOR DELETE USING (auth.uid() = user_id);

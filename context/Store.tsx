@@ -3,6 +3,7 @@ import { Appointment, AppState, BarberProfile, Customer, DayConfig, ServiceItem 
 import { normalizePhone } from '../utils/helpers';
 import { supabaseService } from '../services/supabaseService';
 import { supabase, isSupabaseConfigured } from '../lib/supabase';
+import { Session } from '@supabase/supabase-js';
 
 const AppContext = createContext<AppState | undefined>(undefined);
 
@@ -62,6 +63,12 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
   const [barberProfile, setBarberProfile] = useState<BarberProfile>(DEFAULT_PROFILE);
   const [isDarkMode, setIsDarkMode] = useState<boolean>(false);
   const [isLoading, setIsLoading] = useState(true);
+  const [session, setSession] = useState<Session | null>(null);
+  const [barberId, setBarberId] = useState<string | null>(null);
+  const sessionRef = useRef<Session | null>(null);
+  useEffect(() => {
+    sessionRef.current = session;
+  }, [session]);
 
   const appointmentsRef = useRef(appointments);
   appointmentsRef.current = appointments;
@@ -89,17 +96,6 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
     date: normalizeDate(apt.date)
   });
 
-  const getSupabaseSession = useCallback(async () => {
-    if (!isSupabaseConfigured()) return null;
-    try {
-      const { data } = await supabase.auth.getSession();
-      return data?.session || null;
-    } catch (e) {
-      console.error("Error getting Supabase session", e);
-      return null;
-    }
-  }, []);
-
   const fetchAppointmentsByDate = useCallback(async (date: string) => {
     try {
       if (skipNextFetchRef.current[date]) {
@@ -107,11 +103,7 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
         return;
       }
 
-      const isConfigured = isSupabaseConfigured();
-      if (!isConfigured) return;
-
-      const session = await getSupabaseSession();
-      if (!session) return;
+      if (!isSupabaseConfigured() || !sessionRef.current) return;
 
       const dbApts = await supabaseService.getAppointmentsByDate(date);
       
@@ -145,10 +137,26 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
       const isConfigured = isSupabaseConfigured();
       
       if (isConfigured) {
-        const session = await getSupabaseSession();
+        // Use the current session from ref if available, or fetch it once
+        let currentSession = sessionRef.current;
+        if (!currentSession) {
+          const result = await supabase.auth.getSession();
+          const fetchedSession = result?.data?.session || null;
+          currentSession = fetchedSession;
+          setSession(fetchedSession);
+        }
         
-        // Se o barbeiro está logado, usa APENAS Supabase
-        if (session) {
+        // Determine which user's data to fetch
+        let targetId = currentSession?.user?.id || null;
+        
+        if (!targetId) {
+          // If not logged in, try to find a public barber profile
+          targetId = await supabaseService.getPublicBarberId();
+        }
+
+        setBarberId(targetId);
+        
+        if (targetId) {
           const [
             dbApts,
             dbCustomers,
@@ -158,13 +166,13 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
             dbBlocked,
             dbUnblocked
           ] = await Promise.all([
-            supabaseService.getAppointments(),
-            supabaseService.getCustomers(),
-            supabaseService.getServices(),
-            supabaseService.getProfile(),
-            supabaseService.getWeeklySchedule(),
-            supabaseService.getBlockedSlots(),
-            supabaseService.getUnblockedSlots()
+            supabaseService.getAppointments(targetId),
+            supabaseService.getCustomers(targetId),
+            supabaseService.getServices(targetId),
+            supabaseService.getProfile(targetId),
+            supabaseService.getWeeklySchedule(targetId),
+            supabaseService.getBlockedSlots(targetId),
+            supabaseService.getUnblockedSlots(targetId)
           ]);
 
           setAppointments((dbApts || []).map(normalizeAppointment));
@@ -183,11 +191,13 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
           setWeeklySchedule({ ...DEFAULT_WEEKLY, ...(dbWeekly || {}) });
           setBlockedSlots(dbBlocked || {});
           setUnblockedSlots(dbUnblocked || {});
-          
-          // No modo barbeiro, não carregamos do LocalStorage para evitar dados fantasmas
         } else {
-          // Cliente ou Barbeiro deslogado: Usa apenas LocalStorage (Modo Offline/Demo)
-          loadFromLocalStorage();
+          // If configured but no barber found, we don't fallback to LocalStorage
+          // to keep it "totally via Supabase"
+          setAppointments([]);
+          setCustomers({});
+          setServices(DEFAULT_SERVICES);
+          setBarberProfile(DEFAULT_PROFILE);
         }
       } else {
         loadFromLocalStorage();
@@ -223,16 +233,23 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
 
   // Load from Supabase (Primary) and LocalStorage (Fallback/Cache)
   useEffect(() => {
-    loadData();
-
     if (isSupabaseConfigured()) {
-      const { data: { subscription } } = supabase.auth.onAuthStateChange((event) => {
-        if (event === 'SIGNED_IN' || event === 'SIGNED_OUT') {
+      const authResult = supabase.auth.onAuthStateChange((event, newSession) => {
+        console.log("Auth event:", event);
+        setSession(newSession);
+        
+        if (event === 'SIGNED_IN' || event === 'SIGNED_OUT' || event === 'TOKEN_REFRESHED') {
           loadData();
         }
       });
 
-      return () => subscription.unsubscribe();
+      return () => {
+        if (authResult?.data?.subscription) {
+          authResult.data.subscription.unsubscribe();
+        }
+      };
+    } else {
+      loadData();
     }
   }, [loadData]);
 
@@ -243,8 +260,8 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
     let channel: any;
 
     const setupRealtime = async () => {
-      const { data: { session } } = await supabase.auth.getSession();
-      if (!session) return;
+      const currentSession = sessionRef.current;
+      if (!currentSession) return;
 
       channel = supabase
         .channel('appointments_changes')
@@ -254,7 +271,7 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
             event: '*',
             schema: 'public',
             table: 'appointments',
-            filter: `user_id=eq.${session.user.id}`
+            filter: `user_id=eq.${currentSession.user.id}`
           },
           (payload) => {
             console.log("Realtime evento recebido:", payload);
@@ -335,13 +352,10 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
     const syncLocal = async () => {
       if (isLoading) return;
       
-      const { data: { session } } = isSupabaseConfigured() 
-        ? await supabase.auth.getSession() 
-        : { data: { session: null } };
+      const currentSession = sessionRef.current;
 
-      // Se estiver logado, não queremos sujar o LocalStorage com dados do Supabase
-      // ou vice-versa. O LocalStorage fica apenas para o modo "Cliente/Demo"
-      if (!session) {
+      // Se o Supabase estiver configurado, não usamos LocalStorage para dados de negócio
+      if (!isSupabaseConfigured()) {
         localStorage.setItem(STORAGE_KEY_APTS, JSON.stringify(appointments));
         localStorage.setItem(STORAGE_KEY_CUSTOMERS, JSON.stringify(customers));
         localStorage.setItem(STORAGE_KEY_BLOCKED, JSON.stringify(blockedSlots));
@@ -434,12 +448,12 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
     }
 
     try {
-      const session = await getSupabaseSession();
+      const targetId = sessionRef.current?.user?.id || barberId;
 
-      if (session) {
+      if (targetId) {
         console.log("3. Enviando para Supabase...");
         try {
-          const savedApt = await supabaseService.saveAppointment(finalApt);
+          const savedApt = await supabaseService.saveAppointment(finalApt, targetId);
           console.log("4. Resposta do Supabase:", { data: savedApt, error: null });
           
           const normalizedSavedApt = normalizeAppointment(savedApt);
@@ -463,7 +477,7 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
             cutCount: 0, 
             history: [], 
             photos: [] 
-          });
+          }, targetId);
         } catch (err) {
           console.log("4. Resposta do Supabase:", { data: null, error: err });
           throw err;
@@ -472,7 +486,7 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
     } catch (e) {
       console.error("Supabase sync error", e);
     }
-  }, []);
+  }, [barberId]);
 
   const updateAppointment = useCallback(async (id: string, updates: Partial<Appointment>) => {
     let updatedApt: Appointment | undefined;
@@ -490,8 +504,8 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
 
     if (updatedApt) {
       try {
-        const session = await getSupabaseSession();
-        if (session) {
+        const currentSession = sessionRef.current;
+        if (currentSession) {
           const savedApt = await supabaseService.saveAppointment(updatedApt);
           const normalizedSavedApt = normalizeAppointment(savedApt);
           // Ensure local state has the correct ID (though for update it should already match)
@@ -524,8 +538,8 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
       };
       
       const sync = async () => {
-        const { data: { session } } = isSupabaseConfigured() ? await supabase.auth.getSession() : { data: { session: null } };
-        if (session) {
+        const currentSession = sessionRef.current;
+        if (currentSession) {
           const savedApt = await supabaseService.saveAppointment(updatedApt);
           setAppointments(prev => prev.map(a => a.id === id ? normalizeAppointment(savedApt) : a));
           supabaseService.saveCustomer(updatedCust).catch(console.error);
@@ -559,8 +573,8 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
       };
 
       const sync = async () => {
-        const { data: { session } } = isSupabaseConfigured() ? await supabase.auth.getSession() : { data: { session: null } };
-        if (session) {
+        const currentSession = sessionRef.current;
+        if (currentSession) {
           const savedApt = await supabaseService.saveAppointment(updatedApt);
           setAppointments(prev => prev.map(a => a.id === id ? normalizeAppointment(savedApt) : a));
           supabaseService.saveCustomer(updatedCust).catch(console.error);
@@ -606,8 +620,8 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
       };
 
       const sync = async () => {
-        const { data: { session } } = isSupabaseConfigured() ? await supabase.auth.getSession() : { data: { session: null } };
-        if (session) {
+        const currentSession = sessionRef.current;
+        if (currentSession) {
           const savedApt = await supabaseService.saveAppointment(updatedApt);
           setAppointments(prev => prev.map(a => a.id === id ? normalizeAppointment(savedApt) : a));
           supabaseService.saveCustomer(updatedCust).catch(console.error);
@@ -651,8 +665,8 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
     });
 
     try {
-      const { data: { session } } = isSupabaseConfigured() ? await supabase.auth.getSession() : { data: { session: null } };
-      if (session) {
+      const currentSession = sessionRef.current;
+      if (currentSession) {
         if (aptToDelete) await supabaseService.deleteAppointment(id);
         if (updatedCust) await supabaseService.saveCustomer(updatedCust);
       }
@@ -676,8 +690,8 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
       return { ...prev, [normalizedPhone]: updatedCust };
     });
 
-    const { data: { session } } = isSupabaseConfigured() ? await supabase.auth.getSession() : { data: { session: null } };
-    if (session) {
+    const currentSession = sessionRef.current;
+    if (currentSession) {
       supabaseService.addCustomerPhoto(phone, newPhoto).catch(console.error);
     }
   }, []);
@@ -694,8 +708,8 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
     });
 
     if (updatedCust) {
-      const { data: { session } } = isSupabaseConfigured() ? await supabase.auth.getSession() : { data: { session: null } };
-      if (session) {
+      const currentSession = sessionRef.current;
+      if (currentSession) {
         supabaseService.saveCustomer(updatedCust).catch(console.error);
       }
     }
@@ -743,9 +757,9 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
     }
 
     // Chamar Supabase com o objeto já montado (nunca null)
-    const session = await getSupabaseSession();
+    const currentSession = sessionRef.current;
 
-    if (session) {
+    if (currentSession) {
       try {
         await supabaseService.updateCustomer(phone, updatedCustomer);
       } catch (err) {
@@ -767,8 +781,8 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
     });
     
     const sync = async () => {
-      const session = await getSupabaseSession();
-      if (session) supabaseService.saveBlockedSlot(date, time, isNowBlocked).catch(console.error);
+      const currentSession = sessionRef.current;
+      if (currentSession) supabaseService.saveBlockedSlot(date, time, isNowBlocked).catch(console.error);
     };
     sync();
 
@@ -777,8 +791,8 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
       const dateSlots = prev[date] || [];
       if (dateSlots.includes(time)) {
         const syncUnblock = async () => {
-          const session = await getSupabaseSession();
-          if (session) supabaseService.saveUnblockedSlot(date, time, false).catch(console.error);
+          const currentSession = sessionRef.current;
+          if (currentSession) supabaseService.saveUnblockedSlot(date, time, false).catch(console.error);
         };
         syncUnblock();
         return { ...prev, [date]: dateSlots.filter(t => t !== time) };
@@ -800,8 +814,8 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
     });
 
     const sync = async () => {
-      const session = await getSupabaseSession();
-      if (session) supabaseService.saveUnblockedSlot(date, time, isNowUnblocked).catch(console.error);
+      const currentSession = sessionRef.current;
+      if (currentSession) supabaseService.saveUnblockedSlot(date, time, isNowUnblocked).catch(console.error);
     };
     sync();
 
@@ -810,8 +824,8 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
       const dateSlots = prev[date] || [];
       if (dateSlots.includes(time)) {
         const syncBlock = async () => {
-          const session = await getSupabaseSession();
-          if (session) supabaseService.saveBlockedSlot(date, time, false).catch(console.error);
+          const currentSession = sessionRef.current;
+          if (currentSession) supabaseService.saveBlockedSlot(date, time, false).catch(console.error);
         };
         syncBlock();
         return { ...prev, [date]: dateSlots.filter(t => t !== time) };
@@ -821,23 +835,18 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
   }, []);
 
   const updateDayConfig = useCallback(async (day: number, config: Partial<DayConfig>) => {
-    let newConfig: DayConfig | null = null;
     setWeeklySchedule(prev => {
-      newConfig = { ...prev[day], ...config };
+      const newConfig = { ...prev[day], ...config };
+      const sync = async () => {
+        const currentSession = sessionRef.current;
+        if (currentSession) supabaseService.saveWeeklySchedule(day, newConfig).catch(console.error);
+      };
+      sync();
       return {
         ...prev,
         [day]: newConfig
       };
     });
-
-    if (newConfig) {
-      try {
-        const session = await getSupabaseSession();
-        if (session) await supabaseService.saveWeeklySchedule(day, newConfig);
-      } catch (e) {
-        console.error("Supabase sync error in updateDayConfig", e);
-      }
-    }
   }, []);
 
   const toggleWeeklyBreak = useCallback(async (day: number, time: string) => {
@@ -847,8 +856,8 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
       const newBreaks = breaks.includes(time) ? breaks.filter(t => t !== time) : [...breaks, time];
       const newConfig = { ...currentConfig, breaks: newBreaks };
       const sync = async () => {
-        const session = await getSupabaseSession();
-        if (session) supabaseService.saveWeeklySchedule(day, newConfig).catch(console.error);
+        const currentSession = sessionRef.current;
+        if (currentSession) supabaseService.saveWeeklySchedule(day, newConfig).catch(console.error);
       };
       sync();
       return { ...prev, [day]: newConfig };
@@ -863,8 +872,8 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
     });
 
     try {
-      const session = await getSupabaseSession();
-      if (session) {
+      const currentSession = sessionRef.current;
+      if (currentSession) {
         const savedServices = await supabaseService.saveServices(newList);
         setServices(savedServices);
       }
@@ -877,8 +886,8 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
     setServices(prev => {
       const newList = prev.filter(s => s.id !== id);
       const sync = async () => {
-        const session = await getSupabaseSession();
-        if (session) supabaseService.deleteService(id).catch(console.error);
+        const currentSession = sessionRef.current;
+        if (currentSession) supabaseService.deleteService(id).catch(console.error);
       };
       sync();
       return newList;
@@ -889,8 +898,8 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
     setServices(prev => {
       const newList = prev.map(s => s.id === service.id ? service : s);
       const sync = async () => {
-        const session = await getSupabaseSession();
-        if (session) {
+        const currentSession = sessionRef.current;
+        if (currentSession) {
           const savedServices = await supabaseService.saveServices(newList);
           setServices(savedServices);
         }
@@ -903,8 +912,8 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
   const updateBarberProfile = useCallback(async (profile: BarberProfile) => {
     setBarberProfile(profile);
     try {
-      const session = await getSupabaseSession();
-      if (session) await supabaseService.updateProfile(profile);
+      const currentSession = sessionRef.current;
+      if (currentSession) await supabaseService.updateProfile(profile);
     } catch (e) {
       console.error("Supabase sync error in updateBarberProfile", e);
     }
@@ -922,9 +931,9 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
 
     if (isNew) {
       try {
-        const session = await getSupabaseSession();
-        if (session) {
-          await supabaseService.saveCustomer(customer);
+        const targetId = sessionRef.current?.user?.id || barberId;
+        if (targetId) {
+          await supabaseService.saveCustomer(customer, targetId);
           console.log("Customer saved to Supabase successfully");
         }
       } catch (e) {
@@ -932,13 +941,13 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
         throw e;
       }
     }
-  }, []);
+  }, [barberId]);
 
   const reorderServices = useCallback(async (newServices: ServiceItem[]) => {
     setServices(newServices);
     const sync = async () => {
-      const session = await getSupabaseSession();
-      if (session) {
+      const currentSession = sessionRef.current;
+      if (currentSession) {
         const savedServices = await supabaseService.saveServices(newServices);
         setServices(savedServices);
       }

@@ -81,7 +81,4 @@ export interface AppState {
   updateBarberProfile: (profile: BarberProfile) => void;
   addCustomer: (customer: Customer) => void;
   reorderServices: (services: ServiceItem[]) => void;
-  resetApp: () => Promise<void>;
-  isLoading: boolean;
-  fetchAppointmentsByDate: (date: string) => Promise<void>;
 }
