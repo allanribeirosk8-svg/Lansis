@@ -238,8 +238,8 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
         console.log("Auth event:", event);
         setSession(newSession);
         
-        if (event === 'SIGNED_IN' || event === 'SIGNED_OUT' || event === 'TOKEN_REFRESHED') {
-          loadData();
+        if (event === 'INITIAL_SESSION' || event === 'SIGNED_IN' || event === 'SIGNED_OUT' || event === 'TOKEN_REFRESHED') {
+  loadData();
         }
       });
 

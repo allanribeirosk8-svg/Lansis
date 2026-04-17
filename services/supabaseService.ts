@@ -169,13 +169,13 @@ export const supabaseService = {
 
     const { photos, ...rest } = customer;
     const { data, error } = await supabase.from('customers').upsert({
-      user_id: userId,
-      phone: customer.phone,
-      name: customer.name,
-      avatar: customer.avatar,
-      cut_count: customer.cutCount,
-      no_show_count: customer.noShowCount || 0
-    } as any).select().single();
+    user_id: userId,
+    phone: customer.phone,
+    name: customer.name,
+    avatar: customer.avatar,
+    cut_count: customer.cutCount,
+    no_show_count: customer.noShowCount || 0
+    } as any, { onConflict: 'phone,user_id' }).select().single();
     
     if (error) throw error;
     

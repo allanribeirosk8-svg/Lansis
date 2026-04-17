@@ -1,5 +1,6 @@
 import React, { useState, useRef, useMemo, useEffect, useCallback } from 'react';
 import { useStore, DEFAULT_DAY_CONFIG } from '../context/Store';
+import { DebugPanel } from '../components/DebugPanel';
 import { supabase, isSupabaseConfigured } from '../lib/supabase';
 import { supabaseService } from '../services/supabaseService';
 import { Button } from '../components/ui/Button';
@@ -759,6 +760,7 @@ export const AdminApp: React.FC = () => {
           />
         )}
       </AnimatePresence>
+      <DebugPanel />
     </div>
   );
 };
