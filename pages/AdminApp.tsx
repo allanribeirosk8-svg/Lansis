@@ -61,7 +61,10 @@ import {
   UserX,
   PieChart as PieChartIcon,
   LayoutDashboard,
-  Pencil
+  Pencil,
+  Mail,
+  Eye,
+  EyeOff
 } from 'lucide-react';
 import { FaWhatsapp } from 'react-icons/fa';
 import { 
@@ -203,12 +206,12 @@ const SettingsModal: React.FC<{
         animate={{ y: 0 }}
         exit={{ y: '100%' }}
         transition={{ type: 'spring', damping: 25, stiffness: 200 }}
-        className="bg-white dark:bg-slate-900 w-full max-w-md rounded-t-[2.5rem] shadow-2xl overflow-hidden border-t border-white/20 dark:border-slate-800 p-8 pt-4"
+        className="bg-[#FFFFFF] dark:bg-[#242424] w-full max-w-md rounded-t-[2.5rem] shadow-[0_-1px_20px_rgba(0,0,0,0.1)] overflow-hidden p-8 pt-4"
         onClick={e => e.stopPropagation()}
       >
-        <div className="w-12 h-1.5 bg-slate-200 dark:bg-slate-700 rounded-full mx-auto mb-8" />
+        <div className="w-12 h-1.5 bg-[#D0D8E4] dark:bg-[#3A3A3A] rounded-full mx-auto mb-8" />
         
-        <h2 className="text-xl font-black text-slate-800 dark:text-white uppercase tracking-tight mb-8">Configurações</h2>
+        <h2 className="text-xl font-black text-[#1A2332] dark:text-[#F8F8F8] uppercase tracking-tight mb-8">Configurações</h2>
         
         <div className="space-y-4">
           <button 
@@ -216,27 +219,27 @@ const SettingsModal: React.FC<{
               onOpenWeekly();
               onClose();
             }}
-            className="w-full flex items-center justify-between p-4 rounded-2xl bg-slate-50 dark:bg-slate-800 hover:bg-slate-100 dark:hover:bg-slate-700 transition-all group"
+            className="w-full flex items-center justify-between p-4 rounded-2xl bg-[#F4F7FB] dark:bg-[#2F2F2F] hover:bg-[#E4E7EB] dark:hover:bg-[#3A3A3A] transition-all group"
           >
             <div className="flex items-center gap-4">
-              <div className="w-10 h-10 rounded-xl bg-white dark:bg-slate-900 flex items-center justify-center text-brand-600 shadow-sm">
+              <div className="w-10 h-10 rounded-xl bg-[#FFFFFF] dark:bg-[#242424] flex items-center justify-center text-[#2898D8] shadow-sm">
                 <Calendar size={20} />
               </div>
-              <span className="font-bold text-slate-700 dark:text-slate-200">Padrão Semanal</span>
+              <span className="font-bold text-[#1A2332] dark:text-[#F8F8F8]">Padrão Semanal</span>
             </div>
-            <ChevronRight size={18} className="text-slate-300 group-hover:translate-x-1 transition-transform" />
+            <ChevronRight size={18} className="text-[#B0BCC7] group-hover:translate-x-1 transition-transform" />
           </button>
           
-          <div className="w-full flex items-center justify-between p-4 rounded-2xl bg-slate-50 dark:bg-slate-800">
+          <div className="w-full flex items-center justify-between p-4 rounded-2xl bg-[#F4F7FB] dark:bg-[#2F2F2F]">
             <div className="flex items-center gap-4">
-              <div className="w-10 h-10 rounded-xl bg-white dark:bg-slate-900 flex items-center justify-center text-amber-500 shadow-sm">
+              <div className="w-10 h-10 rounded-xl bg-[#FFFFFF] dark:bg-[#242424] flex items-center justify-center text-amber-500 shadow-sm">
                 {isDarkMode ? <Moon size={20} /> : <Sun size={20} />}
               </div>
-              <span className="font-bold text-slate-700 dark:text-slate-200">Modo Escuro</span>
+              <span className="font-bold text-[#1A2332] dark:text-[#F8F8F8]">Modo Escuro</span>
             </div>
             <button 
               onClick={toggleDarkMode}
-              className={`w-12 h-6 rounded-full transition-all relative ${isDarkMode ? 'bg-brand-600' : 'bg-slate-200'}`}
+              className={`w-12 h-6 rounded-full transition-all relative ${isDarkMode ? 'bg-[#2898D8]' : 'bg-[#D0D8E4]'}`}
             >
               <div className={`absolute top-1 w-4 h-4 rounded-full bg-white transition-all ${isDarkMode ? 'left-7' : 'left-1'}`} />
             </button>
@@ -247,7 +250,7 @@ const SettingsModal: React.FC<{
             className="w-full flex items-center justify-between p-4 rounded-2xl bg-red-50 dark:bg-red-500/10 hover:bg-red-100 dark:hover:bg-red-500/20 transition-all group"
           >
             <div className="flex items-center gap-4">
-              <div className="w-10 h-10 rounded-xl bg-white dark:bg-slate-900 flex items-center justify-center text-red-500 shadow-sm">
+              <div className="w-10 h-10 rounded-xl bg-[#FFFFFF] dark:bg-[#242424] flex items-center justify-center text-red-500 shadow-sm">
                 <LogOut size={20} />
               </div>
               <span className="font-bold text-red-600">Sair da conta</span>
@@ -256,7 +259,7 @@ const SettingsModal: React.FC<{
         </div>
         
         <div className="mt-8 pb-safe">
-          <button onClick={onClose} className="w-full py-4 text-xs font-black uppercase tracking-widest text-slate-400 hover:text-slate-600 transition-colors">Fechar</button>
+          <button onClick={onClose} className="w-full py-4 text-xs font-black uppercase tracking-widest text-[#8A98A8] hover:text-[#1A2332] transition-colors">Fechar</button>
         </div>
       </motion.div>
     </div>
@@ -311,13 +314,263 @@ const useScrollDirection = () => {
   return isVisible;
 };
 
+const AuthScreen: React.FC<{ onAuthenticated: () => void }> = ({ onAuthenticated }) => {
+  const [view, setView] = useState<'login' | 'register'>('login');
+  const [email, setEmail] = useState('');
+  const [password, setPassword] = useState('');
+  const [confirmPassword, setConfirmPassword] = useState('');
+  const [showPassword, setShowPassword] = useState(false);
+  const [isLoading, setIsLoading] = useState(false);
+  const [error, setError] = useState('');
+  const [successMsg, setSuccessMsg] = useState('');
+
+  const mapError = (err: any) => {
+    const message = err.message || '';
+    if (message === 'Preencha todos os campos' || message === 'As senhas não coincidem') return message;
+    if (message.includes('Invalid login credentials')) return 'E-mail ou senha incorretos';
+    if (message.includes('User already registered')) return 'Este e-mail já possui uma conta';
+    if (message.includes('Password should be at least 6 characters')) return 'A senha deve ter pelo menos 6 caracteres';
+    return 'Ocorreu um erro. Tente novamente.';
+  };
+
+  const handleAuth = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setIsLoading(true);
+    setError('');
+    setSuccessMsg('');
+
+    try {
+      if (!isSupabaseConfigured()) {
+        throw new Error('Supabase não configurado');
+      }
+
+      if (view === 'login') {
+        if (!email || !password) throw new Error('Preencha todos os campos');
+        const { error: loginErr } = await supabase.auth.signInWithPassword({
+          email,
+          password,
+        });
+        if (loginErr) throw loginErr;
+        onAuthenticated();
+      } else {
+        if (!email || !password || !confirmPassword) throw new Error('Preencha todos os campos');
+        if (password.length < 6) throw new Error('Password should be at least 6 characters');
+        if (password !== confirmPassword) throw new Error('As senhas não coincidem');
+        
+        const { error: signUpErr } = await supabase.auth.signUp({ email, password });
+        if (signUpErr) throw signUpErr;
+        
+        setSuccessMsg('Conta criada! Verifique seu e-mail para confirmar.');
+        setTimeout(() => {
+          setView('login');
+          setSuccessMsg('');
+          setPassword('');
+          setConfirmPassword('');
+        }, 2000);
+      }
+    } catch (err: any) {
+      setError(mapError(err));
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const toggleView = () => {
+    setView(prev => prev === 'login' ? 'register' : 'login');
+    setError('');
+    setSuccessMsg('');
+    setEmail('');
+    setPassword('');
+    setConfirmPassword('');
+  };
+
+  return (
+    <div 
+      className="h-screen flex flex-col items-center justify-between px-6 py-8 relative transition-colors duration-500 overflow-hidden"
+      style={{
+        background: 'linear-gradient(135deg, #1A3A6E 0%, #2563E8 45%, #4A8FFF 75%, #94D4FF 100%)'
+      }}
+    >
+      {/* Noise texture overlay */}
+      <div
+        className="fixed inset-0 pointer-events-none z-0"
+        style={{
+          backgroundImage: `url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)'/%3E%3C/svg%3E")`,
+          opacity: 0.03
+        }}
+      />
+
+      {/* Decorative Orbs */}
+      <div className="fixed top-[-20%] right-[-10%] w-[500px] h-[500px] rounded-full pointer-events-none z-0"
+        style={{ background: 'radial-gradient(circle, rgba(148,212,255,0.20) 0%, transparent 70%)' }}
+      />
+      <div className="fixed bottom-[-20%] left-[-10%] w-[400px] h-[400px] rounded-full pointer-events-none z-0"
+        style={{ background: 'radial-gradient(circle, rgba(37,99,232,0.25) 0%, transparent 70%)' }}
+      />
+
+      <motion.div 
+        initial={{ opacity: 0, scale: 0.9 }}
+        animate={{ opacity: 1, scale: 1 }}
+        className="flex flex-col items-center relative z-10 flex-shrink-0 mt-2"
+      >
+        <div className="w-20 h-20 bg-white/15 backdrop-blur-sm border border-white/25 rounded-[2rem] flex items-center justify-center text-white mb-4 shadow-xl">
+          <Scissors size={40} />
+        </div>
+        <h1 className="text-2xl font-black text-white uppercase tracking-[0.3em]">MEU CORTE</h1>
+        <AnimatePresence mode="wait">
+          <motion.p 
+            key={view}
+            initial={{ opacity: 0, y: 5 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: -5 }}
+            className="text-white/50 text-sm mt-2 font-medium"
+          >
+            {view === 'login' ? 'Faça login para continuar' : 'Crie sua conta'}
+          </motion.p>
+        </AnimatePresence>
+      </motion.div>
+
+      <motion.div 
+        initial={{ opacity: 0, y: 24, scale: 0.97 }}
+        animate={{ opacity: 1, y: 0, scale: 1 }}
+        transition={{ duration: 0.5, ease: [0.22, 1, 0.36, 1] }}
+        className={`w-full max-w-md bg-white/10 backdrop-blur-xl border border-white/15 rounded-3xl shadow-2xl relative z-10 flex-shrink min-h-0 ${view === 'register' ? 'p-6' : 'p-8'}`}
+        style={{ boxShadow: '0 25px 50px rgba(0,0,0,0.4), inset 0 1px 0 rgba(255,255,255,0.1)' }}
+      >
+        <AnimatePresence mode="wait" initial={false}>
+          <motion.div
+            key={view}
+            initial={{ opacity: 0, x: view === 'login' ? -20 : 20 }}
+            animate={{ opacity: 1, x: 0 }}
+            exit={{ opacity: 0, x: view === 'login' ? 20 : -20 }}
+            transition={{ duration: 0.3, ease: "easeInOut" }}
+          >
+            <form onSubmit={handleAuth} className={view === 'register' ? "space-y-3" : "space-y-4"}>
+              <div className={view === 'register' ? "space-y-3" : "space-y-4"}>
+                <div className="relative group">
+                  <div className="absolute left-4 top-1/2 -translate-y-1/2 text-white/40 group-focus-within:text-white transition-colors">
+                    <Mail size={20} />
+                  </div>
+                  <input 
+                    type="email"
+                    placeholder="E-mail"
+                    value={email}
+                    onChange={e => setEmail(e.target.value)}
+                    className="w-full bg-white/10 border border-white/20 text-white placeholder:text-white/35 rounded-2xl h-14 pl-12 pr-4 focus:ring-2 focus:ring-[#2898D8]/60 focus:border-[#2898D8]/60 outline-none transition-all shadow-inner"
+                    required
+                  />
+                </div>
+
+                <div className="relative group">
+                  <div className="absolute left-4 top-1/2 -translate-y-1/2 text-white/40 group-focus-within:text-white transition-colors">
+                    <Lock size={20} />
+                  </div>
+                  <input 
+                    type={showPassword ? 'text' : 'password'}
+                    placeholder="Senha"
+                    value={password}
+                    onChange={e => setPassword(e.target.value)}
+                    className="w-full bg-white/10 border border-white/20 text-white placeholder:text-white/35 rounded-2xl h-14 pl-12 pr-12 focus:ring-2 focus:ring-[#2898D8]/60 focus:border-[#2898D8]/60 outline-none transition-all shadow-inner"
+                    required
+                  />
+                  <button 
+                    type="button"
+                    onClick={() => setShowPassword(!showPassword)}
+                    className="absolute right-4 top-1/2 -translate-y-1/2 text-white/40 hover:text-white/70 transition-colors"
+                  >
+                    {showPassword ? <EyeOff size={20} /> : <Eye size={20} />}
+                  </button>
+                </div>
+
+                {view === 'register' && (
+                  <motion.div 
+                    initial={{ opacity: 0, height: 0 }}
+                    animate={{ opacity: 1, height: 'auto' }}
+                    className="relative group overflow-hidden"
+                  >
+                    <div className="absolute left-4 top-1/2 -translate-y-1/2 text-white/40 group-focus-within:text-white transition-colors">
+                      <Lock size={20} />
+                    </div>
+                    <input 
+                      type={showPassword ? 'text' : 'password'}
+                      placeholder="Confirmar Senha"
+                      value={confirmPassword}
+                      onChange={e => setConfirmPassword(e.target.value)}
+                      className="w-full bg-white/10 border border-white/20 text-white placeholder:text-white/35 rounded-2xl h-14 pl-12 pr-4 focus:ring-2 focus:ring-[#2898D8]/60 focus:border-[#2898D8]/60 outline-none transition-all shadow-inner"
+                      required
+                    />
+                  </motion.div>
+                )}
+              </div>
+
+              <AnimatePresence>
+                {error && (
+                  <motion.div 
+                    initial={{ opacity: 0, y: -10 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    exit={{ opacity: 0, y: -10 }}
+                    className="bg-red-500/20 border border-red-400/30 text-red-300 rounded-2xl p-3 text-sm text-center font-bold"
+                  >
+                    {error}
+                  </motion.div>
+                )}
+                {successMsg && (
+                  <motion.div 
+                    initial={{ opacity: 0, y: -10 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    exit={{ opacity: 0, y: -10 }}
+                    className="bg-green-500/20 border border-green-400/30 text-green-300 rounded-2xl p-3 text-sm text-center font-bold"
+                  >
+                    {successMsg}
+                  </motion.div>
+                )}
+              </AnimatePresence>
+
+              <button 
+                type="submit" 
+                disabled={isLoading}
+                className="bg-white text-[#1A3A6E] hover:bg-white/90 disabled:opacity-70 disabled:cursor-not-allowed h-14 rounded-2xl font-black uppercase tracking-widest w-full transition-all shadow-lg shadow-black/20 active:scale-[0.98]"
+              >
+                {isLoading ? (
+                  <div className="flex items-center justify-center gap-2">
+                    <div className="w-4 h-4 border-2 border-[#1A3A6E]/30 border-t-[#1A3A6E] rounded-full animate-spin" />
+                    <span>{view === 'login' ? 'Entrando...' : 'Criando conta...'}</span>
+                  </div>
+                ) : (
+                  <span>{view === 'login' ? 'Entrar' : 'Criar conta'}</span>
+                )}
+              </button>
+            </form>
+          </motion.div>
+        </AnimatePresence>
+
+        <div className={`${view === 'register' ? 'mt-4' : 'mt-8'} text-center flex flex-col gap-1`}>
+          <p className="text-white/40 text-[11px] font-bold uppercase tracking-widest">
+            {view === 'login' ? 'Ainda não tem conta?' : 'Já possui uma conta?'}
+          </p>
+          <button 
+            onClick={toggleView}
+            className="text-white text-xs font-bold hover:text-white/80 transition-colors"
+          >
+            {view === 'login' ? 'Criar conta' : 'Fazer login'}
+          </button>
+        </div>
+      </motion.div>
+
+      <div className="mt-4 mb-2 relative z-10 flex-shrink-0">
+        <Link to="/" className="text-white/25 hover:text-white/50 font-black uppercase tracking-[0.2em] text-[11px] transition-colors">
+          Sou Cliente
+        </Link>
+      </div>
+    </div>
+  );
+};
+
 export const AdminApp: React.FC = () => {
   const { barberProfile, appointments, isDarkMode, toggleDarkMode } = useStore();
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [activeTab, setActiveTab] = useState<'agenda' | 'clientes' | 'servicos' | 'relatorios'>('agenda');
   const [selectedDate, setSelectedDate] = useState(getTodayString());
-  const [credentials, setCredentials] = useState({ user: '', pass: '' });
-  const [error, setError] = useState('');
   const [showAddModal, setShowAddModal] = useState(false);
   const [showAddCustomerModal, setShowAddCustomerModal] = useState(false);
   const [showWeeklyModal, setShowWeeklyModal] = useState(false);
@@ -384,8 +637,6 @@ export const AdminApp: React.FC = () => {
     return appointments.filter(a => a.date === today && a.status === 'pending').length;
   }, [appointments]);
 
-  const [isLoggingIn, setIsLoggingIn] = useState(false);
-
   useEffect(() => {
     const checkSession = async () => {
       if (isSupabaseConfigured()) {
@@ -409,31 +660,6 @@ export const AdminApp: React.FC = () => {
       };
     }
   }, []);
-
-  const handleLogin = async (e: React.FormEvent) => {
-    e.preventDefault();
-    setIsLoggingIn(true);
-    setError('');
-    
-    try {
-      if (!isSupabaseConfigured()) {
-        throw new Error('O Supabase não está configurado. Por favor, adicione as variáveis de ambiente VITE_SUPABASE_URL e VITE_SUPABASE_ANON_KEY.');
-      }
-
-      const result = await supabase.auth.signInWithPassword({
-        email: credentials.user,
-        password: credentials.pass,
-      });
-      const error = result?.error;
-
-      if (error) throw error;
-      setIsAuthenticated(true);
-    } catch (err: any) {
-      setError(err.message || 'Credenciais inválidas');
-    } finally {
-      setIsLoggingIn(false);
-    }
-  };
 
   const handleLogout = async () => {
     if (isSupabaseConfigured()) {
@@ -459,6 +685,20 @@ export const AdminApp: React.FC = () => {
     setShowAddModal(true);
   };
 
+  const getGreetingOnly = () => {
+    const hour = new Date().getHours();
+    if (hour >= 5 && hour < 12) return 'Bom dia,';
+    if (hour >= 12 && hour < 18) return 'Boa tarde,';
+    return 'Boa noite,';
+  };
+
+  const getGreetingEmoji = () => {
+    const hour = new Date().getHours();
+    if (hour >= 5 && hour < 12) return '☀️';
+    if (hour >= 12 && hour < 18) return '👋';
+    return '🌙';
+  };
+
   const getGreeting = () => {
     const hour = new Date().getHours();
     const name = barberProfile.name || 'Barbeiro';
@@ -468,47 +708,13 @@ export const AdminApp: React.FC = () => {
   };
 
   if (!isAuthenticated) {
-    return (
-      <div className="min-h-screen flex items-center justify-center bg-slate-50 p-6">
-        <div className="w-full max-w-sm space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-700">
-          <form onSubmit={handleLogin} className="bg-white p-8 rounded-3xl shadow-soft w-full space-y-6">
-            <div className="text-center">
-              <h2 className="text-xl font-bold text-slate-800">Área do Barbeiro</h2>
-              <p className="text-sm text-slate-500">Acesso restrito</p>
-            </div>
-            <Input 
-              label="E-mail" 
-              type="email"
-              value={credentials.user} 
-              onChange={e => setCredentials({...credentials, user: e.target.value})}
-              placeholder="seu@email.com"
-            />
-            <Input 
-              label="Senha" 
-              type="password" 
-              value={credentials.pass} 
-              onChange={e => setCredentials({...credentials, pass: e.target.value})}
-              placeholder="••••••••"
-            />
-            {error && <p className="text-red-500 text-xs text-center bg-red-50 p-3 rounded-xl border border-red-100">{error}</p>}
-            <Button type="submit" fullWidth disabled={isLoggingIn}>
-              {isLoggingIn ? 'Entrando...' : 'Entrar'}
-            </Button>
-          </form>
-          <div className="text-center">
-             <Link to="/" className="text-[11px] text-slate-400 font-black uppercase tracking-[0.2em] hover:text-brand-500 transition-colors">
-               Sou Cliente
-             </Link>
-          </div>
-        </div>
-      </div>
-    );
+    return <AuthScreen onAuthenticated={() => setIsAuthenticated(true)} />;
   }
 
   return (
-    <div className="min-h-screen bg-slate-50 relative">
+    <div className="min-h-screen bg-[#F8FAFB] dark:bg-[#181818] relative">
       <motion.header 
-        className="sticky top-0 z-[100] h-16 bg-white border-b border-gray-100 px-6 flex items-center justify-between dark:bg-slate-900 dark:border-slate-800"
+        className="sticky top-0 z-[100] h-20 bg-white dark:bg-[#242424] backdrop-blur-md border-b border-[#D0D8E4] dark:border-[#3A3A3A] px-6 flex items-center justify-between"
         initial={false}
         animate={{ 
           y: footerVisible ? 0 : -100,
@@ -517,22 +723,41 @@ export const AdminApp: React.FC = () => {
         transition={{ duration: 0.3, ease: "easeInOut" }}
       >
         {/* Left: Identity & Profile */}
-        <div className="flex items-center">
+        <div className="flex items-center gap-3">
           {activeTab === 'agenda' ? (
-            <button 
-              onClick={() => setShowProfileModal(true)}
-              className="w-10 h-10 rounded-full bg-slate-100 flex items-center justify-center overflow-hidden border border-slate-200 hover:border-brand-300 transition-all"
-            >
-              {barberProfile.photo ? (
-                <img src={barberProfile.photo} alt={barberProfile.name} className="w-full h-full object-cover" referrerPolicy="no-referrer" />
-              ) : (
-                <User size={20} className="text-slate-400" />
-              )}
-            </button>
+            <div className="flex items-center gap-3">
+              {/* Foto de perfil — maior e com ring colorido */}
+              <button
+                onClick={() => setShowProfileModal(true)}
+                className="relative flex-shrink-0"
+              >
+                <div className="w-12 h-12 rounded-full overflow-hidden border-2 border-[#2898D8]/30 shadow-md shadow-[#2898D8]/10 bg-[#E8F4FC] dark:bg-[#1A3A58]">
+                  {barberProfile.photo ? (
+                    <img src={barberProfile.photo} alt={barberProfile.name}
+                      className="w-full h-full object-cover" referrerPolicy="no-referrer" />
+                  ) : (
+                    <div className="w-full h-full flex items-center justify-center">
+                      <User size={22} className="text-[#2898D8]" />
+                    </div>
+                  )}
+                </div>
+                {/* Dot de status online */}
+                <span className="absolute bottom-0.5 right-0.5 w-3 h-3 bg-[#3CB878] rounded-full border-2 border-white dark:border-slate-900" />
+              </button>
+              {/* Texto em 2 linhas */}
+              <div className="flex flex-col leading-tight">
+                <span className="text-[11px] font-medium text-[#8A98A8] dark:text-[#707070] uppercase tracking-wider">
+                  {getGreetingOnly()}
+                </span>
+                <span className="text-base font-bold text-[#1A2332] dark:text-[#F8F8F8] leading-snug">
+                  {barberProfile.name || 'Barbeiro'} {getGreetingEmoji()}
+                </span>
+              </div>
+            </div>
           ) : (
             <button 
               onClick={() => setActiveTab('agenda')}
-              className="w-10 h-10 rounded-full bg-slate-50 text-slate-500 flex items-center justify-center hover:bg-slate-100 transition-colors dark:bg-[#2A2A2A] dark:text-[#CCCCCC] dark:border dark:border-[#444444]"
+              className="w-10 h-10 rounded-full bg-white dark:bg-[#2A2A2A] text-slate-500 dark:text-[#CCCCCC] flex items-center justify-center hover:bg-slate-50 border border-slate-100 dark:border-[#444444] transition-colors shadow-sm"
               title="Voltar para Agenda"
             >
               <Home size={20} />
@@ -540,32 +765,24 @@ export const AdminApp: React.FC = () => {
           )}
         </div>
 
-        {/* Center: Context Anchor */}
-        <div className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 text-center">
-          {activeTab === 'agenda' ? (
-            <div className="flex flex-col items-center">
-              <h1 className="text-[16px] font-bold text-slate-800 dark:text-white leading-tight">
-                {getGreeting()}
-              </h1>
-            </div>
-          ) : (
+        {/* Center: Title (Only for other tabs) */}
+        {activeTab !== 'agenda' && (
+          <div className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 text-center pointer-events-none">
             <h2 className="text-lg font-bold uppercase tracking-tight text-slate-800 dark:text-[#FFFFFF]">
               {activeTab === 'clientes' ? 'Clientes' : activeTab === 'servicos' ? 'Serviços' : 'Relatórios'}
             </h2>
-          )}
-        </div>
+          </div>
+        )}
 
         {/* Right: Actions */}
         <div className="flex items-center gap-3">
-          {activeTab === 'agenda' && (
-            <button onClick={() => setShowSettingsModal(true)} className="w-8 h-8 rounded-full bg-slate-50 text-slate-400 flex items-center justify-center hover:bg-slate-100 transition-colors dark:bg-slate-800 dark:text-slate-500" title="Configurações">
-              <Settings size={18} />
-            </button>
-          )}
+          <button onClick={() => setShowSettingsModal(true)} className="w-9 h-9 rounded-full bg-white dark:bg-slate-800 text-slate-400 dark:text-slate-500 flex items-center justify-center hover:bg-slate-50 dark:hover:bg-slate-700 transition-colors border border-slate-100 dark:border-slate-700 shadow-sm" title="Configurações">
+            <Settings size={18} />
+          </button>
         </div>
       </motion.header>
 
-      <main className="px-4 pt-6 pb-20 relative">
+      <main className="px-4 pt-3 pb-20 relative">
         {activeTab === 'agenda' && (
             <AgendaView 
                 selectedDate={selectedDate}
@@ -698,7 +915,7 @@ export const AdminApp: React.FC = () => {
         }}
         transition={{ duration: 0.3, ease: "easeInOut" }}
       >
-          <nav className="bg-white border-t border-slate-100 pb-safe px-2 flex justify-between items-center h-[54px] shadow-[0_-4px_20px_rgba(0,0,0,0.04)] pointer-events-auto dark:bg-slate-900 dark:border-slate-800">
+          <nav className="bg-[#FFFFFF] dark:bg-[#242424] border-t border-[#D0D8E4] dark:border-[#3A3A3A] pb-safe px-2 flex justify-between items-center h-[54px] shadow-[0_-4px_20px_rgba(0,0,0,0.04)] pointer-events-auto">
             {[
               { id: 'agenda', label: 'Agenda', icon: <Calendar size={20} /> },
               { id: 'clientes', label: 'Clientes', icon: <Users size={20} /> },
@@ -712,19 +929,19 @@ export const AdminApp: React.FC = () => {
                     if(item.id !== 'clientes') setTargetCustomerPhone(null);
                 }}
                 className={`flex-1 flex flex-col items-center justify-center transition-all gap-0.5 h-full min-h-[44px]
-                  ${activeTab === item.id ? 'text-brand-600' : 'text-slate-300 hover:text-slate-400 dark:text-[#888888] dark:hover:text-[#AAAAAA]'}`}
+                  ${activeTab === item.id ? 'text-[#2898D8] dark:text-[#2098F0]' : 'text-[#C0CAD4] dark:text-[#4A4A4A] hover:text-[#8A98A8] dark:hover:text-[#F8F8F8]'}`}
               >
-                <div className={`p-1.5 rounded-xl transition-all duration-300 relative ${activeTab === item.id ? 'bg-brand-50 dark:bg-brand-500/10' : 'bg-transparent'}`}>
+                <div className={`p-1.5 rounded-xl transition-all duration-300 relative ${activeTab === item.id ? 'bg-[#2898D8]/10' : 'bg-transparent'}`}>
                   <div className={`transition-transform ${activeTab === item.id ? 'scale-105' : ''}`}>
                     {item.icon}
                   </div>
                   {item.id === 'agenda' && pendingTodayCount > 0 && (
-                    <div className="absolute -top-1 -right-1 w-4 h-4 bg-red-500 text-white rounded-full flex items-center justify-center text-[8px] font-bold border-2 border-white dark:border-slate-900">
+                    <div className="absolute -top-1 -right-1 w-4 h-4 bg-red-500 text-white rounded-full flex items-center justify-center text-[8px] font-bold border-2 border-[#FFFFFF] dark:border-[#242424]">
                       {pendingTodayCount}
                     </div>
                   )}
                 </div>
-                <span className={`text-[10px] font-black uppercase tracking-widest transition-opacity duration-300 ${activeTab === item.id ? 'opacity-100' : 'opacity-60 dark:opacity-80'}`}>
+                <span className={`text-[10px] font-black uppercase tracking-widest transition-opacity duration-300 ${activeTab === item.id ? 'opacity-100 font-bold' : 'opacity-100'}`}>
                   {item.label}
                 </span>
               </button>
@@ -982,7 +1199,7 @@ const AgendaView: React.FC<{
 
   return (
     <div className="space-y-4">
-      <div className="bg-white dark:bg-slate-900 rounded-2xl shadow-sm border border-slate-100 dark:border-slate-800 overflow-hidden mx-2">
+      <div className="bg-white dark:bg-[#242424] rounded-2xl shadow-[0_1px_4px_rgba(0,0,0,0.06)] overflow-hidden mx-2">
         {/* Integrated Calendar Header */}
         <div className="pt-3 pb-1 flex flex-col items-center">
           <div className="flex items-center justify-between w-full px-4">
@@ -1012,9 +1229,9 @@ const AgendaView: React.FC<{
                   setViewMode('days');
                 }
               }}
-              className="flex items-center gap-1.5 px-3 py-1 hover:bg-slate-50 dark:hover:bg-slate-800 rounded-xl transition-colors"
+              className="flex items-center gap-1.5 px-3 py-1 hover:bg-[#F2F5F8] dark:hover:bg-[#303030] rounded-xl transition-colors"
             >
-              <span className="text-[14px] font-bold text-slate-700 dark:text-slate-200">
+              <span className="text-[14px] font-bold text-[#1A2332] dark:text-[#F8F8F8]">
                 {formatMonthYear(viewDate)}
               </span>
               <motion.div
@@ -1048,7 +1265,7 @@ const AgendaView: React.FC<{
               animate={{ height: 'auto', opacity: 1, x: 0 }}
               exit={{ height: 0, opacity: 0, x: -slideDirection * 20 }}
               transition={{ duration: 0.3, ease: "easeInOut" }}
-              className="overflow-hidden bg-white dark:bg-slate-900 px-4"
+              className="overflow-hidden bg-white dark:bg-[#242424] px-4"
             >
               {viewMode === 'days' ? (
                 <div className="pb-3">
@@ -1101,7 +1318,7 @@ const AgendaView: React.FC<{
                               setIsCalendarExpanded(false);
                             }}
                             className={`h-9 w-full rounded-xl flex items-center justify-center text-[12px] font-bold transition-all relative
-                              ${isSelected ? 'bg-brand-500 text-white shadow-sm' : isToday ? 'bg-brand-50 text-brand-600' : isClosed ? 'bg-red-50 text-red-600' : 'hover:bg-slate-50 dark:hover:bg-slate-800 text-slate-700 dark:text-slate-200'}`}
+                              ${isSelected ? 'bg-brand-500 text-white shadow-sm' : isToday ? 'bg-[#E8F4FC] text-[#2898D8]' : isClosed ? 'bg-red-50 text-red-600' : 'hover:bg-[#F2F5F8] dark:hover:bg-[#303030] text-[#1A2332] dark:text-[#F8F8F8]'}`}
                           >
                             {d}
                             {count > 0 && (
@@ -1145,7 +1362,7 @@ const AgendaView: React.FC<{
                         setViewMode('days');
                       }}
                       className={`h-11 rounded-xl flex items-center justify-center font-bold text-sm transition-all
-                        ${viewDate.getFullYear() === year ? 'bg-brand-500 text-white shadow-sm' : 'bg-slate-50 dark:bg-slate-800 text-slate-600 dark:text-slate-300 hover:bg-slate-100'}`}
+                        ${viewDate.getFullYear() === year ? 'bg-brand-500 text-white shadow-sm' : 'bg-[#F2F5F8] dark:bg-[#303030] text-[#1A2332] dark:text-[#F8F8F8] hover:bg-[#E2E8F0]'}`}
                     >
                       {year}
                     </button>
@@ -1200,7 +1417,7 @@ const AgendaView: React.FC<{
                           ? 'bg-[#BBDEFB] text-[#0D47A1]' 
                           : isClosed
                             ? 'bg-[#FFEBEE] text-[#C62828]'
-                            : 'hover:bg-slate-50 dark:hover:bg-slate-800 text-slate-400'}`}
+                            : 'hover:bg-[#F2F5F8] dark:hover:bg-[#303030] text-[#8A98A8]'}`}
                   >
                     <span className={`text-[9px] font-bold uppercase tracking-tighter 
                       ${isSelected ? 'text-white/80' : isToday ? 'text-[#0D47A1]/70' : isClosed ? 'text-[#C62828]/70' : 'text-slate-400'}`}>
@@ -1231,37 +1448,57 @@ const AgendaView: React.FC<{
       </div>
 
       {/* Summary Cards */}
-      <div className="grid grid-cols-2 gap-3 px-2 h-[75px]">
-        <div className="bg-brand-600 rounded-2xl p-3 flex flex-col justify-center shadow-lg shadow-brand-500/20 border border-brand-500 relative overflow-hidden">
-          <span className="text-[9px] font-black text-white/70 uppercase tracking-widest leading-none mb-1 relative z-10">{stats.dayLabel}</span>
+      <div className="grid grid-cols-2 gap-3 px-2 h-[80px]">
+        <div 
+          className="rounded-2xl p-3 flex flex-col justify-center shadow-lg shadow-[#2898D8]/20 relative overflow-hidden group"
+          style={{
+            background: 'linear-gradient(135deg, #1E7FB8 0%, #2898D8 45%, #3AABFF 100%)'
+          }}
+        >
+          {/* Decoração — círculo grande translúcido */}
+          <div className="absolute -right-6 -top-6 w-32 h-32 rounded-full pointer-events-none"
+            style={{ background: 'radial-gradient(circle, rgba(255,255,255,0.12) 0%, transparent 70%)' }}
+          />
+          <div className="absolute -right-2 -bottom-8 w-24 h-24 rounded-full pointer-events-none"
+            style={{ background: 'radial-gradient(circle, rgba(255,255,255,0.08) 0%, transparent 70%)' }}
+          />
+          
+          <span className="text-[10px] font-black text-[#FFFFFF]/60 uppercase tracking-widest leading-none mb-1 relative z-10">{stats.dayLabel}</span>
           <div className="flex flex-col relative z-10">
-            <span className="text-[18px] font-black text-white leading-tight">{formatCurrency(stats.dayRevenue)}</span>
-            <span className="text-[11px] font-medium text-white/70 leading-none">{stats.dayCount} {stats.dayCount === 1 ? 'atendimento' : 'atendimentos'}</span>
+            <span className="text-2xl font-black text-white leading-tight">{formatCurrency(stats.dayRevenue)}</span>
+            <span className="text-xs text-white/70 leading-none mt-0.5">{stats.dayCount} {stats.dayCount === 1 ? 'atendimento' : 'atendimentos'}</span>
           </div>
-          <DollarSign size={44} strokeWidth={1.5} className="absolute -bottom-2 -right-2 text-white opacity-15" />
+          <DollarSign size={48} className="text-white/10 absolute right-4 bottom-2 pointer-events-none transition-transform group-hover:scale-110 duration-500" />
         </div>
-        <div className="bg-slate-50 dark:bg-slate-800/50 rounded-2xl border border-slate-100 dark:border-slate-800 p-3 flex flex-col justify-center shadow-sm relative overflow-hidden">
-          <span className="text-[9px] font-black text-slate-400 uppercase tracking-widest leading-none mb-1 relative z-10">{stats.weekLabel}</span>
+
+        <div className="bg-white dark:bg-[#242424] rounded-2xl p-3 flex flex-col justify-center shadow-[0_1px_4px_rgba(0,0,0,0.06)] relative overflow-hidden group">
+          <span className="text-[9px] font-black text-[#8A98A8] dark:text-[#707070] uppercase tracking-widest leading-none mb-1 relative z-10">{stats.weekLabel}</span>
           <div className="flex flex-col relative z-10">
-            <span className="text-[18px] font-black text-brand-600 leading-tight">{formatCurrency(stats.weekRevenue)}</span>
-            <span className="text-[11px] font-medium text-slate-500 dark:text-slate-400 leading-none">{stats.weekCount} {stats.weekCount === 1 ? 'atendimento' : 'atendimentos'}</span>
+            <span className="text-[20px] font-black text-[#2898D8] leading-tight">{formatCurrency(stats.weekRevenue)}</span>
+            <span className="text-[11px] font-medium text-[#8A98A8] dark:text-[#707070] leading-none mt-0.5">{stats.weekCount} {stats.weekCount === 1 ? 'atendimento' : 'atendimentos'}</span>
           </div>
-          <DollarSign size={44} strokeWidth={1.5} className="absolute -bottom-2 -right-2 text-brand-600 opacity-10" />
+          <DollarSign size={48} className="text-[#2898D8]/5 absolute right-4 bottom-2 pointer-events-none transition-transform group-hover:scale-110 duration-500" />
         </div>
       </div>
 
       <div className="space-y-4 animate-in fade-in slide-in-from-top-4 duration-500">
-        <div className="flex items-center gap-2 px-2">
-            <div className="w-1 h-4 bg-brand-500 rounded-full"></div>
-            <h3 className="font-semibold text-slate-800 dark:text-[#FFFFFF] text-sm uppercase tracking-widest">Grade do Dia</h3>
+        <div className="flex items-center gap-2 px-4 mb-2">
+            <div className="w-1 h-4 bg-[#2898D8] rounded-full"></div>
+            <span className="text-xs font-black uppercase tracking-widest text-[#1A2332] dark:text-[#F8F8F8]">
+              Grade do Dia
+            </span>
+            {/* Contador de slots total do dia */}
+            <span className="ml-1 text-xs font-bold text-[#2898D8] bg-[#E8F4FC] dark:bg-[#1A3A58] dark:text-[#2098F0] px-2 py-0.5 rounded-full">
+              {generatedSlots.length}
+            </span>
         </div>
 
         {(!dayConfig?.isOpen && currentDayAppointments.length === 0) ? (
-            <div className="bg-white p-12 rounded-[2rem] border-2 border-dashed border-slate-200 text-center space-y-3">
-                <div className="w-12 h-12 bg-slate-50 rounded-full flex items-center justify-center mx-auto text-slate-300">
+            <div className="bg-white dark:bg-[#242424] p-12 rounded-[2rem] border-2 border-dashed border-[#D0D8E4] dark:border-[#3A3A3A] text-center space-y-3 shadow-[0_1px_4px_rgba(0,0,0,0.06)]">
+                <div className="w-12 h-12 bg-[#F8FAFB] dark:bg-[#303030] rounded-full flex items-center justify-center mx-auto text-[#B0BCC7]">
                     <Lock size={24} />
                 </div>
-                <p className="text-slate-400 font-bold text-sm uppercase tracking-widest">Fechado hoje</p>
+                <p className="text-[#8A98A8] dark:text-[#707070] font-bold text-sm uppercase tracking-widest">Fechado hoje</p>
             </div>
         ) : (
             <div className="grid grid-cols-1 gap-3">
@@ -1274,14 +1511,14 @@ const AgendaView: React.FC<{
                     // If it's occupied by a duration but not the start slot
                     if (apt && !isStartSlot) {
                         return (
-                            <div key={slot} className="bg-[#F0F0F0] dark:bg-[#2A2A2A] border border-slate-100 dark:border-[#444444] p-3 rounded-2xl flex items-center gap-4 opacity-50 pointer-events-none">
-                                <div className="text-lg font-black text-slate-400 dark:text-[#AAAAAA] w-14 shrink-0">{slot}</div>
-                                <div className="flex-1 min-w-0 flex items-center gap-1.5 text-xs text-slate-500 dark:text-[#AAAAAA] truncate">
+                            <div key={slot} className="bg-[#FFFFFF]/50 dark:bg-[#242424]/50 p-3 rounded-2xl flex items-center gap-4 opacity-50 pointer-events-none shadow-[0_1px_4px_rgba(0,0,0,0.06)]">
+                                <div className="text-lg font-black text-[#8A98A8] dark:text-[#707070] w-14 shrink-0">{slot}</div>
+                                <div className="flex-1 min-w-0 flex items-center gap-1.5 text-xs text-[#8A98A8] dark:text-[#707070] truncate">
                                     <span className="font-semibold flex items-center gap-1 shrink-0">
                                         <Lock size={14} />
                                         Ocupado
                                     </span>
-                                    <span className="text-slate-300 dark:text-slate-600">|</span>
+                                    <span className="text-[#D0D8E4] dark:text-[#3A3A3A]">|</span>
                                     <span className="font-normal truncate">
                                         {apt.service} de {capitalizeName(apt.clientName)}
                                     </span>
@@ -1367,10 +1604,10 @@ const AgendaView: React.FC<{
                             <div key={slot} className="relative group">
                                 <div 
                                     onClick={() => setActiveSlotMenu(isQuickActionOpen ? null : slot)} 
-                                    className={`slot-trigger bg-white dark:bg-[#2A2A2A] border-2 border-dashed border-slate-100 dark:border-[#555555] p-3 rounded-2xl flex items-center gap-4 transition-all hover:border-brand-300 cursor-pointer group ${past ? 'opacity-40 grayscale pointer-events-none' : ''}`}
+                                    className={`slot-trigger bg-white dark:bg-[#242424] shadow-[0_1px_4px_rgba(0,0,0,0.06)] p-3 rounded-2xl flex items-center gap-4 transition-all hover:border-[#2898D8] cursor-pointer group ${past ? 'opacity-40 grayscale pointer-events-none' : ''}`}
                                 >
-                                    <div className="text-lg font-black text-slate-800 dark:text-[#F0F0F0] w-14 shrink-0">{slot}</div>
-                                    <div className="flex items-center gap-2 text-slate-300 dark:text-[#BBBBBB] font-black text-[10px] uppercase tracking-widest group-hover:text-brand-400 transition-colors">
+                                    <div className="text-lg font-black text-[#1A2332] dark:text-[#F8F8F8] w-14 shrink-0">{slot}</div>
+                                    <div className="flex items-center gap-2 text-[#8A98A8] dark:text-[#707070] font-black text-[10px] uppercase tracking-widest group-hover:text-[#2898D8] transition-colors">
                                         <Plus size={16} strokeWidth={3} />
                                         DISPONÍVEL
                                     </div>
@@ -1420,21 +1657,21 @@ const AgendaView: React.FC<{
                             initial={false}
                             animate={isFinishing ? { scale: [1, 1.05, 1] } : { scale: 1 }}
                             transition={{ duration: 0.4 }}
-                            className={`relative rounded-2xl shadow-sm border overflow-hidden transition-all duration-500 flex
+                            className={`relative rounded-2xl shadow-[0_1px_4px_rgba(0,0,0,0.06)] overflow-hidden transition-all duration-500 flex
                                 ${isActuallyCompleted ? 'bg-[#D1FAE5] border-green-200 opacity-60' : 
                                   isNoShow ? 'bg-amber-50 border-amber-200 opacity-50' : 
-                                  isFinishing ? 'bg-[#D1FAE5] border-green-200' : 'bg-[#EEF4FF] border-blue-100'}`}
+                                  isFinishing ? 'bg-[#D1FAE5] border-green-200' : 'bg-white dark:bg-[#242424] border-l-4 border-l-[#2898D8] dark:border-l-[#2098F0]'}`}
                         >
                             <div className="flex-1 min-w-0">
                                 {/* Header do Card */}
-                                <div className="px-4 py-3 flex items-start justify-between border-b border-slate-50/50">
+                                <div className="px-4 py-3 flex items-start justify-between border-b border-[#D0D8E4]/20 dark:border-[#3A3A3A]/40">
                                     <div className="flex gap-4 min-w-0">
-                                        <div className={`text-base font-bold shrink-0 mt-1 ${isActuallyCompleted ? 'text-green-700' : isNoShow ? 'text-amber-700' : 'text-slate-500'}`}>
+                                        <div className={`text-base font-bold shrink-0 mt-1 ${isActuallyCompleted ? 'text-green-700' : isNoShow ? 'text-amber-700' : 'text-[#1A2332] dark:text-[#F8F8F8]'}`}>
                                             {apt.time}
                                         </div>
                                         <div className="flex flex-col gap-1.5 min-w-0">
                                             <div className="flex items-center gap-2">
-                                                <span className={`text-base font-bold truncate tracking-tight ${isActuallyCompleted ? 'text-green-800 line-through opacity-70' : isNoShow ? 'text-amber-800 line-through opacity-70' : 'text-slate-900 dark:text-white'}`}>
+                                                <span className={`text-base font-bold truncate tracking-tight ${isActuallyCompleted ? 'text-green-800 line-through opacity-70' : isNoShow ? 'text-amber-800 line-through opacity-70' : 'text-[#1A2332] dark:text-[#F8F8F8]'}`}>
                                                     {capitalizeName(apt.clientName)}
                                                 </span>
                                                 {isNoShow && (
@@ -1442,7 +1679,7 @@ const AgendaView: React.FC<{
                                                 )}
                                             </div>
                                             <div className="flex flex-col gap-1.5">
-                                                <span className={`text-xs font-normal uppercase tracking-wide ${isActuallyCompleted ? 'text-green-700/60' : isNoShow ? 'text-amber-700/60' : 'text-slate-400 dark:text-slate-500'}`}>
+                                                <span className={`text-xs font-bold uppercase tracking-wide ${isActuallyCompleted ? 'text-green-700/60' : isNoShow ? 'text-amber-700/60' : 'text-[#8A98A8] dark:text-[#707070]'}`}>
                                                     {isActuallyCompleted ? 'Atendimento Finalizado ✨' : isNoShow ? 'Falta Registrada' : apt.service}
                                                 </span>
                                                 {apt.observation?.includes('[EXCEPCIONAL]') && (
@@ -1455,7 +1692,7 @@ const AgendaView: React.FC<{
                                                     const cleanObs = apt.observation.replace('[EXCEPCIONAL]', '').trim();
                                                     if (!cleanObs) return null;
                                                     return (
-                                                        <p className={`text-[10px] italic leading-tight ${isActuallyCompleted ? 'text-green-800 line-through opacity-40' : isNoShow ? 'text-amber-800 line-through opacity-40' : 'text-slate-500'}`}>
+                                                        <p className={`text-[10px] italic leading-tight ${isActuallyCompleted ? 'text-green-800 line-through opacity-40' : isNoShow ? 'text-amber-800 line-through opacity-40' : 'text-[#8A98A8] dark:text-[#707070]'}`}>
                                                             Obs: {cleanObs}
                                                         </p>
                                                     );
@@ -1466,56 +1703,56 @@ const AgendaView: React.FC<{
                                 </div>
 
                             {/* Rodapé - Barra de Ferramentas */}
-                            <div className="px-4 py-2 flex items-center justify-between">
+                            <div className="px-4 py-3 flex items-center justify-between bg-transparent">
                                 <div className="flex items-center gap-4">
                                     <div className="flex flex-col items-center gap-1">
                                         <button 
                                             disabled={isNoShow}
                                             onClick={() => handleCameraClick(apt.phone)}
-                                            className={`w-8 h-8 flex items-center justify-center transition-colors rounded-xl ${isNoShow ? 'text-slate-200' : 'text-[#F59E0B] hover:bg-amber-50'}`}
+                                            className={`w-10 h-10 flex items-center justify-center transition-colors rounded-xl ${isNoShow ? 'text-slate-200' : 'text-amber-500 hover:bg-amber-50'}`}
                                         >
-                                            <Camera size={16} />
+                                            <Camera size={18} />
                                         </button>
-                                        <span className="text-[10px] font-medium text-slate-400">Foto</span>
+                                        <span className="text-[10px] text-[#8A98A8] dark:text-[#707070]">Foto</span>
                                     </div>
 
                                     <div className="flex flex-col items-center gap-1">
                                         <button 
                                             onClick={() => onOpenCustomer(apt.phone)}
-                                            className={`w-8 h-8 flex items-center justify-center rounded-xl transition-colors ${isNoShow ? 'text-amber-600 hover:bg-amber-50' : 'text-[#3B82F6] hover:bg-amber-50'}`}
+                                            className="w-10 h-10 flex items-center justify-center rounded-xl transition-colors text-[#2898D8] hover:bg-blue-50"
                                         >
-                                            <User size={16} />
+                                            <User size={18} />
                                         </button>
-                                        <span className="text-[10px] font-medium text-slate-400">Cliente</span>
+                                        <span className="text-[10px] text-[#8A98A8] dark:text-[#707070]">Cliente</span>
                                     </div>
 
                                     <div className="flex flex-col items-center gap-1">
                                         <button 
                                             disabled={isActuallyCompleted || isNoShow}
                                             onClick={() => onReschedule(apt)}
-                                            className={`w-8 h-8 flex items-center justify-center transition-colors rounded-xl ${isActuallyCompleted || isNoShow ? 'text-slate-200' : 'text-[#84CC16] hover:bg-lime-50'}`}
+                                            className={`w-10 h-10 flex items-center justify-center transition-colors rounded-xl ${isActuallyCompleted || isNoShow ? 'text-slate-200' : 'text-emerald-500 hover:bg-emerald-50'}`}
                                         >
-                                            <Edit3 size={16} />
+                                            <Edit3 size={18} />
                                         </button>
-                                        <span className="text-[10px] font-medium text-slate-400">Editar</span>
+                                        <span className="text-[10px] text-[#8A98A8] dark:text-[#707070]">Editar</span>
                                     </div>
 
                                     <div className="flex flex-col items-center gap-1">
                                         <button 
                                             disabled={isActuallyCompleted || isNoShow}
                                             onClick={() => setActiveNoShowMenu(apt.id)}
-                                            className={`w-8 h-8 flex items-center justify-center transition-colors rounded-xl ${isActuallyCompleted || isNoShow ? 'text-slate-200' : 'text-[#B45309] hover:bg-amber-50'}`}
+                                            className={`w-10 h-10 flex items-center justify-center transition-colors rounded-xl ${isActuallyCompleted || isNoShow ? 'text-slate-200' : 'text-red-500 hover:bg-red-50'}`}
                                         >
-                                            <ThumbsDown size={16} />
+                                            <ThumbsDown size={18} />
                                         </button>
-                                        <span className="text-[10px] font-medium text-slate-400">Falta</span>
+                                        <span className="text-[10px] text-[#8A98A8] dark:text-[#707070]">Falta</span>
                                     </div>
                                 </div>
                             </div>
                         </div>
 
                         {/* Botões de Ação Laterais */}
-                            <div className="w-12 flex flex-col items-center justify-center gap-4 border-l border-slate-100/30 bg-black/5 dark:bg-white/5 shrink-0">
+                            <div className="w-14 flex flex-col items-center justify-center gap-4 border-l border-[#D0D8E4]/30 dark:border-[#3A3A3A]/40 bg-[#F2F5F8]/50 dark:bg-[#FFFFFF]/5 shrink-0">
                                 <button 
                                     disabled={isActuallyCompleted || isNoShow}
                                     onClick={() => setActiveCancelMenu(apt.id)}
@@ -1667,10 +1904,10 @@ const AgendaView: React.FC<{
         <div className="mt-6">
             <div 
                 onClick={() => onAddInSlot(selectedDate, '', true)}
-                className="bg-amber-500/5 dark:bg-amber-500/10 border-2 border-dashed border-amber-500/40 h-[52px] px-4 rounded-2xl flex items-center gap-3 transition-all hover:bg-amber-50/50 dark:hover:bg-amber-900/10 cursor-pointer group"
+                className="bg-[#E8F4FC]/50 dark:bg-[#1A3A58]/30 border-2 border-dashed border-[#2898D8]/40 h-[52px] px-4 rounded-2xl flex items-center gap-3 transition-all hover:opacity-80 cursor-pointer group"
             >
-                <Zap size={18} className="text-amber-500 fill-amber-500 shrink-0" />
-                <div className="text-amber-600 dark:text-amber-500 font-black text-[11px] uppercase tracking-widest">
+                <Zap size={18} className="text-[#2898D8] fill-[#2898D8] shrink-0" />
+                <div className="text-[#2898D8] dark:text-[#2098F0] font-black text-[11px] uppercase tracking-widest">
                     AGENDAR FORA DO EXPEDIENTE
                 </div>
             </div>
@@ -1910,24 +2147,29 @@ const AddCustomerModal: React.FC<{ onClose: () => void, onSuccess: (msg: string)
   const [showErrorMsg, setShowErrorMsg] = useState(false);
   const [duplicateError, setDuplicateError] = useState<string | null>(null);
   const [isValidating, setIsValidating] = useState(false);
+  const validatingPromiseRef = useRef<Promise<void> | null>(null);
 
   const checkDuplicate = async (phoneToCheck: string) => {
     const normalized = normalizePhone(phoneToCheck);
     if (!normalized || !isSupabaseConfigured()) return;
     
     setIsValidating(true);
-    try {
-      const existing = await supabaseService.checkDuplicateCustomer(normalized) as { name: string } | null;
-      if (existing) {
-        setDuplicateError(`Este número já está cadastrado para o cliente ${existing.name}.`);
-      } else {
-        setDuplicateError(null);
+    const promise = (async () => {
+      try {
+        const existing = await supabaseService.checkDuplicateCustomer(normalized) as { name: string } | null;
+        if (existing) {
+          setDuplicateError(`Este número já está cadastrado para o cliente ${existing.name}.`);
+        } else {
+          setDuplicateError(null);
+        }
+      } catch (error) {
+        console.error('Error checking duplicate:', error);
+      } finally {
+        setIsValidating(false);
+        validatingPromiseRef.current = null;
       }
-    } catch (error) {
-      console.error('Error checking duplicate:', error);
-    } finally {
-      setIsValidating(false);
-    }
+    })();
+    validatingPromiseRef.current = promise;
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -1937,6 +2179,12 @@ const AddCustomerModal: React.FC<{ onClose: () => void, onSuccess: (msg: string)
       phone: !phone.trim()
     };
     setErrors(newErrors);
+    
+    // Aguarda validação em andamento antes de prosseguir
+    if (validatingPromiseRef.current) {
+      await validatingPromiseRef.current;
+    }
+
     if (newErrors.name || newErrors.phone || duplicateError) {
       setShowErrorMsg(true);
       return;
@@ -2013,7 +2261,7 @@ const AddCustomerModal: React.FC<{ onClose: () => void, onSuccess: (msg: string)
             <Button 
               type="submit" 
               fullWidth 
-              disabled={!!duplicateError || isValidating}
+              disabled={!!duplicateError}
               className="h-14 font-black uppercase tracking-widest shadow-xl shadow-brand-500/20 disabled:opacity-50 disabled:shadow-none"
             >
               {isValidating ? 'Validando...' : 'Cadastrar Cliente'}
@@ -2292,16 +2540,16 @@ const AddAppointmentModal: React.FC<{
         animate={{ scale: 1, opacity: 1 }}
         exit={{ scale: 0.95, opacity: 0 }}
         transition={{ duration: 0.3, ease: "easeOut" }}
-        className="bg-white dark:bg-slate-900 w-[90%] max-w-md rounded-[32px] shadow-2xl flex flex-col max-h-[85vh] relative z-[200] border border-white/20 dark:border-slate-800 overflow-hidden"
+        className="bg-[#FFFFFF] dark:bg-[#242424] w-[90%] max-w-md rounded-[32px] shadow-2xl flex flex-col max-h-[85vh] relative z-[200] border border-[#D0D8E4] dark:border-[#3A3A3A] overflow-hidden"
       >
-        <header className="px-6 pt-6 pb-4 flex justify-between items-center shrink-0 bg-white dark:bg-slate-900 sticky top-0 z-10 mb-6">
+        <header className="px-6 pt-6 pb-4 flex justify-between items-center shrink-0 bg-[#FFFFFF] dark:bg-[#242424] sticky top-0 z-10 mb-6">
           <div className="flex items-center gap-2">
             {isExceptional && <Zap size={20} className="text-amber-500 fill-amber-500" />}
-            <h2 className="text-lg font-bold text-slate-800 dark:text-white uppercase tracking-tight">
+            <h2 className="text-lg font-bold text-[#1A2332] dark:text-[#F8F8F8] uppercase tracking-tight">
               {isExceptional ? 'Agendamento Excepcional' : 'Novo Agendamento'}
             </h2>
           </div>
-          <button onClick={onClose} className="w-10 h-10 rounded-full bg-slate-100 dark:bg-slate-800 flex items-center justify-center text-slate-400 hover:bg-slate-200 dark:hover:bg-slate-700 transition-colors">
+          <button onClick={onClose} className="w-10 h-10 rounded-full bg-[#F0F2F5] dark:bg-[#2F2F2F] flex items-center justify-center text-[#8A98A8] hover:bg-[#E4E7EB] dark:hover:bg-[#3A3A3A] transition-colors">
             <X size={20} />
           </button>
         </header>
@@ -2342,11 +2590,11 @@ const AddAppointmentModal: React.FC<{
                     onFocus={() => setShowDropdown(true)}
                     placeholder="Digite nome ou WhatsApp..."
                     autoFocus
-                    icon={<Search size={18} className="text-slate-400" />}
+                    icon={<Search size={18} className="text-[#8A98A8]" />}
                   />
                   
                   {showDropdown && searchTerm.length >= 2 && (
-                    <div className="absolute top-full left-0 right-0 mt-2 bg-white dark:bg-slate-800 rounded-2xl shadow-2xl border border-slate-100 dark:border-slate-700 overflow-hidden z-[300] animate-in fade-in slide-in-from-top-2">
+                    <div className="absolute top-full left-0 right-0 mt-2 bg-[#FFFFFF] dark:bg-[#2F2F2F] rounded-2xl shadow-2xl border border-[#D0D8E4] dark:border-[#3A3A3A] overflow-hidden z-[300] animate-in fade-in slide-in-from-top-2">
                       {filteredCustomers.length > 0 ? (
                         <div className="max-h-[200px] overflow-y-auto">
                           {filteredCustomers.map(customer => (
@@ -2354,18 +2602,18 @@ const AddAppointmentModal: React.FC<{
                               key={customer.phone}
                               type="button"
                               onClick={() => handleSelectCustomer(customer)}
-                              className="w-full flex items-center gap-3 py-2 px-3 hover:bg-slate-50 dark:hover:bg-slate-700/50 transition-colors border-b border-slate-50 dark:border-slate-700/50 last:border-0"
+                              className="w-full flex items-center gap-3 py-2 px-3 hover:bg-[#F4F7FB] dark:hover:bg-[#2F2F2F]/50 transition-colors border-b border-[#D0D8E4] dark:border-[#3A3A3A]/50 last:border-0"
                             >
-                              <div className="w-10 h-10 rounded-full bg-brand-100 dark:bg-brand-900/30 flex items-center justify-center overflow-hidden shrink-0 shadow-sm">
+                              <div className="w-10 h-10 rounded-full bg-[#E8F4FC] dark:bg-[#1A3A58]/30 flex items-center justify-center overflow-hidden shrink-0 shadow-sm">
                                 {customer.avatar ? (
                                   <img src={customer.avatar} alt={customer.name} className="w-full h-full object-cover" />
                                 ) : (
-                                  <User size={20} className="text-brand-600 dark:text-brand-400" />
+                                  <User size={20} className="text-[#2898D8] dark:text-[#2098F0]" />
                                 )}
                               </div>
                               <div className="flex-1 text-left min-w-0">
-                                <p className="text-sm font-semibold text-slate-800 dark:text-white truncate">{capitalizeName(customer.name)}</p>
-                                <p className="text-xs text-slate-500 dark:text-slate-400">{customer.phone}</p>
+                                <p className="text-sm font-semibold text-[#1A2332] dark:text-[#F8F8F8] truncate">{capitalizeName(customer.name)}</p>
+                                <p className="text-xs text-[#8A98A8] dark:text-[#707070]">{customer.phone}</p>
                               </div>
                             </button>
                           ))}
@@ -2376,9 +2624,9 @@ const AddAppointmentModal: React.FC<{
                         <button
                           type="button"
                           onClick={handleCreateNew}
-                          className="w-full flex items-center gap-3 p-4 bg-brand-50 dark:bg-brand-900/10 hover:bg-brand-100 dark:hover:bg-brand-900/20 transition-colors text-brand-600 dark:text-brand-400"
+                          className="w-full flex items-center gap-3 p-4 bg-[#E8F4FC] dark:bg-[#1A3A58] hover:bg-[#D8EBF8] dark:hover:bg-[#1A3A58]/20 transition-colors text-[#2898D8] dark:text-[#2098F0]"
                         >
-                          <div className="w-10 h-10 rounded-full bg-brand-100 dark:bg-brand-900/30 flex items-center justify-center shrink-0">
+                          <div className="w-10 h-10 rounded-full bg-[#D8EBF8] dark:bg-[#1A3A58]/30 flex items-center justify-center shrink-0">
                             <UserPlus size={20} />
                           </div>
                           <div className="text-left">
@@ -2391,21 +2639,21 @@ const AddAppointmentModal: React.FC<{
                   )}
                 </div>
               ) : (
-                <div className={`p-4 rounded-2xl border-2 transition-all flex flex-col sm:flex-row items-start sm:items-center gap-3 sm:gap-4 relative group bg-brand-50/30 border-brand-200 dark:bg-brand-900/10 dark:border-brand-900/30`}>
+                <div className={`p-4 rounded-2xl border-2 transition-all flex flex-col sm:flex-row items-start sm:items-center gap-3 sm:gap-4 relative group bg-[#E8F4FC]/30 border-[#D8EBF8] dark:bg-[#1A3A58]/10 dark:border-[#1A3A58]/30`}>
                   <div className="flex items-center gap-3 w-full sm:w-auto">
-                    <div className="w-12 h-12 rounded-full bg-white dark:bg-slate-700 flex items-center justify-center overflow-hidden shrink-0 shadow-sm">
+                    <div className="w-12 h-12 rounded-full bg-white dark:bg-[#3A3A3A] flex items-center justify-center overflow-hidden shrink-0 shadow-sm">
                       {selectedCustomer?.avatar ? (
                         <img src={selectedCustomer.avatar} alt={selectedCustomer.name} className="w-full h-full object-cover" />
                       ) : (
-                        <User size={24} className="text-brand-600 dark:text-brand-400" />
+                        <User size={24} className="text-[#2898D8] dark:text-[#2098F0]" />
                       )}
                     </div>
                     <div className="sm:hidden flex-1 min-w-0">
-                      <p className="text-[10px] font-bold text-brand-600 dark:text-brand-400 uppercase tracking-widest mb-0.5">
+                      <p className="text-[10px] font-bold text-[#2898D8] dark:text-[#2098F0] uppercase tracking-widest mb-0.5">
                         {selectedCustomer ? 'Cliente Selecionado' : 'Novo Cliente'}
                       </p>
                       {selectedCustomer && (
-                        <p className="text-xs text-slate-500 dark:text-slate-400 font-medium truncate">
+                        <p className="text-xs text-[#8A98A8] dark:text-[#707070] font-medium truncate">
                           {selectedCustomer.phone}
                         </p>
                       )}
@@ -2413,20 +2661,20 @@ const AddAppointmentModal: React.FC<{
                   </div>
 
                   <div className="flex-1 w-full min-w-0 flex flex-col">
-                    <p className="hidden sm:block text-[10px] font-bold text-brand-600 dark:text-brand-400 uppercase tracking-widest mb-1 ml-1">
+                    <p className="hidden sm:block text-[10px] font-bold text-[#2898D8] dark:text-[#2098F0] uppercase tracking-widest mb-1 ml-1">
                       {selectedCustomer ? 'Cliente Selecionado' : 'Novo Cliente'}
                     </p>
                     <div className="relative flex w-full">
                       <input 
                         value={formData.name}
                         onChange={e => setFormData({...formData, name: e.target.value})}
-                        className="bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 px-3 h-10 rounded-xl text-base font-semibold text-slate-800 dark:text-white tracking-tight focus:ring-2 focus:ring-brand-500 outline-none flex-1 w-full min-w-0 shadow-sm transition-all"
+                        className="bg-[#FFFFFF] dark:bg-[#2F2F2F] border border-[#D0D8E4] dark:border-[#3A3A3A] px-3 h-10 rounded-xl text-base font-semibold text-[#1A2332] dark:text-[#F8F8F8] tracking-tight focus:ring-2 focus:ring-[#2898D8] outline-none flex-1 w-full min-w-0 shadow-sm transition-all"
                         placeholder="Nome do Cliente"
                       />
                     </div>
                     <div className="hidden sm:block mt-1 ml-1">
                       {selectedCustomer && (
-                        <p className="text-xs text-slate-500 dark:text-slate-400 font-medium">
+                        <p className="text-xs text-[#8A98A8] dark:text-[#707070] font-medium">
                           {selectedCustomer.phone}
                         </p>
                       )}
@@ -2436,7 +2684,7 @@ const AddAppointmentModal: React.FC<{
                   <button 
                     type="button" 
                     onClick={clearSelectedCustomer}
-                    className="absolute top-3 right-3 sm:relative sm:top-0 sm:right-0 w-8 h-8 rounded-full bg-white dark:bg-slate-700 text-slate-400 hover:text-red-500 shadow-sm flex items-center justify-center transition-all hover:scale-110"
+                    className="absolute top-3 right-3 sm:relative sm:top-0 sm:right-0 w-8 h-8 rounded-full bg-[#FFFFFF] dark:bg-[#3A3A3A] text-[#8A98A8] hover:text-red-500 shadow-sm flex items-center justify-center transition-all hover:scale-110"
                   >
                     <X size={16} />
                   </button>
@@ -2493,7 +2741,7 @@ const AddAppointmentModal: React.FC<{
                             setSaveToContacts(false);
                             executeFinalSave(formData, isNewCustomer, false);
                           }}
-                          className="flex-1 text-slate-500 dark:text-slate-400 text-[10px] font-bold py-2 rounded-xl hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors"
+                          className="flex-1 text-[#8A98A8] dark:text-[#707070] text-[10px] font-bold py-2 rounded-xl hover:bg-[#F0F2F5] dark:hover:bg-[#2F2F2F] transition-colors"
                         >
                           Continuar assim mesmo
                         </button>
@@ -2501,7 +2749,7 @@ const AddAppointmentModal: React.FC<{
                     </div>
                   )}
                   
-                  <label className="flex items-center gap-3 p-4 rounded-2xl bg-slate-50 dark:bg-slate-800/50 cursor-pointer group transition-colors hover:bg-slate-100 dark:hover:bg-slate-800">
+                  <label className="flex items-center gap-3 p-4 rounded-2xl bg-[#F4F7FB] dark:bg-[#2F2F2F] cursor-pointer group transition-colors hover:bg-[#E4E7EB] dark:hover:bg-[#3A3A3A]">
                     <div className="relative flex items-center">
                       <input 
                         type="checkbox" 
@@ -2509,22 +2757,22 @@ const AddAppointmentModal: React.FC<{
                         onChange={e => setSaveToContacts(e.target.checked)}
                         className="peer sr-only"
                       />
-                      <div className="w-5 h-5 border-2 border-slate-300 dark:border-slate-600 rounded-md peer-checked:bg-brand-500 peer-checked:border-brand-500 transition-all" />
+                      <div className="w-5 h-5 border-2 border-[#D0D8E4] dark:border-[#4B4B4B] rounded-md peer-checked:bg-[#2898D8] peer-checked:border-[#2898D8] transition-all" />
                       <Check size={14} className="absolute left-0.5 text-white opacity-0 peer-checked:opacity-100 transition-opacity" />
                     </div>
-                    <span className="text-xs font-bold text-slate-600 dark:text-slate-300 uppercase tracking-tight">Salvar nos contatos</span>
+                    <span className="text-xs font-bold text-[#1A2332] dark:text-[#F8F8F8] uppercase tracking-tight">Salvar nos contatos</span>
                   </label>
                 </motion.div>
               )}
             </div>
             <div className="space-y-3">
-              <label className={`text-[10px] font-bold uppercase tracking-widest ml-1 flex items-center gap-1 ${errors.services ? 'text-red-500' : 'text-slate-400 dark:text-slate-500'}`}>
+              <label className={`text-[10px] font-bold uppercase tracking-widest ml-1 flex items-center gap-1 ${errors.services ? 'text-red-500' : 'text-[#8A98A8] dark:text-[#707070]'}`}>
                 Serviços
                 <span className="text-red-500">*</span>
               </label>
               <div className={`flex flex-wrap gap-2 p-1 rounded-2xl transition-all ${errors.services ? 'ring-2 ring-red-500 bg-red-50/50' : ''}`}>
                 {services.map(s => (
-                  <button key={s.id} type="button" onClick={() => toggleService(s.id)} className={`px-3 py-1.5 rounded-xl text-[10px] font-black uppercase transition-all border ${formData.serviceIds.includes(s.id) ? 'bg-brand-500 text-white border-brand-500 shadow-md' : 'bg-white dark:bg-slate-800 text-slate-400 border-slate-100 dark:border-slate-700'}`}>{s.name}</button>
+                  <button key={s.id} type="button" onClick={() => toggleService(s.id)} className={`px-3 py-1.5 rounded-xl text-[10px] font-black uppercase transition-all border ${formData.serviceIds.includes(s.id) ? 'bg-[#2898D8] text-white border-[#2898D8] shadow-md' : 'bg-[#FFFFFF] dark:bg-[#242424] text-[#8A98A8] border-[#D0D8E4] dark:border-[#3A3A3A]'}`}>{s.name}</button>
                 ))}
               </div>
               {errors.services && (
@@ -2554,7 +2802,7 @@ const AddAppointmentModal: React.FC<{
               />
             ) : (
               <div className="space-y-3">
-                <label className={`text-[10px] font-bold uppercase tracking-widest ml-1 flex items-center gap-1 ${errors.time ? 'text-red-500' : 'text-slate-400 dark:text-slate-500'}`}>
+                <label className={`text-[10px] font-bold uppercase tracking-widest ml-1 flex items-center gap-1 ${errors.time ? 'text-red-500' : 'text-[#8A98A8] dark:text-[#707070]'}`}>
                   Horário
                   <span className="text-red-500">*</span>
                 </label>
@@ -2563,7 +2811,7 @@ const AddAppointmentModal: React.FC<{
                       const available = isSlotAvailable(slot);
                       if (isSlotPast(slot)) return null;
                       return (
-                        <button key={slot} type="button" disabled={!available} onClick={() => { setFormData({...formData, time: slot}); setErrors(prev => ({...prev, time: false})); setShowErrorMsg(false); }} className={`py-2 rounded-xl text-xs font-bold transition-all border ${formData.time === slot ? 'bg-brand-600 text-white border-brand-600' : !available ? 'bg-slate-50 dark:bg-slate-800 text-slate-200 dark:text-slate-700 border-slate-100 dark:border-slate-700' : 'bg-white dark:bg-slate-900 text-slate-600 dark:text-slate-400 border-slate-200 dark:border-slate-800'}`}>{slot}</button>
+                        <button key={slot} type="button" disabled={!available} onClick={() => { setFormData({...formData, time: slot}); setErrors(prev => ({...prev, time: false})); setShowErrorMsg(false); }} className={`py-2 rounded-xl text-xs font-bold transition-all border ${formData.time === slot ? 'bg-[#2898D8] text-white border-[#2898D8]' : !available ? 'bg-[#F4F7FB] dark:bg-[#2F2F2F] text-[#D0D8E4] dark:text-[#4B4B4B] border-[#D0D8E4] dark:border-[#3A3A3A]' : 'bg-[#FFFFFF] dark:bg-[#242424] text-[#1A2332] dark:text-[#F8F8F8] border-[#D0D8E4] dark:border-[#3A3A3A]'}`}>{slot}</button>
                       );
                     })}
                 </div>
@@ -2576,21 +2824,21 @@ const AddAppointmentModal: React.FC<{
               </div>
             )}
             <div className="space-y-2">
-              <label className="text-[10px] font-bold text-slate-400 dark:text-slate-500 uppercase tracking-widest ml-1 flex items-center gap-1">
+              <label className="text-[10px] font-bold text-[#8A98A8] dark:text-[#707070] uppercase tracking-widest ml-1 flex items-center gap-1">
                 Observação
-                <span className="text-slate-400 dark:text-slate-500 lowercase font-normal ml-1">(opcional)</span>
+                <span className="text-[#8A98A8] dark:text-[#707070] lowercase font-normal ml-1">(opcional)</span>
               </label>
-              <textarea value={formData.observation} onChange={e => setFormData({...formData, observation: e.target.value})} className="w-full px-4 py-3 rounded-2xl bg-slate-50 dark:bg-slate-800 border-none text-sm min-h-[80px] dark:text-slate-200" />
+              <textarea value={formData.observation} onChange={e => setFormData({...formData, observation: e.target.value})} className="w-full px-4 py-3 rounded-2xl bg-[#F4F7FB] dark:bg-[#2F2F2F] border-none text-sm min-h-[80px] dark:text-[#F8F8F8]" />
             </div>
           </div>
           
-          <footer className="px-6 pt-4 pb-2 shrink-0 bg-white dark:bg-slate-900 sticky bottom-0 z-10">
+          <footer className="px-6 pt-4 pb-2 shrink-0 bg-[#FFFFFF] dark:bg-[#242424] sticky bottom-0 z-10">
             {showErrorMsg && <p className="text-red-500 text-[13px] font-bold text-center mb-4">Preencha todos os campos obrigatórios</p>}
             <Button 
               type="submit" 
               fullWidth 
               disabled={isExceptional && isWithinRegularHours}
-              className={`h-14 font-black uppercase tracking-widest shadow-xl shadow-brand-500/20 text-sm px-4 disabled:opacity-50 transition-colors duration-300 ${isButtonFlashing ? '!bg-amber-500 !shadow-amber-500/40' : ''}`}
+              className={`h-14 font-black uppercase tracking-widest shadow-xl shadow-[#2898D8]/20 text-sm px-4 disabled:opacity-50 transition-colors duration-300 ${isButtonFlashing ? '!bg-amber-500 !shadow-amber-500/40' : ''}`}
             >
               Agendar Atendimento
             </Button>
@@ -2686,10 +2934,10 @@ const RescheduleModal: React.FC<{
 
   return (
     <div className="fixed inset-0 z-[200] flex items-center justify-center p-4 bg-slate-900/40 backdrop-blur-md animate-in fade-in">
-      <div className="bg-white dark:bg-slate-900 w-full max-w-[95%] sm:max-w-sm rounded-3xl shadow-2xl overflow-hidden flex flex-col max-h-[90vh] relative border border-white/20 dark:border-slate-800">
-        <header className="p-6 border-b border-slate-50 dark:border-slate-800 flex justify-between items-center shrink-0 bg-white dark:bg-slate-900 sticky top-0 z-10">
-            <h2 className="text-lg font-bold text-slate-800 dark:text-white uppercase tracking-tight">Editar Agendamento</h2>
-            <button onClick={onClose} className="w-10 h-10 rounded-full bg-slate-100 dark:bg-slate-800 text-slate-400 flex items-center justify-center hover:bg-slate-200 dark:hover:bg-slate-700 transition-colors">
+      <div className="bg-[#FFFFFF] dark:bg-[#242424] w-full max-w-[95%] sm:max-w-sm rounded-3xl shadow-2xl overflow-hidden flex flex-col max-h-[90vh] relative border border-[#D0D8E4] dark:border-[#3A3A3A]">
+        <header className="p-6 border-b border-[#D0D8E4] dark:border-[#3A3A3A] flex justify-between items-center shrink-0 bg-[#FFFFFF] dark:bg-[#242424] sticky top-0 z-10">
+            <h2 className="text-lg font-bold text-[#1A2332] dark:text-[#F8F8F8] uppercase tracking-tight">Editar Agendamento</h2>
+            <button onClick={onClose} className="w-10 h-10 rounded-full bg-[#F0F2F5] dark:bg-[#2F2F2F] text-[#8A98A8] flex items-center justify-center hover:bg-[#E4E7EB] dark:hover:bg-[#3A3A3A] transition-colors">
               <X size={20} />
             </button>
         </header>
@@ -2697,13 +2945,13 @@ const RescheduleModal: React.FC<{
         <form onSubmit={handleConfirm} className="flex flex-col flex-1 overflow-hidden">
           <div className="p-6 space-y-6 overflow-y-auto flex-1 min-h-0">
             <div className="space-y-2">
-              <label className={`text-[10px] font-bold uppercase tracking-widest ml-1 flex items-center gap-1 ${errors.services ? 'text-red-500' : 'text-slate-400 dark:text-slate-500'}`}>
+              <label className={`text-[10px] font-bold uppercase tracking-widest ml-1 flex items-center gap-1 ${errors.services ? 'text-red-500' : 'text-[#8A98A8] dark:text-[#707070]'}`}>
                 Serviços
                 <span className="text-red-500">*</span>
               </label>
               <div className={`flex flex-wrap gap-2 p-1 rounded-2xl transition-all ${errors.services ? 'ring-2 ring-red-500 bg-red-50/50' : ''}`}>
                 {services.map(s => (
-                  <button key={s.id} type="button" onClick={() => toggleService(s.id)} className={`px-3 py-1.5 rounded-xl text-[10px] font-black uppercase border transition-all ${serviceIds.includes(s.id) ? 'bg-brand-500 text-white border-brand-500' : 'bg-white dark:bg-slate-800 text-slate-400 border-slate-100 dark:border-slate-700'}`}>{s.name}</button>
+                  <button key={s.id} type="button" onClick={() => toggleService(s.id)} className={`px-3 py-1.5 rounded-xl text-[10px] font-black uppercase border transition-all ${serviceIds.includes(s.id) ? 'bg-[#2898D8] text-white border-[#2898D8]' : 'bg-[#FFFFFF] dark:bg-[#242424] text-[#8A98A8] border-[#D0D8E4] dark:border-[#3A3A3A]'}`}>{s.name}</button>
                 ))}
               </div>
               {errors.services && (
@@ -2722,7 +2970,7 @@ const RescheduleModal: React.FC<{
               requiredField
             />
             <div className="space-y-2">
-              <label className={`text-[10px] font-bold uppercase tracking-widest ml-1 flex items-center gap-1 ${errors.time ? 'text-red-500' : 'text-slate-400 dark:text-slate-500'}`}>
+              <label className={`text-[10px] font-bold uppercase tracking-widest ml-1 flex items-center gap-1 ${errors.time ? 'text-red-500' : 'text-[#8A98A8] dark:text-[#707070]'}`}>
                 Novo Horário
                 <span className="text-red-500">*</span>
               </label>
@@ -2731,7 +2979,7 @@ const RescheduleModal: React.FC<{
                     const available = isSlotAvailable(slot);
                     if (isSlotPast(slot)) return null;
                     return (
-                      <button key={slot} type="button" disabled={!available} onClick={() => { setNewTime(slot); setErrors(prev => ({...prev, time: false})); setShowErrorMsg(false); }} className={`py-2 rounded-xl text-xs font-bold transition-all border ${newTime === slot ? 'bg-brand-600 text-white border-brand-600' : !available ? 'bg-slate-50 dark:bg-slate-800 text-slate-200 dark:text-slate-700 border-slate-100 dark:border-slate-700' : 'bg-white dark:bg-slate-900 text-slate-600 dark:text-slate-400 border-slate-200 dark:border-slate-800'}`}>{slot}</button>
+                      <button key={slot} type="button" disabled={!available} onClick={() => { setNewTime(slot); setErrors(prev => ({...prev, time: false})); setShowErrorMsg(false); }} className={`py-2 rounded-xl text-xs font-bold transition-all border ${newTime === slot ? 'bg-[#2898D8] text-white border-[#2898D8]' : !available ? 'bg-[#F4F7FB] dark:bg-[#2F2F2F] text-[#D0D8E4] dark:text-[#4B4B4B] border-[#D0D8E4] dark:border-[#3A3A3A]' : 'bg-[#FFFFFF] dark:bg-[#242424] text-[#1A2332] dark:text-[#F8F8F8] border-[#D0D8E4] dark:border-[#3A3A3A]'}`}>{slot}</button>
                     );
                   })}
               </div>
@@ -2743,17 +2991,17 @@ const RescheduleModal: React.FC<{
               )}
             </div>
             <div className="space-y-1">
-              <label className="text-[10px] font-bold text-slate-400 dark:text-slate-500 uppercase tracking-widest ml-1 flex items-center gap-1">
+              <label className="text-[10px] font-bold text-[#8A98A8] dark:text-[#707070] uppercase tracking-widest ml-1 flex items-center gap-1">
                 Observação
-                <span className="text-slate-400 dark:text-slate-500 lowercase font-normal ml-1">(opcional)</span>
+                <span className="text-[#8A98A8] dark:text-[#707070] lowercase font-normal ml-1">(opcional)</span>
               </label>
-              <textarea value={observation} onChange={e => setObservation(e.target.value)} className="w-full px-4 py-3 rounded-2xl bg-slate-50 dark:bg-slate-800 border-none text-sm min-h-[80px] dark:text-slate-200" />
+              <textarea value={observation} onChange={e => setObservation(e.target.value)} className="w-full px-4 py-3 rounded-2xl bg-[#F4F7FB] dark:bg-[#2F2F2F] border-none text-sm min-h-[80px] dark:text-[#F8F8F8]" />
             </div>
           </div>
           
-          <footer className="p-6 border-t border-slate-50 dark:border-slate-800 shrink-0 bg-white dark:bg-slate-900 sticky bottom-0 z-10 pb-[calc(1.5rem+env(safe-area-inset-bottom))]">
+          <footer className="p-6 border-t border-[#D0D8E4] dark:border-[#3A3A3A] shrink-0 bg-[#FFFFFF] dark:bg-[#242424] sticky bottom-0 z-10 pb-[calc(1.5rem+env(safe-area-inset-bottom))]">
             {showErrorMsg && <p className="text-red-500 text-[13px] font-bold text-center mb-4">Preencha todos os campos obrigatórios</p>}
-            <Button type="submit" fullWidth className="h-14 font-black uppercase tracking-widest shadow-xl shadow-brand-500/20">
+            <Button type="submit" fullWidth className="h-14 font-black uppercase tracking-widest shadow-xl shadow-[#2898D8]/20">
               Salvar Alterações
             </Button>
           </footer>
@@ -2797,20 +3045,20 @@ const ProfileModal: React.FC<{
 
     return (
         <div className="fixed inset-0 z-[200] flex items-center justify-center p-4 bg-slate-900/40 backdrop-blur-md animate-in fade-in">
-            <div className="bg-white dark:bg-slate-900 w-full max-w-[95%] sm:max-w-sm rounded-3xl shadow-2xl overflow-hidden flex flex-col max-h-[85vh] relative border border-white/20 dark:border-slate-800">
-                <header className="p-6 border-b border-slate-50 dark:border-slate-800 flex justify-between items-center shrink-0 bg-white dark:bg-slate-900 sticky top-0 z-10">
+            <div className="bg-[#FFFFFF] dark:bg-[#242424] w-full max-w-[95%] sm:max-w-sm rounded-3xl shadow-2xl overflow-hidden flex flex-col max-h-[85vh] relative border border-[#D0D8E4] dark:border-[#3A3A3A]">
+                <header className="p-6 border-b border-[#D0D8E4] dark:border-[#3A3A3A] flex justify-between items-center shrink-0 bg-[#FFFFFF] dark:bg-[#242424] sticky top-0 z-10">
                     <div>
-                        <h2 className="text-lg font-bold text-slate-800 dark:text-white uppercase tracking-tight">Meu Perfil</h2>
-                        <p className="text-[10px] text-slate-400 font-medium uppercase tracking-widest">Personalize seu Aplicativo</p>
+                        <h2 className="text-lg font-bold text-[#1A2332] dark:text-[#F8F8F8] uppercase tracking-tight">Meu Perfil</h2>
+                        <p className="text-[10px] text-[#8A98A8] font-medium uppercase tracking-widest">Personalize seu Aplicativo</p>
                     </div>
-                    <button onClick={onClose} className="w-10 h-10 rounded-full bg-slate-100 dark:bg-slate-800 flex items-center justify-center text-slate-400 hover:bg-slate-200 dark:hover:bg-slate-700 transition-colors">
+                    <button onClick={onClose} className="w-10 h-10 rounded-full bg-[#F0F2F5] dark:bg-[#2F2F2F] flex items-center justify-center text-[#8A98A8] hover:bg-[#E4E7EB] dark:hover:bg-[#3A3A3A] transition-colors">
                       <X size={20} />
                     </button>
                 </header>
                 
-                <div className="flex border-b border-slate-50 dark:border-slate-800 shrink-0 bg-white dark:bg-slate-900 sticky top-[88px] z-10">
-                   <button onClick={() => setModalTab('personal')} className={`flex-1 py-3 text-[10px] font-black uppercase tracking-widest transition-colors ${modalTab === 'personal' ? 'text-brand-600 border-b-2 border-brand-600' : 'text-slate-300'}`}>Pessoal</button>
-                   <button onClick={() => setModalTab('business')} className={`flex-1 py-3 text-[10px] font-black uppercase tracking-widest transition-colors ${modalTab === 'business' ? 'text-brand-600 border-b-2 border-brand-600' : 'text-slate-300'}`}>Negócio</button>
+                <div className="flex border-b border-[#D0D8E4] dark:border-[#3A3A3A] shrink-0 bg-[#FFFFFF] dark:bg-[#242424] sticky top-[88px] z-10">
+                   <button onClick={() => setModalTab('personal')} className={`flex-1 py-3 text-[10px] font-black uppercase tracking-widest transition-colors ${modalTab === 'personal' ? 'text-[#2898D8] border-b-2 border-[#2898D8]' : 'text-[#B0BCC7]'}`}>Pessoal</button>
+                   <button onClick={() => setModalTab('business')} className={`flex-1 py-3 text-[10px] font-black uppercase tracking-widest transition-colors ${modalTab === 'business' ? 'text-[#2898D8] border-b-2 border-[#2898D8]' : 'text-[#B0BCC7]'}`}>Negócio</button>
                 </div>
                 
                 <form onSubmit={handleSubmit} className="flex flex-col flex-1 overflow-hidden">
@@ -2818,11 +3066,11 @@ const ProfileModal: React.FC<{
                       {modalTab === 'personal' ? (
                         <div className="space-y-4">
                           <div className="flex flex-col items-center gap-3">
-                              <div onClick={() => photoInputRef.current?.click()} className="w-20 h-20 rounded-full bg-slate-50 dark:bg-slate-800 border-2 border-dashed border-slate-200 dark:border-slate-700 flex items-center justify-center overflow-hidden cursor-pointer">
-                                  {formData.photo ? <img src={formData.photo} className="w-full h-full object-cover" alt="Foto" /> : <User size={32} className="text-slate-300" />}
+                              <div onClick={() => photoInputRef.current?.click()} className="w-20 h-20 rounded-full bg-[#F4F7FB] dark:bg-[#2F2F2F] border-2 border-dashed border-[#D0D8E4] dark:border-[#3A3A3A] flex items-center justify-center overflow-hidden cursor-pointer">
+                                  {formData.photo ? <img src={formData.photo} className="w-full h-full object-cover" alt="Foto" /> : <User size={32} className="text-[#B0BCC7]" />}
                               </div>
                               <input type="file" ref={photoInputRef} className="hidden" accept="image/*" onChange={handlePhotoUpload} />
-                              <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Sua Foto de Perfil</p>
+                              <p className="text-[10px] font-bold text-[#8A98A8] uppercase tracking-widest">Sua Foto de Perfil</p>
                           </div>
                           <Input label="Seu Nome" value={formData.name} onChange={e => setFormData({...formData, name: e.target.value})} />
                           <Input label="Telefone Pessoal" value={formData.personalPhone} onChange={e => setFormData({...formData, personalPhone: formatPhone(e.target.value)})} maxLength={15} />
@@ -2830,8 +3078,8 @@ const ProfileModal: React.FC<{
                       ) : (
                         <div className="space-y-4">
                           <div className="flex flex-col items-center gap-3">
-                              <div onClick={() => logoInputRef.current?.click()} className="w-20 h-20 rounded-2xl bg-slate-50 dark:bg-slate-800 border-2 border-dashed border-slate-200 dark:border-slate-700 flex items-center justify-center overflow-hidden cursor-pointer">
-                                  {formData.logo ? <img src={formData.logo} className="w-full h-full object-cover" alt="Logo" /> : <svg xmlns="http://www.w3.org/2000/svg" className="h-8 w-8 text-slate-300" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" /></svg>}
+                              <div onClick={() => logoInputRef.current?.click()} className="w-20 h-20 rounded-2xl bg-[#F4F7FB] dark:bg-[#2F2F2F] border-2 border-dashed border-[#D0D8E4] dark:border-[#3A3A3A] flex items-center justify-center overflow-hidden cursor-pointer">
+                                  {formData.logo ? <img src={formData.logo} className="w-full h-full object-cover" alt="Logo" /> : <svg xmlns="http://www.w3.org/2000/svg" className="h-8 w-8 text-[#B0BCC7]" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" /></svg>}
                               </div>
                               <input type="file" ref={logoInputRef} className="hidden" accept="image/*" onChange={handleLogoUpload} />
                           </div>
@@ -2842,8 +3090,8 @@ const ProfileModal: React.FC<{
                       )}
                   </div>
                   
-                  <footer className="p-6 border-t border-slate-50 dark:border-slate-800 shrink-0 bg-white dark:bg-slate-900 sticky bottom-0 z-10 pb-[calc(1.5rem+env(safe-area-inset-bottom))]">
-                    <Button type="submit" fullWidth className="h-14 font-black uppercase tracking-widest shadow-xl shadow-brand-500/20">
+                  <footer className="p-6 border-t border-[#D0D8E4] dark:border-[#3A3A3A] shrink-0 bg-[#FFFFFF] dark:bg-[#242424] sticky bottom-0 z-10 pb-[calc(1.5rem+env(safe-area-inset-bottom))]">
+                    <Button type="submit" fullWidth className="h-14 font-black uppercase tracking-widest shadow-xl shadow-[#2898D8]/20">
                       Salvar Perfil
                     </Button>
                   </footer>
@@ -2946,8 +3194,8 @@ const ServicesView: React.FC<{ onSuccess?: (msg: string) => void }> = ({ onSucce
 
   return (
     <div className="space-y-6">
-      <div className="bg-white dark:bg-slate-900 p-4 rounded-3xl shadow-soft border border-slate-100 dark:border-[#444444] space-y-3">
-        <h2 className="font-semibold text-sm text-slate-800 dark:text-[#FFFFFF] uppercase tracking-widest">{editingId ? 'Editar Serviço' : 'Novo Serviço'}</h2>
+      <div className="bg-[#FFFFFF] dark:bg-[#242424] p-4 rounded-3xl shadow-[0_1px_4px_rgba(0,0,0,0.06)] space-y-3">
+        <h2 className="font-semibold text-sm text-[#1A2332] dark:text-[#F8F8F8] uppercase tracking-widest">{editingId ? 'Editar Serviço' : 'Novo Serviço'}</h2>
         <form onSubmit={handleSubmit} className="space-y-3">
           <Input 
             label="Nome do Serviço" 
@@ -2970,11 +3218,11 @@ const ServicesView: React.FC<{ onSuccess?: (msg: string) => void }> = ({ onSucce
               />
             </div>
             <div className="flex-1 flex flex-col gap-1">
-              <label className="text-[10px] font-bold text-slate-400 dark:text-[#CCCCCC] ml-1 uppercase tracking-widest">Duração</label>
+              <label className="text-[10px] font-bold text-[#8A98A8] dark:text-[#707070] ml-1 uppercase tracking-widest">Duração</label>
               <select 
                 value={formData.duration} 
                 onChange={e => setFormData({...formData, duration: e.target.value})}
-                className="w-full px-4 py-2.5 rounded-xl border border-slate-100 dark:border-[#444444] bg-white dark:bg-[#2A2A2A] text-slate-800 dark:text-[#F0F0F0] text-sm focus:outline-none focus:ring-2 focus:ring-brand-100 transition-colors h-[42px]"
+                className="w-full px-4 py-2.5 rounded-xl border border-[#D0D8E4] dark:border-[#3A3A3A] bg-[#FFFFFF] dark:bg-[#2F2F2F] text-[#1A2332] dark:text-[#F8F8F8] text-sm focus:outline-none focus:ring-2 focus:ring-[#2898D8]/20 transition-colors h-[42px]"
               >
                 {durationOptions.map(opt => (
                   <option key={opt.value} value={opt.value}>{opt.label}</option>
@@ -2988,9 +3236,9 @@ const ServicesView: React.FC<{ onSuccess?: (msg: string) => void }> = ({ onSucce
 
       <div className="pt-2">
         <div className="flex items-center gap-4 mb-4">
-          <div className="h-px flex-1 bg-slate-100 dark:bg-slate-800"></div>
-          <h3 className="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em]">Serviços Cadastrados</h3>
-          <div className="h-px flex-1 bg-slate-100 dark:bg-slate-800"></div>
+          <div className="h-px flex-1 bg-[#D0D8E4] dark:bg-[#3A3A3A]"></div>
+          <h3 className="text-[10px] font-black text-[#8A98A8] uppercase tracking-[0.2em]">Serviços Cadastrados</h3>
+          <div className="h-px flex-1 bg-[#D0D8E4] dark:bg-[#3A3A3A]"></div>
         </div>
         <Reorder.Group axis="y" values={services} onReorder={reorderServices} className="space-y-2">
           {services.map((s) => (
@@ -2999,15 +3247,15 @@ const ServicesView: React.FC<{ onSuccess?: (msg: string) => void }> = ({ onSucce
               value={s}
               initial={{ opacity: 0, y: 10 }}
               animate={{ opacity: 1, y: 0 }}
-              className="bg-white dark:bg-slate-900 p-3 rounded-2xl shadow-sm border border-slate-100 dark:border-[#444444] flex items-center gap-3 group"
+              className="bg-[#FFFFFF] dark:bg-[#242424] p-3 rounded-2xl shadow-[0_1px_4px_rgba(0,0,0,0.06)] flex items-center gap-3 group"
             >
-              <div className="cursor-grab active:cursor-grabbing text-slate-300 dark:text-[#888888] hover:text-slate-400 transition-colors shrink-0">
+              <div className="cursor-grab active:cursor-grabbing text-[#B0BCC7] dark:text-[#707070] hover:text-[#8A98A8] transition-colors shrink-0">
                 <GripVertical size={20} />
               </div>
               
               <div className="flex-1 min-w-0">
-                <p className="font-bold text-slate-800 dark:text-[#FFFFFF] text-base truncate">{s.name}</p>
-                <p className="text-brand-600 dark:text-brand-400 font-medium text-xs">
+                <p className="font-bold text-[#1A2332] dark:text-[#F8F8F8] text-base truncate">{s.name}</p>
+                <p className="text-[#2898D8] dark:text-[#2098F0] font-medium text-xs">
                   {formatCurrency(s.price)} | {s.duration} min
                 </p>
               </div>
@@ -3015,7 +3263,7 @@ const ServicesView: React.FC<{ onSuccess?: (msg: string) => void }> = ({ onSucce
               <div className="flex gap-1">
                 <button 
                   onClick={() => startEditing(s)} 
-                  className="p-2 text-slate-400 hover:text-brand-500 transition-colors"
+                  className="p-2 text-[#8A98A8] hover:text-[#2898D8] transition-colors"
                 >
                   <Edit3 size={18} />
                 </button>
@@ -3062,18 +3310,18 @@ const WeeklyConfigModal: React.FC<{ onClose: () => void }> = ({ onClose }) => {
         animate={{ scale: 1, opacity: 1 }}
         exit={{ scale: 0.95, opacity: 0 }}
         transition={{ duration: 0.3, ease: "easeOut" }}
-        className="bg-white dark:bg-slate-900 w-[90%] max-w-md rounded-[32px] shadow-2xl flex flex-col max-h-[85vh] relative z-[200] border border-white/20 dark:border-slate-800 overflow-hidden"
+        className="bg-[#FFFFFF] dark:bg-[#242424] w-[90%] max-w-md rounded-[32px] shadow-2xl flex flex-col max-h-[85vh] relative z-[200] overflow-hidden"
       >
-        <header className="px-6 pt-6 pb-4 flex justify-between items-center shrink-0 bg-white dark:bg-slate-900 sticky top-0 z-10">
-          <h2 className="text-lg font-bold text-slate-800 dark:text-white uppercase tracking-tight">Padrão Semanal</h2>
-          <button onClick={onClose} className="w-10 h-10 rounded-full bg-slate-100 dark:bg-slate-800 text-slate-400 flex items-center justify-center hover:bg-slate-200 dark:hover:bg-slate-700 transition-colors">
+        <header className="px-6 pt-6 pb-4 flex justify-between items-center shrink-0 bg-[#FFFFFF] dark:bg-[#242424] sticky top-0 z-10">
+          <h2 className="text-lg font-bold text-[#1A2332] dark:text-[#F8F8F8] uppercase tracking-tight">Padrão Semanal</h2>
+          <button onClick={onClose} className="w-10 h-10 rounded-full bg-[#F0F2F5] dark:bg-[#2F2F2F] text-[#8A98A8] flex items-center justify-center hover:bg-[#E4E7EB] dark:hover:bg-[#3A3A3A] transition-colors">
             <X size={20} />
           </button>
         </header>
         
         <div className="flex-1 overflow-y-auto px-6 pt-6 pb-2 space-y-6">
             <div className="space-y-3">
-              <label className="text-[10px] font-medium text-slate-400 dark:text-slate-500 uppercase tracking-widest ml-1">Selecione o Dia</label>
+              <label className="text-[10px] font-medium text-[#8A98A8] dark:text-[#707070] uppercase tracking-widest ml-1">Selecione o Dia</label>
               <div className="grid grid-cols-7 gap-1 shrink-0">
                 {WEEKDAYS.map((name, idx) => {
                   const dayConfig = weeklySchedule[idx];
@@ -3083,7 +3331,7 @@ const WeeklyConfigModal: React.FC<{ onClose: () => void }> = ({ onClose }) => {
                       key={idx} 
                       onClick={() => setSelectedDay(idx)} 
                       className={`flex flex-col items-center py-2.5 rounded-xl transition-all 
-                        ${isSelected ? 'bg-brand-600 text-white shadow-md' : 'bg-slate-50 dark:bg-slate-800 text-slate-400 dark:text-slate-500'}`}
+                        ${isSelected ? 'bg-[#2898D8] text-white shadow-md' : 'bg-[#F4F7FB] dark:bg-[#2F2F2F] text-[#8A98A8] dark:text-[#707070]'}`}
                     >
                       <span className="text-[9px] font-bold uppercase tracking-tighter">{name.substring(0, 3)}</span>
                       {dayConfig && (
@@ -3096,11 +3344,11 @@ const WeeklyConfigModal: React.FC<{ onClose: () => void }> = ({ onClose }) => {
             </div>
             
             {/* Day Status Line */}
-            <div className="py-4 border-y border-slate-100 dark:border-slate-800 flex items-center justify-between">
-              <span className="text-[13px] font-bold text-slate-700 dark:text-slate-200">Aberto para agendamentos</span>
+            <div className="py-4 border-y border-[#D0D8E4] dark:border-[#3A3A3A] flex items-center justify-between">
+              <span className="text-[13px] font-bold text-[#1A2332] dark:text-[#F8F8F8]">Aberto para agendamentos</span>
               <button 
                 onClick={() => updateDayConfig(selectedDay, { isOpen: !currentConfig?.isOpen })} 
-                className={`w-12 h-7 rounded-full transition-colors relative ${currentConfig?.isOpen ? 'bg-green-500' : 'bg-slate-300 dark:bg-slate-700'}`}
+                className={`w-12 h-7 rounded-full transition-colors relative ${currentConfig?.isOpen ? 'bg-green-500' : 'bg-[#D0D8E4] dark:bg-[#3A3A3A]'}`}
               >
                 <div className={`w-5 h-5 bg-white rounded-full absolute top-1 transition-all shadow-sm ${currentConfig?.isOpen ? 'left-6' : 'left-1'}`}></div>
               </button>
@@ -3115,25 +3363,25 @@ const WeeklyConfigModal: React.FC<{ onClose: () => void }> = ({ onClose }) => {
 
                 {/* Summary Line */}
                 <div className="text-center">
-                  <p className="text-[12px] text-slate-500 font-medium">
+                  <p className="text-[12px] text-[#8A98A8] font-medium">
                     {availableCount} disponíveis · {blockedCount} bloqueados
                   </p>
                 </div>
                 
                 <div className="space-y-3">
                   <div className="flex flex-col gap-1 ml-1">
-                    <label className="text-[10px] font-medium text-slate-400 dark:text-slate-500 uppercase tracking-widest">Horários Disponíveis</label>
-                    <span className="text-[11px] text-slate-400 font-medium">Toque para bloquear/desbloquear</span>
+                    <label className="text-[10px] font-medium text-[#8A98A8] dark:text-[#707070] uppercase tracking-widest">Horários Disponíveis</label>
+                    <span className="text-[11px] text-[#8A98A8] font-medium">Toque para bloquear/desbloquear</span>
                   </div>
                   <div className="grid grid-cols-5 gap-1.5">
                       {previewSlots.map(slot => (
                         <button 
                           key={slot} 
                           onClick={() => toggleWeeklyBreak(selectedDay, slot)} 
-                          className={`h-[44px] flex items-center justify-center rounded-xl text-[10px] font-bold transition-all border shadow-sm
+                          className={`h-[44px] flex items-center justify-center rounded-xl text-[10px] font-bold transition-all shadow-[0_1px_4px_rgba(0,0,0,0.06)]
                             ${!currentConfig.breaks.includes(slot) 
-                              ? 'bg-white dark:bg-slate-900 text-slate-600 dark:text-slate-400 border-slate-100 dark:border-slate-800' 
-                              : 'bg-red-50 dark:bg-red-500/10 text-red-400 border-red-100 dark:border-red-500/20 opacity-60'}`}
+                              ? 'bg-[#FFFFFF] dark:bg-[#242424] text-[#1A2332] dark:text-[#F8F8F8]' 
+                              : 'bg-red-50 dark:bg-red-500/10 text-red-400 opacity-60'}`}
                         >
                           {slot}
                         </button>
@@ -3145,11 +3393,11 @@ const WeeklyConfigModal: React.FC<{ onClose: () => void }> = ({ onClose }) => {
             {/* Spacer for gradient */}
             <div className="h-4" />
           {/* Bottom Fade Gradient */}
-          <div className="absolute bottom-0 left-0 right-0 h-12 bg-gradient-to-t from-white dark:from-slate-900 to-transparent pointer-events-none z-20"></div>
+          <div className="absolute bottom-0 left-0 right-0 h-12 bg-gradient-to-t from-[#FFFFFF] dark:from-[#242424] to-transparent pointer-events-none z-20"></div>
         </div>
         
-        <footer className="px-6 pt-4 pb-6 shrink-0 bg-white dark:bg-slate-900 sticky bottom-0 z-10 border-t border-slate-100 dark:border-slate-800">
-          <Button fullWidth onClick={onClose} className="h-14 font-black uppercase tracking-widest shadow-xl shadow-brand-500/20">
+        <footer className="px-6 pt-4 pb-6 shrink-0 bg-[#FFFFFF] dark:bg-[#242424] sticky bottom-0 z-10 border-t border-[#F1F5F9] dark:border-[#333333]">
+          <Button fullWidth onClick={onClose} className="h-14 font-black uppercase tracking-widest shadow-xl shadow-[#2898D8]/20">
             Salvar e Fechar
           </Button>
         </footer>
@@ -3211,7 +3459,7 @@ const CustomersView: React.FC<{
     <div className="space-y-2 relative pb-24">
       <div className="space-y-2">
         <Input label="Buscar Cliente" placeholder="Nome ou telefone..." value={searchTerm} onChange={e => setSearchTerm(e.target.value)} />
-        <p className="text-[10px] text-slate-400 dark:text-[#AAAAAA] font-medium ml-1">
+        <p className="text-[10px] text-[#8A98A8] dark:text-[#707070] font-medium ml-1">
           {searchTerm 
             ? `${customerList.length} ${customerList.length === 1 ? 'resultado' : 'resultados'} para "${searchTerm}"`
             : `${customerList.length} ${customerList.length === 1 ? 'cliente cadastrado' : 'clientes cadastrados'}`
@@ -3220,11 +3468,11 @@ const CustomersView: React.FC<{
       </div>
 
       {customerList.length === 0 ? (
-        <div className="bg-white dark:bg-slate-900 p-12 rounded-[2rem] border-2 border-dashed border-slate-100 dark:border-slate-800 text-center space-y-3">
-          <div className="w-12 h-12 bg-slate-50 dark:bg-slate-800 rounded-full flex items-center justify-center mx-auto text-slate-300 dark:text-slate-600">
+        <div className="bg-[#FFFFFF] dark:bg-[#242424] p-12 rounded-[2rem] border-2 border-dashed border-[#D0D8E4] dark:border-[#3A3A3A] text-center space-y-3">
+          <div className="w-12 h-12 bg-[#F4F7FB] dark:bg-[#2F2F2F] rounded-full flex items-center justify-center mx-auto text-[#B0BCC7] dark:text-[#4B4B4B]">
             <UserX size={24} />
           </div>
-          <p className="text-slate-400 font-bold text-sm uppercase tracking-widest">Nenhum cliente encontrado</p>
+          <p className="text-[#8A98A8] font-bold text-sm uppercase tracking-widest">Nenhum cliente encontrado</p>
         </div>
       ) : (
         customerList.map(cust => {
@@ -3232,7 +3480,7 @@ const CustomersView: React.FC<{
             <div 
               key={cust.phone} 
               onClick={() => setSelectedPhone(normalizePhone(cust.phone))} 
-              className="bg-white dark:bg-slate-900 px-4 py-[10px] rounded-xl shadow-[0_1px_4px_rgba(0,0,0,0.06)] border border-slate-100 dark:border-slate-800 cursor-pointer flex items-center h-16"
+              className="bg-[#FFFFFF] dark:bg-[#242424] px-4 py-[10px] rounded-xl shadow-[0_1px_4px_rgba(0,0,0,0.06)] cursor-pointer flex items-center h-16"
             >
               <div className={`w-9 h-9 rounded-full ${getAvatarColor(cust.name)} flex items-center justify-center text-white font-bold text-[13px] shrink-0 shadow-sm overflow-hidden mr-3`}>
                 {cust.avatar ? (
@@ -3243,10 +3491,10 @@ const CustomersView: React.FC<{
               </div>
               
               <div className="flex-1 min-w-0 flex flex-col justify-center">
-                <h3 className="font-semibold text-[#1F2937] dark:text-white text-sm truncate leading-tight">
+                <h3 className="font-semibold text-[#1A2332] dark:text-[#F8F8F8] text-sm truncate leading-tight">
                   {capitalizeName(cust.name)}
                 </h3>
-                <p className="text-xs text-[#6B7280] dark:text-slate-400 leading-tight">
+                <p className="text-xs text-[#8A98A8] dark:text-[#707070] leading-tight">
                   {cust.phone}
                 </p>
               </div>
@@ -3276,7 +3524,7 @@ const CustomersView: React.FC<{
       {/* FAB */}
       <button 
         onClick={onAddCustomer}
-        className="fixed bottom-24 right-6 w-14 h-14 bg-brand-500 text-white rounded-full shadow-2xl flex items-center justify-center hover:bg-brand-600 active:scale-90 transition-all z-50 pointer-events-auto"
+        className="fixed bottom-24 right-6 w-14 h-14 bg-[#2898D8] text-white rounded-full shadow-2xl flex items-center justify-center hover:bg-[#2098F0] active:scale-90 transition-all z-50 pointer-events-auto"
       >
         <Plus size={28} strokeWidth={3} />
       </button>
@@ -3431,29 +3679,29 @@ const CustomerDetail: React.FC<{
   return (
     <div className="animate-fade-in pb-10">
       <div className="flex items-center justify-between mb-6">
-        <button onClick={onBack} className="text-[10px] font-black text-slate-400 flex items-center gap-1 uppercase tracking-widest hover:text-brand-600 transition-colors">
+        <button onClick={onBack} className="text-[10px] font-black text-[#8A98A8] flex items-center gap-1 uppercase tracking-widest hover:text-[#2898D8] transition-colors">
           <ChevronLeft size={16} />
           Voltar
         </button>
         <button 
           onClick={() => onNewAppointment(customer)}
-          className="text-[10px] font-black text-white flex items-center gap-2 bg-brand-500 px-4 py-2 rounded-full uppercase tracking-widest shadow-md shadow-brand-100 active:scale-95 transition-all"
+          className="text-[10px] font-black text-white flex items-center gap-2 bg-[#2898D8] px-4 py-2 rounded-full uppercase tracking-widest shadow-md shadow-[#2898D8]/20 active:scale-95 transition-all"
         >
           <Calendar size={14} />
           Novo Agendamento
         </button>
       </div>
-      <div className="bg-white dark:bg-slate-900 p-6 rounded-3xl shadow-soft mb-6 text-center border border-slate-100 dark:border-[#444444] relative overflow-hidden">
+      <div className="bg-[#FFFFFF] dark:bg-[#242424] p-6 rounded-3xl shadow-[0_1px_4px_rgba(0,0,0,0.06)] mb-6 text-center relative overflow-hidden">
         <button 
           onClick={() => isEditing ? handleCancelEdit() : setIsEditing(true)}
-          className="absolute top-4 right-4 w-10 h-10 bg-slate-50 dark:bg-slate-800 text-slate-400 rounded-full flex items-center justify-center hover:bg-slate-100 transition-colors"
+          className="absolute top-4 right-4 w-10 h-10 bg-[#F4F7FB] dark:bg-[#2F2F2F] text-[#8A98A8] rounded-full flex items-center justify-center hover:bg-[#E4E7EB] transition-colors"
         >
           {isEditing ? <X size={18} /> : <Edit3 size={18} />}
         </button>
 
         <div className="flex flex-col items-center mb-4">
           <div className="relative group">
-            <div className={`w-24 h-24 rounded-full ${getAvatarColor(customer.name)} flex items-center justify-center text-white font-black text-2xl shadow-xl overflow-hidden border-4 border-white dark:border-slate-800`}>
+            <div className={`w-24 h-24 rounded-full ${getAvatarColor(customer.name)} flex items-center justify-center text-white font-black text-2xl shadow-xl overflow-hidden border-4 border-[#FFFFFF] dark:border-[#242424]`}>
               {customer.avatar ? (
                 <img src={customer.avatar} className="w-full h-full object-cover" alt={customer.name} />
               ) : (
@@ -3462,7 +3710,7 @@ const CustomerDetail: React.FC<{
             </div>
             <button 
               onClick={() => { setPhotoType('avatar'); setShowActionSheet(true); }}
-              className="absolute bottom-0 right-0 w-8 h-8 bg-brand-600 text-white rounded-full flex items-center justify-center border-2 border-white dark:border-slate-800 shadow-lg hover:bg-brand-700 transition-colors"
+              className="absolute bottom-0 right-0 w-8 h-8 bg-[#2898D8] text-white rounded-full flex items-center justify-center border-2 border-[#FFFFFF] dark:border-[#242424] shadow-lg hover:bg-[#2098F0] transition-colors"
             >
               <Camera size={14} />
             </button>
@@ -3475,26 +3723,26 @@ const CustomerDetail: React.FC<{
               type="text" 
               value={editName} 
               onChange={e => setEditName(e.target.value)}
-              className="w-full bg-slate-50 dark:bg-slate-800 border-none rounded-xl p-3 text-center font-bold text-slate-800 dark:text-white"
+              className="w-full bg-[#F4F7FB] dark:bg-[#2F2F2F] border-none rounded-xl p-3 text-center font-bold text-[#1A2332] dark:text-[#F8F8F8]"
               placeholder="Nome do cliente"
             />
             <input 
               type="tel" 
               value={editPhone} 
               onChange={e => setEditPhone(e.target.value)}
-              className="w-full bg-slate-50 dark:bg-slate-800 border-none rounded-xl p-3 text-center text-slate-500 dark:text-slate-400"
+              className="w-full bg-[#F4F7FB] dark:bg-[#2F2F2F] border-none rounded-xl p-3 text-center text-[#8A98A8] dark:text-[#707070]"
               placeholder="Telefone"
             />
             <Button fullWidth onClick={handleSaveEdit} className="h-10 rounded-xl bg-green-600">Salvar</Button>
           </div>
         ) : (
           <>
-            <h2 className="text-lg font-bold text-slate-800 dark:text-[#FFFFFF]">{capitalizeName(customer.name)}</h2>
-            <p className="text-slate-400 dark:text-[#AAAAAA] text-xs mb-4">{customer.phone}</p>
+            <h2 className="text-lg font-bold text-[#1A2332] dark:text-[#F8F8F8]">{capitalizeName(customer.name)}</h2>
+            <p className="text-[#8A98A8] dark:text-[#707070] text-xs mb-4">{customer.phone}</p>
           </>
         )}
         <div className="flex justify-center gap-3">
-          <div className="bg-brand-500 text-white px-6 py-2 rounded-2xl shadow-lg shadow-brand-100 flex-1 max-w-[120px]">
+          <div className="bg-[#2898D8] text-white px-6 py-2 rounded-2xl shadow-lg shadow-[#2898D8]/20 flex-1 max-w-[120px]">
             <span className="font-black text-xl">{customer.cutCount}</span>
             <span className="text-[8px] ml-2 uppercase font-black tracking-widest opacity-80">
               {customer.cutCount === 1 ? 'corte' : 'cortes'}
@@ -3503,7 +3751,7 @@ const CustomerDetail: React.FC<{
           <div className={`px-6 py-2 rounded-2xl shadow-lg flex-1 max-w-[120px] transition-all ${
             (customer.noShowCount || 0) > 0 
               ? 'bg-amber-500 text-white shadow-amber-100' 
-              : 'bg-slate-50 dark:bg-slate-800 text-slate-300 dark:text-slate-600 border border-slate-100 dark:border-slate-800 shadow-none'
+              : 'bg-[#F4F7FB] dark:bg-[#2F2F2F] text-[#B0BCC7] dark:text-[#4B4B4B] border border-[#D0D8E4] dark:border-[#3A3A3A] shadow-none'
           }`}>
             <span className="font-black text-xl">{customer.noShowCount || 0}</span>
             <span className="text-[8px] ml-2 uppercase font-black tracking-widest opacity-80">
@@ -3513,27 +3761,27 @@ const CustomerDetail: React.FC<{
         </div>
       </div>
       <div className="space-y-6">
-        <h3 className="font-semibold text-slate-800 dark:text-[#FFFFFF] text-sm uppercase tracking-widest mb-4">Histórico</h3>
-        <div className="bg-white dark:bg-slate-900 rounded-3xl border border-slate-100 dark:border-[#444444] overflow-hidden divide-y divide-slate-50 dark:divide-[#444444]">
+        <h3 className="font-semibold text-[#1A2332] dark:text-[#F8F8F8] text-sm uppercase tracking-widest mb-4">Histórico</h3>
+        <div className="bg-[#FFFFFF] dark:bg-[#242424] rounded-3xl border border-[#D0D8E4] dark:border-[#3A3A3A] overflow-hidden divide-y divide-[#D0D8E4] dark:divide-[#3A3A3A]">
           {isLoadingData && localHistory.length === 0 ? (
-            <div className="p-8 text-center text-slate-400 text-xs animate-pulse">Carregando histórico...</div>
+            <div className="p-8 text-center text-[#8A98A8] text-xs animate-pulse">Carregando histórico...</div>
           ) : localHistory.length === 0 ? (
-            <div className="p-8 text-center text-slate-400 text-xs italic">Nenhum histórico encontrado.</div>
+            <div className="p-8 text-center text-[#8A98A8] text-xs italic">Nenhum histórico encontrado.</div>
           ) : (
             localHistory.map((h: any, i) => {
               const isNoShow = h.status === 'no-show' || h.service.includes('Falta registrada');
               return (
                 <div key={i} className={`p-4 flex justify-between items-center ${isNoShow ? 'bg-amber-50/30 dark:bg-amber-900/10' : ''}`}>
                   <div>
-                    <span className={`text-xs font-bold block ${isNoShow ? 'text-amber-700 dark:text-amber-500' : 'text-slate-700 dark:text-[#F0F0F0]'}`}>{h.service}</span>
+                    <span className={`text-xs font-bold block ${isNoShow ? 'text-amber-700 dark:text-amber-500' : 'text-[#1A2332] dark:text-[#F8F8F8]'}`}>{h.service}</span>
                     <div className="flex items-center gap-2 mt-0.5">
-                      <span className="text-[10px] text-slate-700 dark:text-slate-200 font-bold uppercase">{formatDate(h.date)}</span>
-                      {h.time && <span className="text-[9px] text-slate-400 dark:text-[#AAAAAA] font-medium uppercase">{h.time}</span>}
+                      <span className="text-[10px] text-[#1A2332] dark:text-[#F8F8F8] font-bold uppercase">{formatDate(h.date)}</span>
+                      {h.time && <span className="text-[9px] text-[#8A98A8] dark:text-[#707070] font-medium uppercase">{h.time}</span>}
                     </div>
                   </div>
                   <div className="flex items-center gap-2">
                     {h.price && h.price > 0 ? (
-                      <span className="text-[10px] font-black text-slate-500">{formatCurrency(h.price)}</span>
+                      <span className="text-[10px] font-black text-[#8A98A8]">{formatCurrency(h.price)}</span>
                     ) : null}
                     <div className={`w-7 h-7 rounded-full flex items-center justify-center text-xs ${isNoShow ? 'bg-amber-100 text-amber-600' : 'bg-green-50 text-green-600'}`}>
                       {isNoShow ? <ThumbsDown size={14} /> : '✓'}
@@ -3545,24 +3793,24 @@ const CustomerDetail: React.FC<{
           )}
         </div>
         <div className="flex justify-between items-center">
-            <h3 className="font-semibold text-slate-800 dark:text-slate-100 text-sm uppercase tracking-widest">Fotos</h3>
-            <button onClick={() => { setPhotoType('history'); setShowActionSheet(true); }} className="text-[9px] bg-brand-600 text-white px-4 py-2 rounded-xl font-black uppercase tracking-widest">+ Adicionar foto</button>
+            <h3 className="font-semibold text-[#1A2332] dark:text-[#F8F8F8] text-sm uppercase tracking-widest">Fotos</h3>
+            <button onClick={() => { setPhotoType('history'); setShowActionSheet(true); }} className="text-[9px] bg-[#2898D8] text-white px-4 py-2 rounded-xl font-black uppercase tracking-widest">+ Adicionar foto</button>
             <input type="file" accept="image/*" capture="environment" ref={cameraInputRef} className="hidden" onChange={handleFileChange} />
             <input type="file" accept="image/*" ref={galleryInputRef} className="hidden" onChange={handleFileChange} />
         </div>
         <div className="grid grid-cols-2 gap-3">
           {isLoadingData && localPhotos.length === 0 ? (
-            <div className="col-span-2 p-8 text-center text-slate-400 text-xs animate-pulse">Carregando fotos...</div>
+            <div className="col-span-2 p-8 text-center text-[#8A98A8] text-xs animate-pulse">Carregando fotos...</div>
           ) : localPhotos.length === 0 ? (
-            <div className="col-span-2 p-8 text-center text-slate-400 text-xs italic">Nenhuma foto encontrada.</div>
+            <div className="col-span-2 p-8 text-center text-[#8A98A8] text-xs italic">Nenhuma foto encontrada.</div>
           ) : (
             localPhotos.map((photo, idx) => (
               <div key={idx} className="flex flex-col gap-2">
-                <div className="aspect-[3/4] rounded-2xl overflow-hidden border-2 border-white dark:border-slate-800 shadow-soft">
+                <div className="aspect-[3/4] rounded-2xl overflow-hidden border-2 border-[#FFFFFF] dark:border-[#242424] shadow-sm">
                   <img src={photo.url} className="w-full h-full object-cover" loading="lazy" />
                 </div>
                 {photo.description && (
-                  <p className="text-[10px] text-slate-500 dark:text-slate-400 italic px-1 leading-tight">
+                  <p className="text-[10px] text-[#8A98A8] dark:text-[#707070] italic px-1 leading-tight">
                     {photo.description}
                   </p>
                 )}
@@ -4007,7 +4255,7 @@ const ReportsView: React.FC = () => {
     <div className="space-y-4 pb-24">
       {/* Filtros de Período */}
       <div className="space-y-3">
-        <div className="flex bg-slate-100 dark:bg-[#2A2A2A] p-1 rounded-2xl">
+        <div className="flex bg-[#F4F7FB] dark:bg-[#2F2F2F] p-1 rounded-2xl">
           {(['dia', 'semana', 'mes', 'ano'] as const).map((p) => (
             <button
               key={p}
@@ -4017,7 +4265,7 @@ const ReportsView: React.FC = () => {
                 setShowSelector(false);
               }}
               className={`flex-1 py-2 text-[10px] font-black uppercase tracking-widest rounded-xl transition-all ${
-                period === p ? 'bg-brand-600 text-white shadow-md' : 'text-slate-400 dark:text-[#AAAAAA] hover:text-slate-600'
+                period === p ? 'bg-[#2898D8] text-white shadow-md' : 'text-[#8A98A8] dark:text-[#707070] hover:text-[#1A2332]'
               }`}
             >
               {p === 'dia' ? 'Dia' : p === 'semana' ? 'Semana' : p === 'mes' ? 'Mês' : 'Ano'}
@@ -4032,15 +4280,15 @@ const ReportsView: React.FC = () => {
               setViewDate(currentDate);
               setViewMode('days');
             }}
-            className="flex items-center gap-2 px-5 py-[10px] bg-white dark:bg-[#1F2937] rounded-[12px] border-[1.5px] border-[#E5E7EB] dark:border-[#374151] shadow-[0_2px_8px_rgba(0,0,0,0.08)] hover:bg-[#F3F4F6] dark:hover:bg-[#2A3544] active:scale-[0.97] transition-all duration-100 w-fit"
+            className="flex items-center gap-2 px-5 py-[10px] bg-[#FFFFFF] dark:bg-[#242424] rounded-[12px] shadow-[0_1px_4px_rgba(0,0,0,0.06)] hover:bg-[#F3F4F6] dark:hover:bg-[#2A3544] active:scale-[0.97] transition-all duration-100 w-fit"
           >
-            <Calendar size={18} className="text-[#3B82F6]" />
-            <span className="text-[15px] font-semibold text-[#1F2937] dark:text-[#F9FAFB]">
+            <Calendar size={18} className="text-[#2898D8]" />
+            <span className="text-[15px] font-semibold text-[#1A2332] dark:text-[#F8F8F8]">
               {formatPeriodDisplay()}
             </span>
             <ChevronDown 
               size={16} 
-              className={`text-[#6B7280] transition-transform duration-300 ${showSelector ? 'rotate-180' : ''}`} 
+              className={`text-[#B0BCC7] transition-transform duration-300 ${showSelector ? 'rotate-180' : ''}`} 
             />
           </button>
 
@@ -4051,7 +4299,7 @@ const ReportsView: React.FC = () => {
                 animate={{ height: 'auto', opacity: 1 }}
                 exit={{ height: 0, opacity: 0 }}
                 transition={{ duration: 0.3 }}
-                className="w-full max-w-[320px] overflow-hidden bg-white dark:bg-slate-900 rounded-2xl border border-slate-100 dark:border-[#444444] mt-3 shadow-xl z-50"
+                className="w-full max-w-[320px] overflow-hidden bg-[#FFFFFF] dark:bg-[#242424] rounded-2xl mt-3 shadow-[0_10px_25px_rgba(0,0,0,0.1)] z-50"
               >
                 {(period === 'dia' || period === 'semana') && renderCalendar()}
                 {period === 'mes' && renderMonthGrid()}
@@ -4063,13 +4311,13 @@ const ReportsView: React.FC = () => {
       </div>
 
       {/* Abas */}
-      <div className="flex border-b border-slate-100 dark:border-[#444444]">
+      <div className="flex border-b border-[#D0D8E4] dark:border-[#3A3A3A]">
         {(['resumo', 'clientes', 'servicos'] as const).map((t) => (
           <button
             key={t}
             onClick={() => setActiveTab(t)}
             className={`flex-1 py-3 text-[11px] font-bold uppercase tracking-wider transition-all relative ${
-              activeTab === t ? 'text-brand-600' : 'text-slate-400'
+              activeTab === t ? 'text-[#2898D8]' : 'text-[#B0BCC7]'
             }`}
           >
             <div className="flex items-center justify-center gap-2">
@@ -4079,11 +4327,12 @@ const ReportsView: React.FC = () => {
               {t === 'servicos' ? 'SERVIÇOS' : t.charAt(0).toUpperCase() + t.slice(1)}
             </div>
             {activeTab === t && (
-              <motion.div layoutId="activeTab" className="absolute bottom-0 left-0 right-0 h-0.5 bg-brand-600" />
+              <motion.div layoutId="activeTab" className="absolute bottom-0 left-0 right-0 h-0.5 bg-[#2898D8]" />
             )}
           </button>
         ))}
       </div>
+
 
       <AnimatePresence mode="wait">
         {activeTab === 'resumo' && (
@@ -4096,47 +4345,47 @@ const ReportsView: React.FC = () => {
           >
             {/* Cards de Métricas */}
             <div className="grid grid-cols-2 gap-3">
-              <div className="bg-white dark:bg-slate-900 py-3 px-4 rounded-3xl shadow-soft border border-slate-100 dark:border-[#444444] flex flex-col items-center text-center">
-                <div className="w-7 h-7 bg-green-50 dark:bg-green-500/10 text-[#10B981] rounded-full flex items-center justify-center mb-1">
+              <div className="bg-[#FFFFFF] dark:bg-[#242424] py-3 px-4 rounded-3xl shadow-[0_1px_4px_rgba(0,0,0,0.06)] flex flex-col items-center text-center">
+                <div className="w-7 h-7 bg-green-50 dark:bg-green-500/10 text-green-500 rounded-full flex items-center justify-center mb-1">
                   <DollarSign size={14} />
                 </div>
-                <p className="text-lg font-bold text-slate-800 dark:text-[#FFFFFF]">{formatCurrency(stats.current.revenue)}</p>
-                <p className="text-slate-400 dark:text-[#AAAAAA] text-[9px] font-medium uppercase tracking-widest">Receita</p>
+                <p className="text-lg font-bold text-[#1A2332] dark:text-[#F8F8F8]">{formatCurrency(stats.current.revenue)}</p>
+                <p className="text-[#8A98A8] dark:text-[#707070] text-[9px] font-medium uppercase tracking-widest">Receita</p>
                 {renderComparison(stats.current.revenue, stats.previous.revenue)}
               </div>
 
-              <div className="bg-white dark:bg-slate-900 py-3 px-4 rounded-3xl shadow-soft border border-slate-100 dark:border-[#444444] flex flex-col items-center text-center">
-                <div className="w-7 h-7 bg-blue-50 dark:bg-blue-500/10 text-[#3B82F6] rounded-full flex items-center justify-center mb-1">
+              <div className="bg-[#FFFFFF] dark:bg-[#242424] py-3 px-4 rounded-3xl shadow-[0_1px_4px_rgba(0,0,0,0.06)] flex flex-col items-center text-center">
+                <div className="w-7 h-7 bg-blue-50 dark:bg-blue-500/10 text-[#2898D8] rounded-full flex items-center justify-center mb-1">
                   <Scissors size={14} />
                 </div>
-                <p className="text-lg font-bold text-slate-800 dark:text-[#FFFFFF]">{stats.current.count}</p>
-                <p className="text-slate-400 dark:text-[#AAAAAA] text-[9px] font-medium uppercase tracking-widest">Atendimentos</p>
+                <p className="text-lg font-bold text-[#1A2332] dark:text-[#F8F8F8]">{stats.current.count}</p>
+                <p className="text-[#8A98A8] dark:text-[#707070] text-[9px] font-medium uppercase tracking-widest">Atendimentos</p>
                 {renderComparison(stats.current.count, stats.previous.count)}
               </div>
               
-              <div className="bg-white dark:bg-slate-900 py-3 px-4 rounded-3xl shadow-soft border border-slate-100 dark:border-[#444444] flex flex-col items-center text-center">
-                <div className="w-7 h-7 bg-amber-50 dark:bg-amber-500/10 text-[#F59E0B] rounded-full flex items-center justify-center mb-1">
+              <div className="bg-[#FFFFFF] dark:bg-[#242424] py-3 px-4 rounded-3xl shadow-[0_1px_4px_rgba(0,0,0,0.06)] flex flex-col items-center text-center">
+                <div className="w-7 h-7 bg-amber-50 dark:bg-amber-500/10 text-amber-500 rounded-full flex items-center justify-center mb-1">
                   <TrendingUp size={14} />
                 </div>
-                <p className="text-lg font-bold text-slate-800 dark:text-[#FFFFFF]">{formatCurrency(stats.current.ticket)}</p>
-                <p className="text-slate-400 dark:text-[#AAAAAA] text-[9px] font-medium uppercase tracking-widest">Ticket Médio</p>
+                <p className="text-lg font-bold text-[#1A2332] dark:text-[#F8F8F8]">{formatCurrency(stats.current.ticket)}</p>
+                <p className="text-[#8A98A8] dark:text-[#707070] text-[9px] font-medium uppercase tracking-widest">Ticket Médio</p>
                 {renderComparison(stats.current.ticket, stats.previous.ticket)}
               </div>
 
-              <div className="bg-white dark:bg-slate-900 py-3 px-4 rounded-3xl shadow-soft border border-slate-100 dark:border-[#444444] flex flex-col items-center text-center opacity-80">
+              <div className="bg-[#FFFFFF] dark:bg-[#242424] py-3 px-4 rounded-3xl shadow-[0_1px_4px_rgba(0,0,0,0.06)] flex flex-col items-center text-center opacity-80">
                 <div className="w-7 h-7 bg-red-50 dark:bg-red-500/10 text-[#EF4444]/80 rounded-full flex items-center justify-center mb-1">
                   <UserX size={14} />
                 </div>
-                <p className="text-lg font-bold text-slate-800 dark:text-[#FFFFFF]">{stats.current.noShowRate.toLocaleString('pt-BR', { minimumFractionDigits: 0, maximumFractionDigits: 1 })}%</p>
-                <p className="text-slate-400 dark:text-[#AAAAAA] text-[9px] font-medium uppercase tracking-widest">Taxa de Faltas</p>
+                <p className="text-lg font-bold text-[#1A2332] dark:text-[#F8F8F8]">{stats.current.noShowRate.toLocaleString('pt-BR', { minimumFractionDigits: 0, maximumFractionDigits: 1 })}%</p>
+                <p className="text-[#8A98A8] dark:text-[#707070] text-[9px] font-medium uppercase tracking-widest">Taxa de Faltas</p>
                 {renderComparison(stats.current.noShowRate, stats.previous.noShowRate)}
               </div>
             </div>
 
             {/* Gráfico */}
-            <div className="bg-white dark:bg-slate-900 p-5 rounded-[2rem] shadow-soft border border-slate-100 dark:border-[#444444] space-y-4">
+            <div className="bg-[#FFFFFF] dark:bg-[#242424] p-5 rounded-[2rem] shadow-[0_1px_4px_rgba(0,0,0,0.06)] space-y-4">
               <div className="flex items-center justify-between">
-                <h4 className="text-[10px] font-medium uppercase tracking-widest text-slate-400 dark:text-[#AAAAAA]">
+                <h4 className="text-[10px] font-medium uppercase tracking-widest text-[#8A98A8] dark:text-[#707070]">
                   {stats.chartTitle}
                 </h4>
               </div>
@@ -4145,34 +4394,35 @@ const ReportsView: React.FC = () => {
                   <BarChart data={stats.chartData} margin={{ top: 10, right: 10, left: 0, bottom: 0 }}>
                     <defs>
                       <linearGradient id="barGradient" x1="0" y1="1" x2="0" y2="0">
-                        <stop offset="0%" stopColor="#3B82F6" />
-                        <stop offset="100%" stopColor="#F59E0B" />
+                        <stop offset="0%" stopColor="#2898D8" />
+                        <stop offset="100%" stopColor="#81c784" />
                       </linearGradient>
                     </defs>
-                    <CartesianGrid strokeDasharray="3 3" vertical={false} stroke={isDarkMode ? '#1e293b' : '#f1f5f9'} />
+                    <CartesianGrid strokeDasharray="3 3" vertical={false} stroke={isDarkMode ? '#3A3A3A' : '#D0D8E4'} />
                     <XAxis 
                       dataKey="name" 
                       axisLine={false} 
                       tickLine={false} 
-                      tick={{ fontSize: 9, fontWeight: 500, fill: isDarkMode ? '#64748b' : '#94a3b8' }}
+                      tick={{ fontSize: 9, fontWeight: 500, fill: isDarkMode ? '#707070' : '#8A98A8' }}
                       dy={10}
                       interval={0}
                     />
                     <YAxis hide />
                     <Tooltip 
-                      cursor={{ fill: isDarkMode ? '#1e293b' : '#f8fafc' }}
+                      cursor={{ fill: isDarkMode ? '#2F2F2F' : '#F4F7FB' }}
                       contentStyle={{ 
                         borderRadius: '12px', 
                         border: 'none', 
                         boxShadow: '0 10px 15px -3px rgb(0 0 0 / 0.1)',
-                        backgroundColor: isDarkMode ? '#0f172a' : '#ffffff',
-                        color: isDarkMode ? '#f8fafc' : '#1e293b',
+                        backgroundColor: isDarkMode ? '#242424' : '#FFFFFF',
+                        color: isDarkMode ? '#F8F8F8' : '#1A2332',
                         fontSize: '11px'
                       }}
                       labelStyle={{ fontWeight: 700, textTransform: 'uppercase', fontSize: '9px', marginBottom: '4px' }}
                       formatter={(value: number) => [`${value} atendimento(s)`, '']}
                       separator=""
                     />
+
                     <Bar dataKey="value" radius={[4, 4, 0, 0]} barSize={period === 'dia' ? 10 : 20}>
                       {stats.chartData.map((entry, index) => {
                         const max = Math.max(...stats.chartData.map(d => d.value));
@@ -4202,22 +4452,22 @@ const ReportsView: React.FC = () => {
             className="space-y-4"
           >
             <div className="grid grid-cols-3 gap-2">
-              <div className="bg-white dark:bg-slate-900 p-3 rounded-2xl border border-slate-100 dark:border-[#444444] text-center">
-                <p className="text-2xl font-black text-slate-800 dark:text-white leading-none">{stats.totalCustomers}</p>
-                <p className="text-[10px] text-slate-400 uppercase tracking-widest font-bold mt-1">Total</p>
+              <div className="bg-[#FFFFFF] dark:bg-[#242424] p-3 rounded-2xl shadow-[0_1px_4px_rgba(0,0,0,0.06)] text-center">
+                <p className="text-2xl font-black text-[#1A2332] dark:text-[#F8F8F8] leading-none">{stats.totalCustomers}</p>
+                <p className="text-[10px] text-[#8A98A8] uppercase tracking-widest font-bold mt-1">Total</p>
               </div>
-              <div className="bg-white dark:bg-slate-900 p-3 rounded-2xl border border-slate-100 dark:border-[#444444] text-center">
-                <p className="text-xl font-bold text-[#3B82F6] leading-none">{stats.newClients}</p>
-                <p className="text-[10px] text-slate-400 uppercase tracking-widest font-bold mt-1">Novos</p>
+              <div className="bg-[#FFFFFF] dark:bg-[#242424] p-3 rounded-2xl shadow-[0_1px_4px_rgba(0,0,0,0.06)] text-center">
+                <p className="text-xl font-bold text-[#2898D8] leading-none">{stats.newClients}</p>
+                <p className="text-[10px] text-[#8A98A8] uppercase tracking-widest font-bold mt-1">Novos</p>
               </div>
-              <div className="bg-white dark:bg-slate-900 p-3 rounded-2xl border border-slate-100 dark:border-[#444444] text-center">
-                <p className="text-xl font-medium text-slate-500 dark:text-slate-400 leading-none">{stats.returnRate.toLocaleString('pt-BR', { minimumFractionDigits: 0, maximumFractionDigits: 0 })}%</p>
-                <p className="text-[10px] text-slate-400 uppercase tracking-widest font-bold mt-1">Retorno</p>
+              <div className="bg-[#FFFFFF] dark:bg-[#242424] p-3 rounded-2xl shadow-[0_1px_4px_rgba(0,0,0,0.06)] text-center">
+                <p className="text-xl font-medium text-[#8A98A8] leading-none">{stats.returnRate.toLocaleString('pt-BR', { minimumFractionDigits: 0, maximumFractionDigits: 0 })}%</p>
+                <p className="text-[10px] text-[#8A98A8] uppercase tracking-widest font-bold mt-1">Retorno</p>
               </div>
             </div>
 
-            <div className="bg-white dark:bg-slate-900 p-5 rounded-[2rem] border border-slate-100 dark:border-[#444444] shadow-soft">
-              <h4 className="text-[10px] font-bold uppercase tracking-widest text-slate-400 mb-4">Top 5 Clientes</h4>
+            <div className="bg-[#FFFFFF] dark:bg-[#242424] p-5 rounded-[2rem] shadow-[0_1px_4px_rgba(0,0,0,0.06)]">
+              <h4 className="text-[10px] font-bold uppercase tracking-widest text-[#8A98A8] mb-4">Top 5 Clientes</h4>
               <div className="space-y-4">
                 {stats.topClients.length > 0 ? stats.topClients.map((client, idx) => (
                   <div key={idx} className="flex items-center gap-3">
@@ -4225,20 +4475,21 @@ const ReportsView: React.FC = () => {
                       {getInitials(client.name)}
                     </div>
                     <div className="flex-1 min-w-0">
-                      <p className="text-sm font-bold text-slate-800 dark:text-white truncate">{client.name}</p>
-                      <p className="text-[10px] text-slate-400">{client.count} visitas • {formatCurrency(client.spent)}</p>
+                      <p className="text-sm font-bold text-[#1A2332] dark:text-[#F8F8F8] truncate">{client.name}</p>
+                      <p className="text-[10px] text-[#8A98A8]">{client.count} visitas • {formatCurrency(client.spent)}</p>
                     </div>
                     <div className="text-right">
                       <p className="text-[10px] font-bold text-red-500">{client.noShows} faltas</p>
                     </div>
                   </div>
                 )) : (
-                  <p className="text-center text-slate-400 text-sm py-4">Nenhum dado no período</p>
+                  <p className="text-center text-[#8A98A8] text-sm py-4">Nenhum dado no período</p>
                 )}
               </div>
             </div>
           </motion.div>
         )}
+
 
         {activeTab === 'servicos' && (
           <motion.div
@@ -4249,26 +4500,26 @@ const ReportsView: React.FC = () => {
             className="space-y-4"
           >
             {stats.highestTicketService && (
-              <div className="bg-brand-600 p-4 rounded-3xl shadow-lg flex items-center gap-4 text-white">
+              <div className="bg-[#2898D8] p-4 rounded-3xl shadow-lg flex items-center gap-4 text-white">
                 <div className="w-10 h-10 bg-white/20 rounded-2xl flex items-center justify-center">
                   <Award size={20} />
                 </div>
                 <div>
-                  <p className="text-[9px] font-black uppercase tracking-widest text-brand-100">Maior Ticket Médio</p>
+                  <p className="text-[9px] font-black uppercase tracking-widest text-[#FFFFFF]/80">Maior Ticket Médio</p>
                   <p className="text-sm font-bold">{stats.highestTicketService.name}</p>
-                  <p className="text-xs text-brand-100">{formatCurrency(stats.highestTicketService.ticket)} por atendimento</p>
+                  <p className="text-xs text-[#FFFFFF]/70">{formatCurrency(stats.highestTicketService.ticket)} por atendimento</p>
                 </div>
               </div>
             )}
 
-            <div className="bg-white dark:bg-slate-900 p-5 rounded-[2rem] border border-slate-100 dark:border-[#444444] shadow-soft">
-              <h4 className="text-[10px] font-bold uppercase tracking-widest text-slate-400 mb-4">Distribuição de Receita</h4>
+            <div className="bg-[#FFFFFF] dark:bg-[#242424] p-5 rounded-[2rem] shadow-[0_1px_4px_rgba(0,0,0,0.06)]">
+              <h4 className="text-[10px] font-bold uppercase tracking-widest text-[#8A98A8] mb-4">Distribuição de Receita</h4>
               
               {stats.pieData.length === 0 || stats.pieData.every(d => d.value === 0) ? (
                 <div className="flex flex-col items-center justify-center py-10 space-y-2 min-h-[200px]">
-                  <PieChartIcon size={40} className="text-slate-300" />
-                  <p className="text-sm font-bold text-[#9CA3AF]">Sem atendimentos neste período</p>
-                  <p className="text-[10px] text-[#9CA3AF]">Selecione outro período para ver a distribuição</p>
+                  <PieChartIcon size={40} className="text-[#B0BCC7]" />
+                  <p className="text-sm font-bold text-[#8A98A8]">Sem atendimentos neste período</p>
+                  <p className="text-[10px] text-[#8A98A8]">Selecione outro período para ver a distribuição</p>
                 </div>
               ) : (
                 <div className="flex flex-col sm:flex-row items-center justify-center w-full gap-6 px-4 min-h-[200px]">
@@ -4285,11 +4536,11 @@ const ReportsView: React.FC = () => {
                           dataKey="value"
                         >
                           {stats.pieData.map((entry, index) => (
-                            <Cell key={`cell-${index}`} fill={['#3B82F6', '#10B981', '#F59E0B', '#8B5CF6', '#EF4444'][index % 5]} />
+                            <Cell key={`cell-${index}`} fill={['#2898D8', '#42b4e6', '#1e88e5', '#60a5fa', '#3b82f6'][index % 5]} />
                           ))}
                         </Pie>
                         <Tooltip 
-                          contentStyle={{ borderRadius: '12px', border: 'none', fontSize: '11px' }}
+                          contentStyle={{ borderRadius: '12px', border: 'none', fontSize: '11px', backgroundColor: isDarkMode ? '#242424' : '#FFFFFF', color: isDarkMode ? '#F8F8F8' : '#1A2332' }}
                           formatter={(value: number) => [formatCurrency(value), 'Receita']}
                         />
                       </PieChart>
@@ -4301,9 +4552,9 @@ const ReportsView: React.FC = () => {
                       const percent = total > 0 ? (entry.value / total * 100).toLocaleString('pt-BR', { minimumFractionDigits: 0, maximumFractionDigits: 0 }) : 0;
                       return (
                         <div key={index} className="flex items-center gap-2">
-                          <div className="w-2 h-2 rounded-full shrink-0" style={{ backgroundColor: ['#3B82F6', '#10B981', '#F59E0B', '#8B5CF6', '#EF4444'][index % 5] }} />
-                          <p className="text-[10px] font-medium text-slate-600 dark:text-slate-300 truncate flex-1">{entry.name}</p>
-                          <p className="text-[10px] font-bold text-slate-800 dark:text-white">{percent}%</p>
+                          <div className="w-2 h-2 rounded-full shrink-0" style={{ backgroundColor: ['#2898D8', '#42b4e6', '#1e88e5', '#60a5fa', '#3b82f6'][index % 5] }} />
+                          <p className="text-[10px] font-medium text-[#8A98A8] truncate flex-1">{entry.name}</p>
+                          <p className="text-[10px] font-bold text-[#1A2332] dark:text-[#F8F8F8]">{percent}%</p>
                         </div>
                       );
                     })}
@@ -4312,22 +4563,22 @@ const ReportsView: React.FC = () => {
               )}
             </div>
 
-            <div className="bg-white dark:bg-slate-900 p-5 rounded-[2rem] border border-slate-100 dark:border-[#444444] shadow-soft">
-              <h4 className="text-[10px] font-bold uppercase tracking-widest text-slate-400 mb-4">Ranking de Serviços</h4>
+            <div className="bg-[#FFFFFF] dark:bg-[#242424] p-5 rounded-[2rem] shadow-[0_1px_4px_rgba(0,0,0,0.06)]">
+              <h4 className="text-[10px] font-bold uppercase tracking-widest text-[#8A98A8] mb-4">Ranking de Serviços</h4>
               <div className="space-y-4">
                 {stats.topServices.length > 0 ? stats.topServices.map((service, idx) => (
                   <div key={idx} className="flex items-center justify-between">
                     <div className="flex-1 min-w-0">
-                      <p className="text-sm font-bold text-slate-800 dark:text-white truncate">{service.name}</p>
-                      <p className="text-[10px] text-slate-400">{service.count} realizados</p>
+                      <p className="text-sm font-bold text-[#1A2332] dark:text-[#F8F8F8] truncate">{service.name}</p>
+                      <p className="text-[10px] text-[#8A98A8]">{service.count} realizados</p>
                     </div>
                     <div className="text-right">
-                      <p className="text-sm font-bold text-brand-600">{formatCurrency(service.revenue)}</p>
-                      <p className="text-[9px] text-slate-400">Ticket: {formatCurrency(service.ticket)}</p>
+                      <p className="text-sm font-bold text-[#2898D8]">{formatCurrency(service.revenue)}</p>
+                      <p className="text-[9px] text-[#8A98A8]">Ticket: {formatCurrency(service.ticket)}</p>
                     </div>
                   </div>
                 )) : (
-                  <p className="text-center text-slate-400 text-sm py-4">Nenhum dado no período</p>
+                  <p className="text-center text-[#8A98A8] text-sm py-4">Nenhum dado no período</p>
                 )}
               </div>
             </div>
