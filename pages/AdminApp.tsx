@@ -106,28 +106,28 @@ const PhotoActionSheet: React.FC<{
         initial={{ y: "100%" }}
         animate={{ y: 0 }}
         exit={{ y: "100%" }}
-        className="w-full max-w-md bg-white dark:bg-slate-900 rounded-3xl overflow-hidden shadow-2xl"
+        className="w-full max-w-md bg-white dark:bg-[#242424] rounded-3xl overflow-hidden shadow-2xl"
         onClick={e => e.stopPropagation()}
       >
         <div className="p-6 space-y-3">
-          <h3 className="text-center text-xs font-black uppercase tracking-widest text-slate-400 mb-4">Adicionar Foto</h3>
+          <h3 className="text-center text-xs font-black uppercase tracking-widest text-[#8A98A8] mb-4">Adicionar Foto</h3>
           <button 
             onClick={() => onSelect('camera')}
-            className="w-full h-14 bg-slate-50 dark:bg-slate-800 rounded-2xl flex items-center justify-center gap-3 text-slate-700 dark:text-white font-bold hover:bg-slate-100 transition-colors"
+            className="w-full h-14 bg-[#F4F7FB] dark:bg-[#303030] rounded-2xl flex items-center justify-center gap-3 text-[#5A6878] dark:text-[#F8F8F8] font-bold hover:bg-[#E8EEF5] transition-colors"
           >
-            <Camera size={20} className="text-brand-500" />
+            <Camera size={20} className="text-[#2898D8]" />
             Tirar foto agora
           </button>
           <button 
             onClick={() => onSelect('gallery')}
-            className="w-full h-14 bg-slate-50 dark:bg-slate-800 rounded-2xl flex items-center justify-center gap-3 text-slate-700 dark:text-white font-bold hover:bg-slate-100 transition-colors"
+            className="w-full h-14 bg-[#F4F7FB] dark:bg-[#303030] rounded-2xl flex items-center justify-center gap-3 text-[#5A6878] dark:text-[#F8F8F8] font-bold hover:bg-[#E8EEF5] transition-colors"
           >
-            <Plus size={20} className="text-brand-500" />
+            <Plus size={20} className="text-[#2898D8]" />
             Escolher da galeria
           </button>
           <button 
             onClick={onClose}
-            className="w-full h-14 bg-white dark:bg-slate-900 text-slate-400 font-bold uppercase tracking-widest text-xs"
+            className="w-full h-14 bg-white dark:bg-[#242424] text-[#8A98A8] font-bold uppercase tracking-widest text-xs"
           >
             Cancelar
           </button>
@@ -152,17 +152,17 @@ const PhotoDescriptionModal: React.FC<{
         initial={{ y: "100%" }}
         animate={{ y: 0 }}
         exit={{ y: "100%" }}
-        className="w-full max-w-md bg-white dark:bg-slate-900 rounded-3xl overflow-hidden shadow-2xl flex flex-col max-h-[40vh]"
+        className="w-full max-w-md bg-white dark:bg-[#242424] rounded-3xl overflow-hidden shadow-2xl flex flex-col max-h-[40vh]"
         onClick={e => e.stopPropagation()}
       >
         <div className="p-6 space-y-4">
           <div className="flex items-center gap-4">
-            <div className="w-16 h-16 rounded-xl overflow-hidden border-2 border-slate-100 dark:border-slate-800 shrink-0">
+            <div className="w-16 h-16 rounded-xl overflow-hidden border-2 border-[#D0D8E4] dark:border-[#3A3A3A] shrink-0">
               <img src={photo} className="w-full h-full object-cover" alt="Preview" />
             </div>
             <div className="flex-1">
-              <h3 className="text-xs font-black uppercase tracking-widest text-slate-400">Descrição da Foto</h3>
-              <p className="text-[10px] text-slate-300 dark:text-slate-500">Adicione um detalhe sobre este atendimento</p>
+              <h3 className="text-xs font-black uppercase tracking-widest text-[#8A98A8]">Descrição da Foto</h3>
+              <p className="text-[10px] text-[#8A98A8] dark:text-[#5A6878]">Adicione um detalhe sobre este atendimento</p>
             </div>
           </div>
           
@@ -172,15 +172,15 @@ const PhotoDescriptionModal: React.FC<{
               placeholder="Ex: Degradê com franja"
               value={description}
               onChange={e => setDescription(e.target.value)}
-              className="w-full bg-slate-50 dark:bg-slate-800 border-none rounded-2xl p-4 text-sm text-slate-700 dark:text-white focus:ring-2 focus:ring-brand-500 h-20 resize-none"
+              className="w-full bg-[#F4F7FB] dark:bg-[#303030] border-none rounded-2xl p-4 text-sm text-[#5A6878] dark:text-[#F8F8F8] focus:ring-2 ring-[#2898D8] h-20 resize-none"
             />
           </div>
           
           <div className="flex gap-3">
-            <button onClick={onClose} className="flex-1 h-12 rounded-2xl text-slate-400 font-bold uppercase tracking-widest text-[10px] bg-slate-50 dark:bg-slate-800">Cancelar</button>
+            <button onClick={onClose} className="flex-1 h-12 rounded-2xl text-[#8A98A8] font-bold uppercase tracking-widest text-[10px] bg-[#F4F7FB] dark:bg-[#303030]">Cancelar</button>
             <button 
               onClick={() => onConfirm(description)}
-              className="flex-1 h-12 bg-brand-600 text-white rounded-2xl font-black uppercase tracking-widest text-[10px] shadow-lg shadow-brand-200"
+              className="flex-1 h-12 bg-[#2898D8] text-white rounded-2xl font-black uppercase tracking-widest text-[10px] shadow-lg shadow-[#2898D8]/20"
             >
               Confirmar
             </button>
@@ -200,7 +200,7 @@ const SettingsModal: React.FC<{
   const { isDarkMode, toggleDarkMode } = useStore();
   
   return (
-    <div className="fixed inset-0 z-[200] flex items-end justify-center bg-slate-900/40 backdrop-blur-md animate-in fade-in" onClick={onClose}>
+    <div className="fixed inset-0 z-[200] flex items-end justify-center bg-[#242424]/40 backdrop-blur-md animate-in fade-in" onClick={onClose}>
       <motion.div 
         initial={{ y: '100%' }}
         animate={{ y: 0 }}
@@ -757,7 +757,7 @@ export const AdminApp: React.FC = () => {
           ) : (
             <button 
               onClick={() => setActiveTab('agenda')}
-              className="w-10 h-10 rounded-full bg-white dark:bg-[#2A2A2A] text-slate-500 dark:text-[#CCCCCC] flex items-center justify-center hover:bg-slate-50 border border-slate-100 dark:border-[#444444] transition-colors shadow-sm"
+              className="w-10 h-10 rounded-full bg-white dark:bg-[#2A2A2A] text-[#5A6878] dark:text-[#CCCCCC] flex items-center justify-center hover:bg-[#F4F7FB] border border-[#D0D8E4] dark:border-[#444444] transition-colors shadow-sm"
               title="Voltar para Agenda"
             >
               <Home size={20} />
@@ -768,7 +768,7 @@ export const AdminApp: React.FC = () => {
         {/* Center: Title (Only for other tabs) */}
         {activeTab !== 'agenda' && (
           <div className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 text-center pointer-events-none">
-            <h2 className="text-lg font-bold uppercase tracking-tight text-slate-800 dark:text-[#FFFFFF]">
+            <h2 className="text-lg font-bold uppercase tracking-tight text-[#1A2332] dark:text-[#FFFFFF]">
               {activeTab === 'clientes' ? 'Clientes' : activeTab === 'servicos' ? 'Serviços' : 'Relatórios'}
             </h2>
           </div>
@@ -776,7 +776,7 @@ export const AdminApp: React.FC = () => {
 
         {/* Right: Actions */}
         <div className="flex items-center gap-3">
-          <button onClick={() => setShowSettingsModal(true)} className="w-9 h-9 rounded-full bg-white dark:bg-slate-800 text-slate-400 dark:text-slate-500 flex items-center justify-center hover:bg-slate-50 dark:hover:bg-slate-700 transition-colors border border-slate-100 dark:border-slate-700 shadow-sm" title="Configurações">
+          <button onClick={() => setShowSettingsModal(true)} className="w-9 h-9 rounded-full bg-white dark:bg-[#303030] text-[#8A98A8] dark:text-[#5A6878] flex items-center justify-center hover:bg-[#F4F7FB] dark:hover:bg-[#374151] transition-colors border border-[#D0D8E4] dark:border-[#3A3A3A] shadow-sm" title="Configurações">
             <Settings size={18} />
           </button>
         </div>
@@ -872,7 +872,7 @@ export const AdminApp: React.FC = () => {
               particleCount: 100,
               spread: 70,
               origin: { y: 0.6 },
-              colors: ['#000000', '#ffffff', '#22c55e']
+              colors: ['#2898D8', '#ffffff', '#3CB878']
             });
           }}
         />
@@ -977,7 +977,7 @@ export const AdminApp: React.FC = () => {
           />
         )}
       </AnimatePresence>
-      <DebugPanel />
+      {process.env.NODE_ENV === 'development' && <DebugPanel />}
     </div>
   );
 };
@@ -1009,7 +1009,6 @@ const AgendaView: React.FC<{
   const [expandedCompletedId, setExpandedCompletedId] = useState<string | null>(null);
   const [finishingId, setFinishingId] = useState<string | null>(null);
   const [weeklyUnlockSlot, setWeeklyUnlockSlot] = useState<string | null>(null);
-  const [showToast, setShowToast] = useState(false);
 
   // Inline Calendar States
   const [isCalendarExpanded, setIsCalendarExpanded] = useState(false);
@@ -1128,7 +1127,7 @@ const AgendaView: React.FC<{
       particleCount: 100,
       spread: 70,
       origin: { y: 0.7 },
-      colors: ['#10B981', '#3B82F6', '#ffffff'],
+      colors: ['#2898D8', '#3CB878', '#ffffff'],
       zIndex: 100
     });
 
@@ -1212,7 +1211,7 @@ const AgendaView: React.FC<{
                     setViewDate(newDate);
                   }
                 }}
-                className="p-1.5 text-brand-600 hover:bg-brand-50 rounded-full transition-colors"
+                className="p-1.5 text-[#2898D8] hover:bg-[#E8F4FC] rounded-full transition-colors"
               >
                 <ChevronLeft size={18} />
               </button>
@@ -1238,7 +1237,7 @@ const AgendaView: React.FC<{
                 animate={{ rotate: isCalendarExpanded ? 180 : 0 }}
                 transition={{ duration: 0.3 }}
               >
-                <ChevronRight size={14} className="text-brand-600 rotate-90" />
+                <ChevronRight size={14} className="text-[#2898D8] rotate-90" />
               </motion.div>
             </button>
 
@@ -1248,7 +1247,7 @@ const AgendaView: React.FC<{
                   setSlideDirection(1);
                   setViewDate(new Date(viewDate.getFullYear(), viewDate.getMonth() + 1, 1));
                 }}
-                className="p-1.5 text-brand-600 hover:bg-brand-50 rounded-full transition-colors"
+                className="p-1.5 text-[#2898D8] hover:bg-[#E8F4FC] rounded-full transition-colors"
               >
                 <ChevronRight size={18} />
               </button>
@@ -1271,7 +1270,7 @@ const AgendaView: React.FC<{
                 <div className="pb-3">
                   <div className="grid grid-cols-7 gap-1 mb-1">
                     {['Seg', 'Ter', 'Qua', 'Qui', 'Sex', 'Sab', 'Dom'].map((d) => (
-                      <div key={d} className="h-6 flex items-center justify-center text-[9px] font-black text-slate-300 uppercase">{d}</div>
+                      <div key={d} className="h-6 flex items-center justify-center text-[9px] font-black text-[#8A98A8] uppercase">{d}</div>
                     ))}
                   </div>
                   <div className="grid grid-cols-7 gap-1">
@@ -1290,9 +1289,9 @@ const AgendaView: React.FC<{
                         const count = getAppointmentsCount(dateStr);
                         days.push(
                           <div key={`prev-${d}`} className="h-9 flex items-center justify-center relative opacity-20">
-                            <span className="text-[11px] font-bold text-slate-400">{d}</span>
+                            <span className="text-[11px] font-bold text-[#8A98A8]">{d}</span>
                             {count > 0 && (
-                              <div className="absolute top-0.5 right-0.5 w-3 h-3 bg-slate-400 text-white rounded-full flex items-center justify-center text-[6px] font-bold">
+                              <div className="absolute top-0.5 right-0.5 w-3 h-3 bg-[#8A98A8] text-white rounded-full flex items-center justify-center text-[6px] font-bold">
                                 {count > 9 ? '9+' : count}
                               </div>
                             )}
@@ -1318,11 +1317,11 @@ const AgendaView: React.FC<{
                               setIsCalendarExpanded(false);
                             }}
                             className={`h-9 w-full rounded-xl flex items-center justify-center text-[12px] font-bold transition-all relative
-                              ${isSelected ? 'bg-brand-500 text-white shadow-sm' : isToday ? 'bg-[#E8F4FC] text-[#2898D8]' : isClosed ? 'bg-red-50 text-red-600' : 'hover:bg-[#F2F5F8] dark:hover:bg-[#303030] text-[#1A2332] dark:text-[#F8F8F8]'}`}
+                              ${isSelected ? 'bg-[#2898D8] text-white shadow-sm' : isToday ? 'bg-[#E8F4FC] text-[#2898D8]' : isClosed ? 'text-[#B8C0C0] line-through dark:text-[#707070]' : 'hover:bg-[#F2F5F8] dark:hover:bg-[#303030] text-[#1A2332] dark:text-[#F8F8F8]'}`}
                           >
                             {d}
                             {count > 0 && (
-                              <div className="absolute top-0.5 right-0.5 w-3.5 h-3.5 rounded-full flex items-center justify-center text-[7px] font-bold border bg-brand-500 text-white border-white dark:border-slate-900">
+                              <div className="absolute top-0.5 right-0.5 w-3.5 h-3.5 rounded-full flex items-center justify-center text-[7px] font-bold border bg-[#2898D8] text-white border-white dark:border-slate-900">
                                 {count > 9 ? '9+' : count}
                               </div>
                             )}
@@ -1338,9 +1337,9 @@ const AgendaView: React.FC<{
                         const count = getAppointmentsCount(dateStr);
                         days.push(
                           <div key={`next-${d}`} className="h-9 flex items-center justify-center relative opacity-20">
-                            <span className="text-[11px] font-bold text-slate-400">{d}</span>
+                            <span className="text-[11px] font-bold text-[#8A98A8]">{d}</span>
                             {count > 0 && (
-                              <div className="absolute top-0.5 right-0.5 w-3 h-3 bg-slate-400 text-white rounded-full flex items-center justify-center text-[6px] font-bold">
+                              <div className="absolute top-0.5 right-0.5 w-3 h-3 bg-[#8A98A8] text-white rounded-full flex items-center justify-center text-[6px] font-bold">
                                 {count > 9 ? '9+' : count}
                               </div>
                             )}
@@ -1362,7 +1361,7 @@ const AgendaView: React.FC<{
                         setViewMode('days');
                       }}
                       className={`h-11 rounded-xl flex items-center justify-center font-bold text-sm transition-all
-                        ${viewDate.getFullYear() === year ? 'bg-brand-500 text-white shadow-sm' : 'bg-[#F2F5F8] dark:bg-[#303030] text-[#1A2332] dark:text-[#F8F8F8] hover:bg-[#E2E8F0]'}`}
+                        ${viewDate.getFullYear() === year ? 'bg-[#2898D8] text-white shadow-sm' : 'bg-[#F2F5F8] dark:bg-[#303030] text-[#1A2332] dark:text-[#F8F8F8] hover:bg-[#E2E8F0]'}`}
                     >
                       {year}
                     </button>
@@ -1384,7 +1383,7 @@ const AgendaView: React.FC<{
                   exit={{ x: -20, opacity: 0, width: 0, marginRight: 0 }}
                   transition={{ duration: 0.25, ease: "easeOut" }}
                   onClick={() => setSelectedDate(getTodayString())}
-                  className="flex items-center justify-center gap-1.5 px-3 h-10 rounded-xl bg-brand-50 text-brand-600 hover:bg-brand-100 active:scale-95 shrink-0 overflow-hidden whitespace-nowrap"
+                  className="flex items-center justify-center gap-1.5 px-3 h-10 rounded-xl bg-[#E8F4FC] text-[#2898D8] hover:bg-[#E8F4FC] active:scale-95 shrink-0 overflow-hidden whitespace-nowrap"
                 >
                   <RotateCcw size={12} strokeWidth={3} />
                   <span className="text-[12px] font-black uppercase tracking-tight">Hoje</span>
@@ -1394,7 +1393,7 @@ const AgendaView: React.FC<{
 
             <button 
               onClick={() => navigateWeek('prev')}
-              className="w-8 h-10 flex items-center justify-center text-slate-400 hover:text-brand-500 transition-colors"
+              className="w-8 h-10 flex items-center justify-center text-[#8A98A8] hover:text-[#2898D8] transition-colors"
             >
               <ChevronLeft size={20} />
             </button>
@@ -1412,23 +1411,23 @@ const AgendaView: React.FC<{
                     onClick={() => setSelectedDate(day.dateStr)}
                     className={`flex-1 flex flex-col items-center justify-center rounded-xl transition-all py-1.5 relative
                       ${isSelected 
-                        ? 'bg-brand-500 text-white shadow-md' 
+                        ? 'bg-[#2898D8] text-white ring-2 ring-[#2898D8] ring-offset-2 dark:ring-offset-[#242424]' 
                         : isToday 
-                          ? 'bg-[#BBDEFB] text-[#0D47A1]' 
+                          ? 'bg-[#E8F4FC] text-[#2898D8] dark:bg-[#1A3A58]' 
                           : isClosed
-                            ? 'bg-[#FFEBEE] text-[#C62828]'
+                            ? 'text-[#B8C0C0] line-through dark:text-[#707070]'
                             : 'hover:bg-[#F2F5F8] dark:hover:bg-[#303030] text-[#8A98A8]'}`}
                   >
                     <span className={`text-[9px] font-bold uppercase tracking-tighter 
-                      ${isSelected ? 'text-white/80' : isToday ? 'text-[#0D47A1]/70' : isClosed ? 'text-[#C62828]/70' : 'text-slate-400'}`}>
+                      ${isSelected ? 'text-white/80' : isToday ? 'text-[#2898D8]' : isClosed ? 'line-through' : 'text-[#8A98A8]'}`}>
                       {day.dayLabel}
                     </span>
                     <span className={`text-sm font-black 
-                      ${isSelected ? 'text-white' : isToday ? 'text-[#0D47A1]' : isClosed ? 'text-[#C62828]' : 'text-slate-700 dark:text-slate-200'}`}>
+                      ${isSelected ? 'text-white' : isToday ? 'text-[#2898D8]' : isClosed ? 'text-[#B8C0C0] dark:text-[#707070]' : 'text-[#5A6878] dark:text-[#B8C0C0]'}`}>
                       {day.dayNum}
                     </span>
                     {count > 0 && (
-                      <div className="absolute -top-1 -right-1 w-4 h-4 rounded-full flex items-center justify-center text-[9px] font-bold border-2 bg-brand-500 text-white border-white dark:border-slate-900">
+                      <div className="absolute -top-1 -right-1 w-4 h-4 rounded-full flex items-center justify-center text-[9px] font-bold border-2 bg-[#2898D8] text-white border-white dark:border-slate-900">
                         {count > 9 ? '9+' : count}
                       </div>
                     )}
@@ -1439,7 +1438,7 @@ const AgendaView: React.FC<{
 
             <button 
               onClick={() => navigateWeek('next')}
-              className="w-8 h-10 flex items-center justify-center text-slate-400 hover:text-brand-500 transition-colors"
+              className="w-8 h-10 flex items-center justify-center text-[#8A98A8] hover:text-[#2898D8] transition-colors"
             >
               <ChevronRight size={20} />
             </button>
@@ -1511,7 +1510,7 @@ const AgendaView: React.FC<{
                     // If it's occupied by a duration but not the start slot
                     if (apt && !isStartSlot) {
                         return (
-                            <div key={slot} className="bg-[#FFFFFF]/50 dark:bg-[#242424]/50 p-3 rounded-2xl flex items-center gap-4 opacity-50 pointer-events-none shadow-[0_1px_4px_rgba(0,0,0,0.06)]">
+                            <div key={slot} className="bg-[#F4F7FB] dark:bg-[#2A2A2A] p-3 rounded-2xl flex items-center gap-4 opacity-50 pointer-events-none shadow-[0_1px_4px_rgba(0,0,0,0.06)] min-h-[44px]">
                                 <div className="text-lg font-black text-[#8A98A8] dark:text-[#707070] w-14 shrink-0">{slot}</div>
                                 <div className="flex-1 min-w-0 flex items-center gap-1.5 text-xs text-[#8A98A8] dark:text-[#707070] truncate">
                                     <span className="font-semibold flex items-center gap-1 shrink-0">
@@ -1551,9 +1550,9 @@ const AgendaView: React.FC<{
                                             setWeeklyUnlockSlot(slot);
                                         }
                                     }}
-                                    className="bg-red-50/20 dark:bg-red-900/10 border border-red-100/50 dark:border-red-900/30 p-3 rounded-2xl flex items-center justify-between opacity-70 dark:opacity-90 cursor-pointer"
+                                    className="bg-red-50/20 dark:bg-red-900/10 border border-red-100/50 dark:border-red-900/30 p-3 rounded-2xl flex items-center justify-between opacity-70 dark:opacity-90 cursor-pointer min-h-[44px]"
                                 >
-                                    <div className="text-lg font-black text-slate-400 dark:text-[#AAAAAA] w-14">{slot}</div>
+                                    <div className="text-lg font-black text-[#8A98A8] dark:text-[#AAAAAA] w-14">{slot}</div>
                                     <div className="flex flex-col items-end flex-1 pr-4">
                                         <div className="flex items-center gap-1.5 text-red-400 dark:text-red-500">
                                             {!isManualBlocked && isWeeklyBreak && <Repeat size={12} className="animate-pulse" />}
@@ -1562,7 +1561,7 @@ const AgendaView: React.FC<{
                                             </span>
                                         </div>
                                         {!isManualBlocked && isWeeklyBreak && (
-                                            <span className="text-[8px] text-slate-400 dark:text-[#AAAAAA] font-bold uppercase tracking-tighter">Regra Recorrente</span>
+                                            <span className="text-[8px] text-[#8A98A8] dark:text-[#AAAAAA] font-bold uppercase tracking-tighter">Regra Recorrente</span>
                                         )}
                                     </div>
                                     <div className="w-10 h-10 flex items-center justify-center text-red-200 dark:text-red-900/40">
@@ -1575,7 +1574,7 @@ const AgendaView: React.FC<{
                                             initial={{ opacity: 0, scale: 0.95 }}
                                             animate={{ opacity: 1, scale: 1 }}
                                             exit={{ opacity: 0, scale: 0.95 }}
-                                            className="menu-container absolute inset-0 bg-slate-900/95 rounded-2xl flex items-center justify-center gap-3 z-10 px-3"
+                                            className="menu-container absolute inset-0 bg-[#111827]/95 rounded-2xl flex items-center justify-center gap-3 z-10 px-3"
                                         >
                                             <p className="text-white text-[9px] font-black uppercase tracking-widest flex-1">Deseja desbloquear?</p>
                                             <div className="flex gap-2">
@@ -1587,7 +1586,7 @@ const AgendaView: React.FC<{
                                                 </button>
                                                 <button 
                                                     onClick={() => setActiveUnlockMenu(null)}
-                                                    className="h-8 px-4 bg-slate-700 text-white rounded-xl text-[10px] font-black uppercase tracking-widest"
+                                                    className="h-8 px-4 bg-[#374151] text-white rounded-xl text-[10px] font-black uppercase tracking-widest"
                                                 >
                                                     Não
                                                 </button>
@@ -1604,7 +1603,7 @@ const AgendaView: React.FC<{
                             <div key={slot} className="relative group">
                                 <div 
                                     onClick={() => setActiveSlotMenu(isQuickActionOpen ? null : slot)} 
-                                    className={`slot-trigger bg-white dark:bg-[#242424] shadow-[0_1px_4px_rgba(0,0,0,0.06)] p-3 rounded-2xl flex items-center gap-4 transition-all hover:border-[#2898D8] cursor-pointer group ${past ? 'opacity-40 grayscale pointer-events-none' : ''}`}
+                                    className={`slot-trigger bg-white dark:bg-[#242424] min-h-[44px] hover:bg-[#E8F4FC] dark:hover:bg-[#1A3A58] shadow-[0_1px_4px_rgba(0,0,0,0.06)] p-3 rounded-2xl flex items-center gap-4 transition-colors cursor-pointer group ${past ? 'opacity-40 grayscale pointer-events-none' : ''}`}
                                 >
                                     <div className="text-lg font-black text-[#1A2332] dark:text-[#F8F8F8] w-14 shrink-0">{slot}</div>
                                     <div className="flex items-center gap-2 text-[#8A98A8] dark:text-[#707070] font-black text-[10px] uppercase tracking-widest group-hover:text-[#2898D8] transition-colors">
@@ -1619,27 +1618,27 @@ const AgendaView: React.FC<{
                                             initial={{ x: -10, opacity: 0 }}
                                             animate={{ x: 0, opacity: 1 }}
                                             exit={{ x: -10, opacity: 0 }}
-                                            className="menu-container absolute top-0 bottom-0 right-0 left-[calc(3.5rem+1rem+0.75rem)] bg-white/90 backdrop-blur-md shadow-lg rounded-r-2xl flex items-center z-50 overflow-hidden border-y-2 border-r-2 border-brand-100"
+                                            className="menu-container absolute top-0 bottom-0 right-0 left-[calc(3.5rem+1rem+0.75rem)] bg-white/90 backdrop-blur-md shadow-lg rounded-r-2xl flex items-center z-50 overflow-hidden border-y-2 border-r-2 border-[#D0D8E4]"
                                         >
                                             <div className="flex-1 h-full flex items-stretch">
                                                 <button 
+                                                    onClick={(e) => { e.stopPropagation(); toggleSlotAvailability(selectedDate, slot); setActiveSlotMenu(null); }}
+                                                    className="flex-[0.75] flex flex-col items-center justify-center gap-1 bg-red-400 hover:bg-red-500 text-white/90 transition-colors"
+                                                >
+                                                    <Ban size={16} />
+                                                    <span className="text-[8px] font-black uppercase tracking-widest">Bloquear</span>
+                                                </button>
+                                                <button 
                                                     onClick={(e) => { e.stopPropagation(); onAddInSlot(selectedDate, slot); setActiveSlotMenu(null); }}
-                                                    className="flex-1 flex flex-col items-center justify-center gap-1 bg-brand-500 text-white hover:bg-brand-600 transition-colors"
+                                                    className="flex-[1.25] flex flex-col items-center justify-center gap-1 bg-[#2898D8] hover:bg-[#1E7FB8] text-white transition-colors"
                                                 >
                                                     <Calendar size={18} />
                                                     <span className="text-[9px] font-black uppercase tracking-widest">Agendar</span>
                                                 </button>
-                                                <button 
-                                                    onClick={(e) => { e.stopPropagation(); toggleSlotAvailability(selectedDate, slot); setActiveSlotMenu(null); }}
-                                                    className="flex-1 flex flex-col items-center justify-center gap-1 bg-red-500 text-white hover:bg-red-600 transition-colors"
-                                                >
-                                                    <Ban size={18} />
-                                                    <span className="text-[9px] font-black uppercase tracking-widest">Bloquear</span>
-                                                </button>
                                             </div>
                                             <button 
                                                 onClick={(e) => { e.stopPropagation(); setActiveSlotMenu(null); }}
-                                                className="w-10 h-full flex items-center justify-center text-slate-400 hover:text-slate-600 bg-slate-50/50 border-l border-slate-100"
+                                                className="w-10 h-full flex items-center justify-center text-[#8A98A8] hover:text-[#1A2332] bg-[#F4F7FB]/50 border-l border-[#D0D8E4]"
                                             >
                                                 <X size={20} />
                                             </button>
@@ -1657,7 +1656,7 @@ const AgendaView: React.FC<{
                             initial={false}
                             animate={isFinishing ? { scale: [1, 1.05, 1] } : { scale: 1 }}
                             transition={{ duration: 0.4 }}
-                            className={`relative rounded-2xl shadow-[0_1px_4px_rgba(0,0,0,0.06)] overflow-hidden transition-all duration-500 flex
+                            className={`relative rounded-2xl shadow-[0_1px_4px_rgba(0,0,0,0.06)] min-h-[44px] overflow-hidden transition-all duration-500 flex
                                 ${isActuallyCompleted ? 'bg-[#D1FAE5] border-green-200 opacity-60' : 
                                   isNoShow ? 'bg-amber-50 border-amber-200 opacity-50' : 
                                   isFinishing ? 'bg-[#D1FAE5] border-green-200' : 'bg-white dark:bg-[#242424] border-l-4 border-l-[#2898D8] dark:border-l-[#2098F0]'}`}
@@ -1756,7 +1755,7 @@ const AgendaView: React.FC<{
                                 <button 
                                     disabled={isActuallyCompleted || isNoShow}
                                     onClick={() => setActiveCancelMenu(apt.id)}
-                                    className={`w-8 h-8 rounded-full flex items-center justify-center transition-all shrink-0 ${isActuallyCompleted || isNoShow ? 'text-slate-300 opacity-30' : 'text-[#EF4444] hover:bg-red-50'}`}
+                                    className={`w-8 h-8 rounded-full flex items-center justify-center transition-all shrink-0 ${isActuallyCompleted || isNoShow ? 'text-[#8A98A8] opacity-30' : 'text-[#EF4444] hover:bg-red-50'}`}
                                     title="Cancelar"
                                 >
                                     <Trash2 size={16} />
@@ -1778,7 +1777,7 @@ const AgendaView: React.FC<{
                                         initial={{ opacity: 0, scale: 0.95 }}
                                         animate={{ opacity: 1, scale: 1 }}
                                         exit={{ opacity: 0, scale: 0.95 }}
-                                        className="menu-container absolute inset-0 bg-slate-900/95 rounded-2xl flex items-center justify-center gap-3 z-10 px-3"
+                                        className="menu-container absolute inset-0 bg-[#111827]/95 rounded-2xl flex items-center justify-center gap-3 z-10 px-3"
                                     >
                                         <p className="text-white text-[9px] font-black uppercase tracking-widest flex-1">Deseja cancelar?</p>
                                         <div className="flex gap-2">
@@ -1794,7 +1793,7 @@ const AgendaView: React.FC<{
                                             </button>
                                             <button 
                                                 onClick={() => setActiveCancelMenu(null)}
-                                                className="h-8 px-4 bg-slate-700 text-white rounded-xl text-[10px] font-black uppercase tracking-widest"
+                                                className="h-8 px-4 bg-[#374151] text-white rounded-xl text-[10px] font-black uppercase tracking-widest"
                                             >
                                                 Não
                                             </button>
@@ -1810,7 +1809,7 @@ const AgendaView: React.FC<{
                                         initial={{ opacity: 0, scale: 0.95 }}
                                         animate={{ opacity: 1, scale: 1 }}
                                         exit={{ opacity: 0, scale: 0.95 }}
-                                        className="menu-container absolute inset-0 bg-slate-900/95 rounded-2xl flex items-center justify-center gap-3 z-10 px-3"
+                                        className="menu-container absolute inset-0 bg-[#111827]/95 rounded-2xl flex items-center justify-center gap-3 z-10 px-3"
                                     >
                                         <p className="text-white text-[9px] font-black uppercase tracking-widest flex-1">Confirmar falta?</p>
                                         <div className="flex gap-2">
@@ -1826,7 +1825,7 @@ const AgendaView: React.FC<{
                                             </button>
                                             <button 
                                                 onClick={() => setActiveNoShowMenu(null)}
-                                                className="h-8 px-4 bg-slate-700 text-white rounded-xl text-[10px] font-black uppercase tracking-widest"
+                                                className="h-8 px-4 bg-[#374151] text-white rounded-xl text-[10px] font-black uppercase tracking-widest"
                                             >
                                                 Não
                                             </button>
@@ -1842,7 +1841,7 @@ const AgendaView: React.FC<{
                                         initial={{ opacity: 0, scale: 0.95 }}
                                         animate={{ opacity: 1, scale: 1 }}
                                         exit={{ opacity: 0, scale: 0.95 }}
-                                        className="menu-container absolute inset-0 bg-slate-900/95 rounded-2xl flex items-center justify-center gap-3 z-10 px-3"
+                                        className="menu-container absolute inset-0 bg-[#111827]/95 rounded-2xl flex items-center justify-center gap-3 z-10 px-3"
                                     >
                                         <p className="text-white text-[9px] font-black uppercase tracking-widest flex-1">Finalizar atendimento?</p>
                                         <div className="flex gap-2">
@@ -1854,7 +1853,7 @@ const AgendaView: React.FC<{
                                             </button>
                                             <button 
                                                 onClick={() => setActiveFinishMenu(null)}
-                                                className="h-8 px-4 bg-slate-700 text-white rounded-xl text-[10px] font-black uppercase tracking-widest"
+                                                className="h-8 px-4 bg-[#374151] text-white rounded-xl text-[10px] font-black uppercase tracking-widest"
                                             >
                                                 Não
                                             </button>
@@ -1870,7 +1869,7 @@ const AgendaView: React.FC<{
                                         initial={{ opacity: 0, scale: 0.95 }}
                                         animate={{ opacity: 1, scale: 1 }}
                                         exit={{ opacity: 0, scale: 0.95 }}
-                                        className="menu-container absolute inset-0 bg-slate-900/95 rounded-2xl flex items-center justify-center gap-3 z-10 px-3"
+                                        className="menu-container absolute inset-0 bg-[#111827]/95 rounded-2xl flex items-center justify-center gap-3 z-10 px-3"
                                     >
                                         <p className="text-white text-[9px] font-black uppercase tracking-widest flex-1">Retornar atendimento?</p>
                                         <div className="flex gap-2">
@@ -1880,13 +1879,13 @@ const AgendaView: React.FC<{
                                                     setActiveRevertMenu(null); 
                                                     onSuccess?.('Atendimento retornado com sucesso!');
                                                 }}
-                                                className="h-8 px-4 bg-brand-600 text-white rounded-xl text-[10px] font-black uppercase tracking-widest shadow-lg"
+                                                className="h-8 px-4 bg-[#2898D8] text-white rounded-xl text-[10px] font-black uppercase tracking-widest shadow-lg"
                                             >
                                                 Sim
                                             </button>
                                             <button 
                                                 onClick={() => setActiveRevertMenu(null)}
-                                                className="h-8 px-4 bg-slate-700 text-white rounded-xl text-[10px] font-black uppercase tracking-widest"
+                                                className="h-8 px-4 bg-[#374151] text-white rounded-xl text-[10px] font-black uppercase tracking-widest"
                                             >
                                                 Não
                                             </button>
@@ -1920,7 +1919,7 @@ const AgendaView: React.FC<{
                     <div className="w-1 h-4 bg-green-500 rounded-full"></div>
                     <div className="flex items-center gap-2">
                         <CheckCircle2 size={18} className="text-green-500" />
-                        <h3 className="font-semibold text-slate-500 dark:text-slate-400 text-sm uppercase tracking-widest">
+                        <h3 className="font-semibold text-[#5A6878] dark:text-[#8A98A8] text-sm uppercase tracking-widest">
                             CONCLUÍDOS ({completedAppointments.length})
                         </h3>
                     </div>
@@ -1944,16 +1943,16 @@ const AgendaView: React.FC<{
                                 {/* Accordion Header */}
                                 <div 
                                     onClick={() => setExpandedCompletedId(isExpanded ? null : apt.id)}
-                                    className="h-[48px] px-4 flex items-center justify-between cursor-pointer hover:bg-slate-50/30 dark:hover:bg-slate-800/20 transition-colors"
+                                    className="h-[48px] px-4 flex items-center justify-between cursor-pointer hover:bg-[#F4F7FB]/30 dark:hover:bg-[#303030]/30 transition-colors"
                                 >
                                     <div className="flex items-center gap-2.5 min-w-0">
-                                        <span className={`text-xs font-bold line-through shrink-0 ${isExpanded ? 'text-slate-400' : 'text-slate-600 dark:text-slate-400 opacity-70'}`}>
+                                        <span className={`text-xs font-bold line-through shrink-0 ${isExpanded ? 'text-[#8A98A8]' : 'text-[#5A6878] dark:text-[#8A98A8] opacity-70'}`}>
                                             {apt.time}
                                         </span>
                                         <div className="flex items-center gap-1.5 min-w-0">
-                                            <span className={`text-sm font-semibold truncate ${isExpanded ? 'text-slate-500 dark:text-slate-400' : 'text-slate-700 dark:text-slate-300 opacity-70'}`}>
+                                            <span className={`text-sm font-semibold truncate ${isExpanded ? 'text-[#5A6878] dark:text-[#8A98A8]' : 'text-[#5A6878] dark:text-[#8A98A8] opacity-70'}`}>
                                                 {capitalizeName(apt.clientName)}
-                                                <span className="text-xs font-normal text-slate-400 ml-1">
+                                                <span className="text-xs font-normal text-[#8A98A8] ml-1">
                                                     ({apt.service})
                                                 </span>
                                             </span>
@@ -1980,8 +1979,8 @@ const AgendaView: React.FC<{
                                             exit={{ height: 0, opacity: 0 }}
                                             transition={{ duration: 0.3, ease: 'easeInOut' }}
                                         >
-                                            <div className="px-4 pb-3 pt-1.5 border-t border-slate-50 dark:border-slate-800/50 relative">
-                                                <div className="flex items-center justify-between bg-slate-50 dark:bg-slate-800/40 p-2 rounded-xl border border-slate-100 dark:border-slate-800/50 w-full">
+                                            <div className="px-4 pb-3 pt-1.5 border-t border-[#D0D8E4]/60 dark:border-[#3A3A3A] relative">
+                                                <div className="flex items-center justify-between bg-[#F4F7FB] dark:bg-[#303030] p-2 rounded-xl border border-[#D0D8E4] dark:border-[#3A3A3A] w-full">
                                                     <div className="flex gap-4">
                                                         <div className="flex flex-col items-center gap-1">
                                                             <button 
@@ -1991,7 +1990,7 @@ const AgendaView: React.FC<{
                                                             >
                                                                 <Camera size={16} />
                                                             </button>
-                                                            <span className="text-[10px] font-medium text-slate-400">Foto</span>
+                                                            <span className="text-[10px] font-medium text-[#8A98A8]">Foto</span>
                                                         </div>
 
                                                         <div className="flex flex-col items-center gap-1">
@@ -2001,7 +2000,7 @@ const AgendaView: React.FC<{
                                                             >
                                                                 <User size={16} />
                                                             </button>
-                                                            <span className="text-[10px] font-medium text-slate-400">Cliente</span>
+                                                            <span className="text-[10px] font-medium text-[#8A98A8]">Cliente</span>
                                                         </div>
                                                     </div>
 
@@ -2023,7 +2022,7 @@ const AgendaView: React.FC<{
                                                             initial={{ opacity: 0 }}
                                                             animate={{ opacity: 1 }}
                                                             exit={{ opacity: 0 }}
-                                                            className="absolute inset-0 bg-slate-900/95 flex items-center justify-center gap-3 z-20 px-4"
+                                                            className="absolute inset-0 bg-[#111827]/95 flex items-center justify-center gap-3 z-20 px-4"
                                                         >
                                                             <p className="text-white text-[9px] font-black uppercase tracking-widest flex-1">Retornar atendimento?</p>
                                                             <div className="flex gap-2">
@@ -2033,13 +2032,13 @@ const AgendaView: React.FC<{
                                                                         setActiveRevertMenu(null); 
                                                                         onSuccess?.('Atendimento retornado com sucesso!');
                                                                     }}
-                                                                    className="h-8 px-4 bg-brand-600 text-white rounded-xl text-[10px] font-black uppercase tracking-widest shadow-lg"
+                                                                    className="h-8 px-4 bg-[#2898D8] text-white rounded-xl text-[10px] font-black uppercase tracking-widest shadow-lg"
                                                                 >
                                                                     Sim
                                                                 </button>
                                                                 <button 
                                                                     onClick={() => setActiveRevertMenu(null)}
-                                                                    className="h-8 px-4 bg-slate-700 text-white rounded-xl text-[10px] font-black uppercase tracking-widest"
+                                                                    className="h-8 px-4 bg-[#374151] text-white rounded-xl text-[10px] font-black uppercase tracking-widest"
                                                                 >
                                                                     Não
                                                                 </button>
@@ -2060,23 +2059,6 @@ const AgendaView: React.FC<{
       </div>
 
 
-      {/* Success Toast */}
-      <AnimatePresence>
-        {showToast && (
-          <motion.div 
-            initial={{ opacity: 0, y: 50 }}
-            animate={{ opacity: 1, y: 0 }}
-            exit={{ opacity: 0, y: 50 }}
-            className="fixed bottom-24 left-1/2 -translate-x-1/2 z-[60] bg-slate-900 text-white px-6 py-3 rounded-2xl shadow-2xl flex items-center gap-3 border border-slate-700"
-          >
-            <div className="w-6 h-6 bg-green-500 rounded-full flex items-center justify-center">
-              <Check size={14} strokeWidth={4} />
-            </div>
-            <span className="text-xs font-black uppercase tracking-widest">Foto adicionada ao histórico ✨</span>
-          </motion.div>
-        )}
-      </AnimatePresence>
-
       {/* Decision Modal for Weekly Unlock */}
       <AnimatePresence>
         {weeklyUnlockSlot && (
@@ -2094,12 +2076,12 @@ const AgendaView: React.FC<{
               exit={{ scale: 0.95, opacity: 0 }}
               className="bg-white w-[90%] max-w-sm rounded-[32px] shadow-2xl p-8 relative z-[200] border border-white/20 text-center space-y-6"
             >
-              <div className="w-16 h-16 bg-brand-50 rounded-full flex items-center justify-center mx-auto text-brand-600">
+              <div className="w-16 h-16 bg-[#E8F4FC] rounded-full flex items-center justify-center mx-auto text-[#2898D8]">
                 <Repeat size={32} />
               </div>
               <div className="space-y-2">
-                <h3 className="text-lg font-black text-slate-800 uppercase tracking-tighter">Liberar Horário</h3>
-                <p className="text-sm text-slate-500 font-medium">Como deseja liberar este horário das <span className="font-bold text-slate-800">{weeklyUnlockSlot}</span>?</p>
+                <h3 className="text-lg font-black text-[#1A2332] uppercase tracking-tighter">Liberar Horário</h3>
+                <p className="text-sm text-[#5A6878] font-medium">Como deseja liberar este horário das <span className="font-bold text-[#1A2332]">{weeklyUnlockSlot}</span>?</p>
               </div>
               
               <div className="space-y-3">
@@ -2109,7 +2091,7 @@ const AgendaView: React.FC<{
                     setWeeklyUnlockSlot(null);
                     onSuccess?.('Liberado apenas para hoje!');
                   }}
-                  className="w-full h-14 bg-slate-100 text-slate-600 rounded-2xl font-black uppercase tracking-widest text-[10px] hover:bg-slate-200 transition-all"
+                  className="w-full h-14 bg-[#E8EEF5] text-[#5A6878] rounded-2xl font-black uppercase tracking-widest text-[10px] hover:bg-slate-200 transition-all"
                 >
                   Liberar apenas para hoje
                 </button>
@@ -2119,13 +2101,13 @@ const AgendaView: React.FC<{
                     setWeeklyUnlockSlot(null);
                     onSuccess?.('Removido do padrão semanal!');
                   }}
-                  className="w-full h-14 bg-brand-600 text-white rounded-2xl font-black uppercase tracking-widest text-[10px] shadow-lg shadow-brand-500/20 hover:bg-brand-700 transition-all"
+                  className="w-full h-14 bg-[#2898D8] text-white rounded-2xl font-black uppercase tracking-widest text-[10px] shadow-lg shadow-[#2898D8]/20 hover:bg-[#1E7FB8] transition-all"
                 >
                   Remover do padrão semanal
                 </button>
                 <button 
                   onClick={() => setWeeklyUnlockSlot(null)}
-                  className="w-full py-2 text-slate-400 font-black uppercase tracking-widest text-[9px] hover:text-slate-600 transition-colors"
+                  className="w-full py-2 text-[#8A98A8] font-black uppercase tracking-widest text-[9px] hover:text-[#1A2332] transition-colors"
                 >
                   Cancelar
                 </button>
@@ -2212,11 +2194,11 @@ const AddCustomerModal: React.FC<{ onClose: () => void, onSuccess: (msg: string)
   };
 
   return (
-    <div className="fixed inset-0 z-[200] flex items-center justify-center p-4 bg-slate-900/40 backdrop-blur-md animate-in fade-in">
-      <div className="bg-white dark:bg-slate-900 w-full max-w-[95%] sm:max-w-sm rounded-3xl shadow-2xl overflow-hidden flex flex-col max-h-[90vh] relative border border-white/20 dark:border-slate-800">
-        <header className="p-6 border-b border-slate-50 dark:border-slate-800 flex justify-between items-center shrink-0 bg-white dark:bg-slate-900 sticky top-0 z-10">
-            <h2 className="text-lg font-bold text-slate-800 dark:text-white uppercase tracking-tight">Novo Cliente</h2>
-            <button onClick={onClose} className="w-10 h-10 rounded-full bg-slate-100 dark:bg-slate-800 text-slate-400 flex items-center justify-center hover:bg-slate-200 dark:hover:bg-slate-700 transition-colors">
+    <div className="fixed inset-0 z-[200] flex items-center justify-center p-4 bg-[#242424]/40 backdrop-blur-md animate-in fade-in">
+      <div className="bg-white dark:bg-[#242424] w-full max-w-[95%] sm:max-w-sm rounded-3xl shadow-2xl overflow-hidden flex flex-col max-h-[90vh] relative border border-white/20 dark:border-[#3A3A3A]">
+        <header className="p-6 border-b border-[#D0D8E4]/60 dark:border-[#3A3A3A] flex justify-between items-center shrink-0 bg-white dark:bg-[#242424] sticky top-0 z-10">
+            <h2 className="text-lg font-bold text-[#1A2332] dark:text-[#F8F8F8] uppercase tracking-tight">Novo Cliente</h2>
+            <button onClick={onClose} className="w-10 h-10 rounded-full bg-[#E8EEF5] dark:bg-[#303030] text-[#8A98A8] flex items-center justify-center hover:bg-slate-200 dark:hover:bg-[#374151] transition-colors">
               <X size={20} />
             </button>
         </header>
@@ -2256,13 +2238,13 @@ const AddCustomerModal: React.FC<{ onClose: () => void, onSuccess: (msg: string)
             </div>
           </div>
           
-          <footer className="p-6 border-t border-slate-50 dark:border-slate-800 shrink-0 bg-white dark:bg-slate-900 sticky bottom-0 z-10 pb-[calc(1.5rem+env(safe-area-inset-bottom))]">
+          <footer className="p-6 border-t border-[#D0D8E4]/60 dark:border-[#3A3A3A] shrink-0 bg-white dark:bg-[#242424] sticky bottom-0 z-10 pb-[calc(1.5rem+env(safe-area-inset-bottom))]">
             {showErrorMsg && !duplicateError && <p className="text-red-500 text-[13px] font-bold text-center mb-4">Preencha todos os campos obrigatórios</p>}
             <Button 
               type="submit" 
               fullWidth 
               disabled={!!duplicateError}
-              className="h-14 font-black uppercase tracking-widest shadow-xl shadow-brand-500/20 disabled:opacity-50 disabled:shadow-none"
+              className="h-14 font-black uppercase tracking-widest shadow-xl shadow-[#2898D8]/20 disabled:opacity-50 disabled:shadow-none"
             >
               {isValidating ? 'Validando...' : 'Cadastrar Cliente'}
             </Button>
@@ -2933,7 +2915,7 @@ const RescheduleModal: React.FC<{
   };
 
   return (
-    <div className="fixed inset-0 z-[200] flex items-center justify-center p-4 bg-slate-900/40 backdrop-blur-md animate-in fade-in">
+    <div className="fixed inset-0 z-[200] flex items-center justify-center p-4 bg-[#242424]/40 backdrop-blur-md animate-in fade-in">
       <div className="bg-[#FFFFFF] dark:bg-[#242424] w-full max-w-[95%] sm:max-w-sm rounded-3xl shadow-2xl overflow-hidden flex flex-col max-h-[90vh] relative border border-[#D0D8E4] dark:border-[#3A3A3A]">
         <header className="p-6 border-b border-[#D0D8E4] dark:border-[#3A3A3A] flex justify-between items-center shrink-0 bg-[#FFFFFF] dark:bg-[#242424] sticky top-0 z-10">
             <h2 className="text-lg font-bold text-[#1A2332] dark:text-[#F8F8F8] uppercase tracking-tight">Editar Agendamento</h2>
@@ -3044,7 +3026,7 @@ const ProfileModal: React.FC<{
     };
 
     return (
-        <div className="fixed inset-0 z-[200] flex items-center justify-center p-4 bg-slate-900/40 backdrop-blur-md animate-in fade-in">
+        <div className="fixed inset-0 z-[200] flex items-center justify-center p-4 bg-[#242424]/40 backdrop-blur-md animate-in fade-in">
             <div className="bg-[#FFFFFF] dark:bg-[#242424] w-full max-w-[95%] sm:max-w-sm rounded-3xl shadow-2xl overflow-hidden flex flex-col max-h-[85vh] relative border border-[#D0D8E4] dark:border-[#3A3A3A]">
                 <header className="p-6 border-b border-[#D0D8E4] dark:border-[#3A3A3A] flex justify-between items-center shrink-0 bg-[#FFFFFF] dark:bg-[#242424] sticky top-0 z-10">
                     <div>
@@ -4046,7 +4028,7 @@ const ReportsView: React.FC = () => {
     const isDown = diff < 0;
     const absDiff = Math.abs(diff).toLocaleString('pt-BR', { minimumFractionDigits: 0, maximumFractionDigits: 1 });
 
-    if (diff === 0) return <p className="text-[9px] text-slate-400 mt-0.5">Mesmo que o período anterior</p>;
+    if (diff === 0) return <p className="text-[9px] text-[#8A98A8] mt-0.5">Mesmo que o período anterior</p>;
     
     return (
       <p className={`text-[9px] flex items-center gap-0.5 mt-0.5 ${isUp ? 'text-green-500' : 'text-red-500'}`}>
@@ -4090,8 +4072,8 @@ const ReportsView: React.FC = () => {
       return (
         <div className="p-4 space-y-4">
           <div className="flex items-center justify-between">
-            <h4 className="text-xs font-bold text-slate-700 dark:text-white">Selecionar Ano</h4>
-            <button onClick={() => setViewMode('days')} className="text-[10px] font-bold text-brand-600">Voltar</button>
+            <h4 className="text-xs font-bold text-[#5A6878] dark:text-[#F8F8F8]">Selecionar Ano</h4>
+            <button onClick={() => setViewMode('days')} className="text-[10px] font-bold text-[#2898D8]">Voltar</button>
           </div>
           <div className="grid grid-cols-3 gap-2">
             {years.map(year => (
@@ -4102,7 +4084,7 @@ const ReportsView: React.FC = () => {
                   setViewMode('days');
                 }}
                 className={`h-10 rounded-xl flex items-center justify-center text-[11px] font-bold transition-all
-                  ${viewDate.getFullYear() === year ? 'bg-brand-500 text-white shadow-sm' : 'bg-slate-50 dark:bg-slate-800 text-slate-600 dark:text-slate-300 hover:bg-slate-100'}`}
+                  ${viewDate.getFullYear() === year ? 'bg-[#2898D8] text-white shadow-sm' : 'bg-[#F4F7FB] dark:bg-[#303030] text-[#5A6878] dark:text-[#8A98A8] hover:bg-[#E8EEF5]'}`}
               >
                 {year}
               </button>
@@ -4121,7 +4103,7 @@ const ReportsView: React.FC = () => {
     
     // Previous month
     for (let i = offset - 1; i >= 0; i--) {
-      days.push(<div key={`prev-${i}`} className="h-8 flex items-center justify-center opacity-20 text-[10px] font-bold text-slate-400">{prevMonthLastDay - i}</div>);
+      days.push(<div key={`prev-${i}`} className="h-8 flex items-center justify-center opacity-20 text-[10px] font-bold text-[#8A98A8]">{prevMonthLastDay - i}</div>);
     }
     
     // Current month
@@ -4142,7 +4124,7 @@ const ReportsView: React.FC = () => {
             setShowSelector(false);
           }}
           className={`h-8 w-full rounded-lg flex items-center justify-center text-[11px] font-bold transition-all relative
-            ${isSelected || isWeekSelected ? 'bg-brand-500 text-white shadow-sm' : isToday ? 'bg-brand-50 text-brand-600' : 'hover:bg-slate-50 dark:hover:bg-slate-800 text-slate-700 dark:text-slate-200'}
+            ${isSelected || isWeekSelected ? 'bg-[#2898D8] text-white shadow-sm' : isToday ? 'bg-[#E8F4FC] text-[#2898D8]' : 'hover:bg-[#F4F7FB] dark:hover:bg-slate-800 text-[#5A6878] dark:text-slate-200'}
             ${isBefore2026 && (period === 'semana' || period === 'mes') ? 'opacity-20 cursor-not-allowed' : ''}`}
         >
           {d}
@@ -4153,28 +4135,28 @@ const ReportsView: React.FC = () => {
     // Next month
     const remaining = 42 - days.length;
     for (let d = 1; d <= remaining; d++) {
-      days.push(<div key={`next-${d}`} className="h-8 flex items-center justify-center opacity-20 text-[10px] font-bold text-slate-400">{d}</div>);
+      days.push(<div key={`next-${d}`} className="h-8 flex items-center justify-center opacity-20 text-[10px] font-bold text-[#8A98A8]">{d}</div>);
     }
 
     return (
       <div className="p-4 space-y-4">
         <div className="flex items-center justify-between">
-          <button onClick={() => setViewDate(new Date(viewDate.getFullYear(), viewDate.getMonth() - 1, 1))} className="p-1 text-slate-400 hover:text-brand-600">
+          <button onClick={() => setViewDate(new Date(viewDate.getFullYear(), viewDate.getMonth() - 1, 1))} className="p-1 text-[#8A98A8] hover:text-[#2898D8]">
             <ChevronLeft size={16} />
           </button>
           <button 
             onClick={() => setViewMode('years')}
-            className="text-xs font-bold text-slate-700 dark:text-white capitalize hover:text-brand-600 transition-colors"
+            className="text-xs font-bold text-[#5A6878] dark:text-[#F8F8F8] capitalize hover:text-[#2898D8] transition-colors"
           >
             {viewDate.toLocaleDateString('pt-BR', { month: 'long', year: 'numeric' })}
           </button>
-          <button onClick={() => setViewDate(new Date(viewDate.getFullYear(), viewDate.getMonth() + 1, 1))} className="p-1 text-slate-400 hover:text-brand-600">
+          <button onClick={() => setViewDate(new Date(viewDate.getFullYear(), viewDate.getMonth() + 1, 1))} className="p-1 text-[#8A98A8] hover:text-[#2898D8]">
             <ChevronRight size={16} />
           </button>
         </div>
         <div className="grid grid-cols-7 gap-1">
           {['D', 'S', 'T', 'Q', 'Q', 'S', 'S'].map(d => (
-            <div key={d} className="h-8 flex items-center justify-center text-[9px] font-black text-slate-400 uppercase">{d}</div>
+            <div key={d} className="h-8 flex items-center justify-center text-[9px] font-black text-[#8A98A8] uppercase">{d}</div>
           ))}
           {days}
         </div>
@@ -4189,13 +4171,13 @@ const ReportsView: React.FC = () => {
     return (
       <div className="p-4 space-y-4">
         <div className="flex items-center justify-between">
-          <button onClick={() => setViewDate(new Date(viewDate.getFullYear() - 1, viewDate.getMonth(), 1))} className="p-1 text-slate-400 hover:text-brand-600">
+          <button onClick={() => setViewDate(new Date(viewDate.getFullYear() - 1, viewDate.getMonth(), 1))} className="p-1 text-[#8A98A8] hover:text-[#2898D8]">
             <ChevronLeft size={16} />
           </button>
-          <span className="text-xs font-bold text-slate-700 dark:text-white">
+          <span className="text-xs font-bold text-[#5A6878] dark:text-[#F8F8F8]">
             {viewDate.getFullYear()}
           </span>
-          <button onClick={() => setViewDate(new Date(viewDate.getFullYear() + 1, viewDate.getMonth(), 1))} className="p-1 text-slate-400 hover:text-brand-600">
+          <button onClick={() => setViewDate(new Date(viewDate.getFullYear() + 1, viewDate.getMonth(), 1))} className="p-1 text-[#8A98A8] hover:text-[#2898D8]">
             <ChevronRight size={16} />
           </button>
         </div>
@@ -4213,7 +4195,7 @@ const ReportsView: React.FC = () => {
                   setShowSelector(false);
                 }}
                 className={`h-10 rounded-xl flex items-center justify-center text-[11px] font-bold transition-all
-                  ${isSelected ? 'bg-brand-500 text-white shadow-sm' : 'bg-slate-50 dark:bg-slate-800 text-slate-600 dark:text-slate-300 hover:bg-slate-100'}
+                  ${isSelected ? 'bg-[#2898D8] text-white shadow-sm' : 'bg-[#F4F7FB] dark:bg-[#303030] text-[#5A6878] dark:text-[#8A98A8] hover:bg-[#E8EEF5]'}
                   ${isBefore2026 ? 'opacity-20 cursor-not-allowed' : ''}`}
               >
                 {m}
@@ -4242,7 +4224,7 @@ const ReportsView: React.FC = () => {
               setShowSelector(false);
             }}
             className={`h-10 rounded-xl flex items-center justify-center text-[11px] font-bold transition-all
-              ${currentDate.getFullYear() === year ? 'bg-brand-500 text-white shadow-sm' : 'bg-slate-50 dark:bg-slate-800 text-slate-600 dark:text-slate-300 hover:bg-slate-100'}`}
+              ${currentDate.getFullYear() === year ? 'bg-[#2898D8] text-white shadow-sm' : 'bg-[#F4F7FB] dark:bg-[#303030] text-[#5A6878] dark:text-[#8A98A8] hover:bg-[#E8EEF5]'}`}
           >
             {year}
           </button>

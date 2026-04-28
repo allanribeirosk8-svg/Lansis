@@ -88,7 +88,7 @@ const Calendar: React.FC<CalendarProps> = ({
   }, []);
 
   return (
-    <div className={`bg-white dark:bg-slate-900 rounded-2xl overflow-hidden ${className}`}>
+    <div className={`bg-white dark:bg-[#242424] rounded-2xl overflow-hidden ${className}`}>
       <div className="p-4 flex items-center justify-between">
         <button 
           onClick={() => {
@@ -98,14 +98,14 @@ const Calendar: React.FC<CalendarProps> = ({
               setViewDate(newDate);
             }
           }}
-          className="p-2 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-full transition-colors text-slate-400"
+          className="p-2 hover:bg-[#E8EEF5] dark:hover:bg-[#303030] rounded-full transition-colors text-[#8A98A8]"
         >
           <ChevronLeft size={20} />
         </button>
 
         <button 
           onClick={() => setViewMode(viewMode === 'days' ? 'years' : 'days')}
-          className="text-sm font-bold text-slate-700 dark:text-slate-200 hover:text-brand-600 transition-colors"
+          className="text-sm font-bold text-[#5A6878] dark:text-[#F8F8F8] hover:text-[#2898D8] transition-colors"
         >
           {formatMonthYear(viewDate)}
         </button>
@@ -115,7 +115,7 @@ const Calendar: React.FC<CalendarProps> = ({
             setSlideDirection(1);
             setViewDate(new Date(viewDate.getFullYear(), viewDate.getMonth() + 1, 1));
           }}
-          className="p-2 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-full transition-colors text-slate-400"
+          className="p-2 hover:bg-[#E8EEF5] dark:hover:bg-[#303030] rounded-full transition-colors text-[#8A98A8]"
         >
           <ChevronRight size={20} />
         </button>
@@ -133,7 +133,7 @@ const Calendar: React.FC<CalendarProps> = ({
           >
             <div className="grid grid-cols-7 gap-1 mb-2">
               {['S', 'T', 'Q', 'Q', 'S', 'S', 'D'].map((d, i) => (
-                <div key={i} className="h-8 flex items-center justify-center text-[10px] font-bold text-slate-300 uppercase">{d}</div>
+                <div key={i} className="h-8 flex items-center justify-center text-[10px] font-bold text-[#8A98A8] uppercase">{d}</div>
               ))}
             </div>
             <div className="grid grid-cols-7 gap-1">
@@ -159,17 +159,17 @@ const Calendar: React.FC<CalendarProps> = ({
                       }
                     }}
                     className={`h-10 w-full rounded-xl flex items-center justify-center text-xs font-bold transition-all relative
-                      ${isSelected ? 'bg-brand-500 text-white shadow-md scale-105 z-10' : 
-                        isToday ? 'bg-brand-50 text-brand-600 dark:bg-brand-900/20 dark:text-brand-400' : 
-                        highlighted ? 'bg-brand-100 text-brand-700 dark:bg-brand-900/40 dark:text-brand-300' :
-                        type !== 'current' || isOutOfRange ? 'text-slate-300 dark:text-slate-700' : 
+                      ${isSelected ? 'bg-[#2898D8] text-white shadow-md scale-105 z-10' : 
+                        isToday ? 'bg-[#E8F4FC] text-[#2898D8] dark:bg-[#1A3A58] dark:text-[#2898D8]' : 
+                        highlighted ? 'bg-[#E8F4FC] text-[#2898D8] dark:bg-[#1A3A58] dark:text-[#2898D8]' :
+                        type !== 'current' || isOutOfRange ? 'text-[#8A98A8] dark:text-[#5A6878]' : 
                         closed ? 'text-red-400 dark:text-red-900/50' :
-                        'text-slate-600 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-800'}`}
+                        'text-[#5A6878] dark:text-[#8A98A8] hover:bg-[#F4F7FB] dark:hover:bg-[#303030]'}`}
                   >
                     {date.getDate()}
                     {count > 0 && type === 'current' && (
                       <div className={`absolute -top-1 -right-1 w-4 h-4 rounded-full flex items-center justify-center text-[8px] font-bold border-2
-                        ${isSelected ? 'bg-white text-brand-600 border-brand-500' : 'bg-brand-500 text-white border-white dark:border-slate-900'}`}>
+                        ${isSelected ? 'bg-white text-[#2898D8] border-[#2898D8]' : 'bg-[#2898D8] text-white border-white dark:border-slate-900'}`}>
                         {count > 9 ? '9+' : count}
                       </div>
                     )}
@@ -194,7 +194,7 @@ const Calendar: React.FC<CalendarProps> = ({
                   setViewMode('days');
                 }}
                 className={`h-12 rounded-xl flex items-center justify-center font-bold text-sm transition-all
-                  ${viewDate.getFullYear() === year ? 'bg-brand-500 text-white shadow-sm' : 'bg-slate-50 dark:bg-slate-800 text-slate-600 dark:text-slate-300 hover:bg-slate-100'}`}
+                  ${viewDate.getFullYear() === year ? 'bg-[#2898D8] text-white shadow-sm' : 'bg-[#F4F7FB] dark:bg-[#303030] text-[#5A6878] dark:text-[#8A98A8] hover:bg-[#E8EEF5]'}`}
               >
                 {year}
               </button>
