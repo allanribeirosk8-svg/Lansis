@@ -6,6 +6,7 @@ import { supabaseService } from '../services/supabaseService';
 import { Button } from '../components/ui/Button';
 import { Input } from '../components/ui/Input';
 import { compressImage, formatDate, getTodayString, generateTimeSlots, formatCurrency, formatPhone, getOccupiedSlots, normalizePhone, normalizeTime, formatDateLong, capitalizeName, getInitials, getAvatarColor } from '../utils/helpers';
+import { useSwipe } from '../hooks/useSwipe';
 import { Customer, ServiceItem, Appointment, BarberProfile } from '../types';
 import { Link } from 'react-router-dom';
 import { motion, AnimatePresence, Reorder } from 'motion/react';
@@ -1096,6 +1097,31 @@ const AgendaView: React.FC<{
     setSelectedDate(d.toISOString().split('T')[0]);
   };
 
+  const handleAgendaSwipeLeft = () => {
+    if (isCalendarExpanded) {
+      if (viewMode !== 'days') return;
+      setSlideDirection(1);
+      setViewDate(new Date(viewDate.getFullYear(), viewDate.getMonth() + 1, 1));
+    } else {
+      navigateWeek('next');
+    }
+  };
+
+  const handleAgendaSwipeRight = () => {
+    if (isCalendarExpanded) {
+      if (viewMode !== 'days') return;
+      const newDate = new Date(viewDate.getFullYear(), viewDate.getMonth() - 1, 1);
+      if (newDate.getFullYear() >= 2026) {
+        setSlideDirection(-1);
+        setViewDate(newDate);
+      }
+    } else {
+      navigateWeek('prev');
+    }
+  };
+
+  const agendaSwipeHandlers = useSwipe(handleAgendaSwipeLeft, handleAgendaSwipeRight);
+
   // Outside click detection
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
@@ -1198,7 +1224,7 @@ const AgendaView: React.FC<{
 
   return (
     <div className="space-y-4">
-      <div className="bg-white dark:bg-[#242424] rounded-2xl shadow-[0_1px_4px_rgba(0,0,0,0.06)] overflow-hidden mx-2">
+      <div {...agendaSwipeHandlers} className="bg-white dark:bg-[#242424] rounded-2xl shadow-[0_1px_4px_rgba(0,0,0,0.06)] overflow-hidden mx-2">
         {/* Integrated Calendar Header */}
         <div className="pt-3 pb-1 flex flex-col items-center">
           <div className="flex items-center justify-between w-full px-4">
@@ -1488,7 +1514,7 @@ const AgendaView: React.FC<{
             </span>
             {/* Contador de slots total do dia */}
             <span className="ml-1 text-xs font-bold text-[#2898D8] bg-[#E8F4FC] dark:bg-[#1A3A58] dark:text-[#2098F0] px-2 py-0.5 rounded-full">
-              {generatedSlots.length}
+              {currentDayAppointments.filter(a => a.status === 'pending').length}
             </span>
         </div>
 
@@ -3838,6 +3864,21 @@ const ReportsView: React.FC = () => {
   const [showSelector, setShowSelector] = useState(false);
   const [viewDate, setViewDate] = useState(new Date());
   const [viewMode, setViewMode] = useState<'days' | 'years'>('days');
+  const [slideDirection, setSlideDirection] = useState(0);
+
+  const handleReportsSwipeLeft = () => {
+    if (viewMode !== 'days') return;
+    setSlideDirection(1);
+    setViewDate(new Date(viewDate.getFullYear(), viewDate.getMonth() + 1, 1));
+  };
+
+  const handleReportsSwipeRight = () => {
+    if (viewMode !== 'days') return;
+    setViewDate(new Date(viewDate.getFullYear(), viewDate.getMonth() - 1, 1));
+    setSlideDirection(-1);
+  };
+
+  const reportsSwipeHandlers = useSwipe(handleReportsSwipeLeft, handleReportsSwipeRight);
 
   const getRange = (p: 'dia' | 'semana' | 'mes' | 'ano', date: Date) => {
     const d = new Date(date);
@@ -4139,9 +4180,9 @@ const ReportsView: React.FC = () => {
     }
 
     return (
-      <div className="p-4 space-y-4">
+      <div {...reportsSwipeHandlers} className="p-4 space-y-4 overflow-hidden">
         <div className="flex items-center justify-between">
-          <button onClick={() => setViewDate(new Date(viewDate.getFullYear(), viewDate.getMonth() - 1, 1))} className="p-1 text-[#8A98A8] hover:text-[#2898D8]">
+          <button onClick={handleReportsSwipeRight} className="p-1 text-[#8A98A8] hover:text-[#2898D8]">
             <ChevronLeft size={16} />
           </button>
           <button 
@@ -4150,16 +4191,26 @@ const ReportsView: React.FC = () => {
           >
             {viewDate.toLocaleDateString('pt-BR', { month: 'long', year: 'numeric' })}
           </button>
-          <button onClick={() => setViewDate(new Date(viewDate.getFullYear(), viewDate.getMonth() + 1, 1))} className="p-1 text-[#8A98A8] hover:text-[#2898D8]">
+          <button onClick={handleReportsSwipeLeft} className="p-1 text-[#8A98A8] hover:text-[#2898D8]">
             <ChevronRight size={16} />
           </button>
         </div>
-        <div className="grid grid-cols-7 gap-1">
-          {['D', 'S', 'T', 'Q', 'Q', 'S', 'S'].map(d => (
-            <div key={d} className="h-8 flex items-center justify-center text-[9px] font-black text-[#8A98A8] uppercase">{d}</div>
-          ))}
-          {days}
-        </div>
+        <AnimatePresence mode="wait">
+          <motion.div
+            key={`month-${viewDate.getTime()}`}
+            initial={{ opacity: 0, x: slideDirection * 20 }}
+            animate={{ opacity: 1, x: 0 }}
+            exit={{ opacity: 0, x: -slideDirection * 20 }}
+            transition={{ duration: 0.2 }}
+          >
+            <div className="grid grid-cols-7 gap-1">
+              {['D', 'S', 'T', 'Q', 'Q', 'S', 'S'].map(d => (
+                <div key={d} className="h-8 flex items-center justify-center text-[9px] font-black text-[#8A98A8] uppercase">{d}</div>
+              ))}
+              {days}
+            </div>
+          </motion.div>
+        </AnimatePresence>
       </div>
     );
   };

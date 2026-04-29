@@ -2,6 +2,7 @@ import React, { useState, useMemo } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
 import { ChevronLeft, ChevronRight } from 'lucide-react';
 import { getTodayString, formatYMD } from '../utils/helpers';
+import { useSwipe } from '../hooks/useSwipe';
 
 interface CalendarProps {
   selectedDate: string;
@@ -87,17 +88,28 @@ const Calendar: React.FC<CalendarProps> = ({
     return result;
   }, []);
 
+  const handlePrevMonth = () => {
+    if (viewMode !== 'days') return;
+    const newDate = new Date(viewDate.getFullYear(), viewDate.getMonth() - 1, 1);
+    if (newDate.getFullYear() >= 2020) {
+      setSlideDirection(-1);
+      setViewDate(newDate);
+    }
+  };
+
+  const handleNextMonth = () => {
+    if (viewMode !== 'days') return;
+    setSlideDirection(1);
+    setViewDate(new Date(viewDate.getFullYear(), viewDate.getMonth() + 1, 1));
+  };
+
+  const swipeHandlers = useSwipe(handleNextMonth, handlePrevMonth);
+
   return (
     <div className={`bg-white dark:bg-[#242424] rounded-2xl overflow-hidden ${className}`}>
       <div className="p-4 flex items-center justify-between">
         <button 
-          onClick={() => {
-            const newDate = new Date(viewDate.getFullYear(), viewDate.getMonth() - 1, 1);
-            if (newDate.getFullYear() >= 2020) {
-              setSlideDirection(-1);
-              setViewDate(newDate);
-            }
-          }}
+          onClick={handlePrevMonth}
           className="p-2 hover:bg-[#E8EEF5] dark:hover:bg-[#303030] rounded-full transition-colors text-[#8A98A8]"
         >
           <ChevronLeft size={20} />
@@ -111,18 +123,16 @@ const Calendar: React.FC<CalendarProps> = ({
         </button>
 
         <button 
-          onClick={() => {
-            setSlideDirection(1);
-            setViewDate(new Date(viewDate.getFullYear(), viewDate.getMonth() + 1, 1));
-          }}
+          onClick={handleNextMonth}
           className="p-2 hover:bg-[#E8EEF5] dark:hover:bg-[#303030] rounded-full transition-colors text-[#8A98A8]"
         >
           <ChevronRight size={20} />
         </button>
       </div>
 
-      <AnimatePresence mode="wait">
-        {viewMode === 'days' ? (
+      <div {...swipeHandlers}>
+        <AnimatePresence mode="wait">
+          {viewMode === 'days' ? (
           <motion.div
             key={`days-${viewDate.getTime()}`}
             initial={{ opacity: 0, x: slideDirection * 20 }}
@@ -202,6 +212,7 @@ const Calendar: React.FC<CalendarProps> = ({
           </motion.div>
         )}
       </AnimatePresence>
+      </div>
     </div>
   );
 };
