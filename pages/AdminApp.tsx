@@ -1226,23 +1226,27 @@ const AgendaView: React.FC<{
     <div className="space-y-4">
       <div {...agendaSwipeHandlers} className="bg-white dark:bg-[#242424] rounded-2xl shadow-[0_1px_4px_rgba(0,0,0,0.06)] overflow-hidden mx-2">
         {/* Integrated Calendar Header */}
-        <div className="pt-3 pb-1 flex flex-col items-center">
-          <div className="flex items-center justify-between w-full px-4">
-            {isCalendarExpanded ? (
-              <button 
-                onClick={() => {
-                  const newDate = new Date(viewDate.getFullYear(), viewDate.getMonth() - 1, 1);
-                  if (newDate.getFullYear() >= 2026) {
-                    setSlideDirection(-1);
-                    setViewDate(newDate);
-                  }
-                }}
-                className="p-1.5 text-[#2898D8] hover:bg-[#E8F4FC] rounded-full transition-colors"
-              >
-                <ChevronLeft size={18} />
-              </button>
-            ) : <div className="w-8" />}
-            
+        <div className="pt-3 pb-1 flex flex-col items-center relative">
+          <div className="flex items-center justify-center w-full relative h-8">
+            {/* Left aligned previous month button (when expanded) */}
+            <div className="absolute left-4">
+              {isCalendarExpanded && (
+                <button 
+                  onClick={() => {
+                    const newDate = new Date(viewDate.getFullYear(), viewDate.getMonth() - 1, 1);
+                    if (newDate.getFullYear() >= 2026) {
+                      setSlideDirection(-1);
+                      setViewDate(newDate);
+                    }
+                  }}
+                  className="p-1.5 text-[#2898D8] hover:bg-[#E8F4FC] rounded-full transition-colors"
+                >
+                  <ChevronLeft size={18} />
+                </button>
+              )}
+            </div>
+
+            {/* Centered Month/Year button */}
             <button 
               onClick={() => {
                 if (isCalendarExpanded) {
@@ -1254,7 +1258,7 @@ const AgendaView: React.FC<{
                   setViewMode('days');
                 }
               }}
-              className="flex items-center gap-1.5 px-3 py-1 hover:bg-[#F2F5F8] dark:hover:bg-[#303030] rounded-xl transition-colors"
+              className="flex items-center gap-1.5 px-3 py-1 hover:bg-[#F2F5F8] dark:hover:bg-[#303030] rounded-xl transition-colors z-10"
             >
               <span className="text-[14px] font-bold text-[#1A2332] dark:text-[#F8F8F8]">
                 {formatMonthYear(viewDate)}
@@ -1267,17 +1271,38 @@ const AgendaView: React.FC<{
               </motion.div>
             </button>
 
-            {isCalendarExpanded ? (
-              <button 
-                onClick={() => {
-                  setSlideDirection(1);
-                  setViewDate(new Date(viewDate.getFullYear(), viewDate.getMonth() + 1, 1));
-                }}
-                className="p-1.5 text-[#2898D8] hover:bg-[#E8F4FC] rounded-full transition-colors"
-              >
-                <ChevronRight size={18} />
-              </button>
-            ) : <div className="w-8" />}
+            {/* Right aligned next month button OR Hoje button */}
+            <div className="absolute right-4 flex items-center gap-2">
+              <AnimatePresence>
+                {!isCalendarExpanded && selectedDate !== getTodayString() && (
+                  <motion.button 
+                    initial={{ opacity: 0, scale: 0.8 }}
+                    animate={{ opacity: 1, scale: 1 }}
+                    exit={{ opacity: 0, scale: 0.8 }}
+                    transition={{ duration: 0.2 }}
+                    onClick={() => {
+                      setSelectedDate(getTodayString());
+                      setViewDate(new Date(getTodayString() + 'T12:00:00'));
+                    }}
+                    className="px-3 h-6 rounded-full bg-[#F59E0B] text-white text-[10px] font-bold uppercase tracking-widest hover:bg-amber-600 transition-colors flex items-center gap-1.5"
+                  >
+                    <RotateCcw size={10} strokeWidth={3} />
+                    Hoje
+                  </motion.button>
+                )}
+              </AnimatePresence>
+              {isCalendarExpanded && (
+                <button 
+                  onClick={() => {
+                    setSlideDirection(1);
+                    setViewDate(new Date(viewDate.getFullYear(), viewDate.getMonth() + 1, 1));
+                  }}
+                  className="p-1.5 text-[#2898D8] hover:bg-[#E8F4FC] rounded-full transition-colors"
+                >
+                  <ChevronRight size={18} />
+                </button>
+              )}
+            </div>
           </div>
         </div>
 
@@ -1343,7 +1368,7 @@ const AgendaView: React.FC<{
                               setIsCalendarExpanded(false);
                             }}
                             className={`h-9 w-full rounded-xl flex items-center justify-center text-[12px] font-bold transition-all relative
-                              ${isSelected ? 'bg-[#2898D8] text-white shadow-sm' : isToday ? 'bg-[#E8F4FC] text-[#2898D8]' : isClosed ? 'text-[#B8C0C0] line-through dark:text-[#707070]' : 'hover:bg-[#F2F5F8] dark:hover:bg-[#303030] text-[#1A2332] dark:text-[#F8F8F8]'}`}
+                              ${isSelected ? 'bg-[#2898D8] text-white shadow-sm' : isToday ? 'bg-[#F59E0B] text-white' : isClosed ? 'text-[#B8C0C0] line-through dark:text-[#707070]' : 'hover:bg-[#F2F5F8] dark:hover:bg-[#303030] text-[#1A2332] dark:text-[#F8F8F8]'}`}
                           >
                             {d}
                             {count > 0 && (
@@ -1401,22 +1426,6 @@ const AgendaView: React.FC<{
         {/* Weekly Selector */}
         {!isCalendarExpanded && (
           <div className="px-2 pb-2 h-[60px] flex items-center gap-1">
-            <AnimatePresence mode="popLayout">
-              {selectedDate !== getTodayString() && (
-                <motion.button 
-                  initial={{ x: -20, opacity: 0, width: 0, marginRight: 0 }}
-                  animate={{ x: 0, opacity: 1, width: 'auto', marginRight: 4 }}
-                  exit={{ x: -20, opacity: 0, width: 0, marginRight: 0 }}
-                  transition={{ duration: 0.25, ease: "easeOut" }}
-                  onClick={() => setSelectedDate(getTodayString())}
-                  className="flex items-center justify-center gap-1.5 px-3 h-10 rounded-xl bg-[#E8F4FC] text-[#2898D8] hover:bg-[#E8F4FC] active:scale-95 shrink-0 overflow-hidden whitespace-nowrap"
-                >
-                  <RotateCcw size={12} strokeWidth={3} />
-                  <span className="text-[12px] font-black uppercase tracking-tight">Hoje</span>
-                </motion.button>
-              )}
-            </AnimatePresence>
-
             <button 
               onClick={() => navigateWeek('prev')}
               className="w-8 h-10 flex items-center justify-center text-[#8A98A8] hover:text-[#2898D8] transition-colors"
@@ -1439,17 +1448,17 @@ const AgendaView: React.FC<{
                       ${isSelected 
                         ? 'bg-[#2898D8] text-white ring-2 ring-[#2898D8] ring-offset-2 dark:ring-offset-[#242424]' 
                         : isToday 
-                          ? 'bg-[#E8F4FC] text-[#2898D8] dark:bg-[#1A3A58]' 
+                          ? 'bg-[#F59E0B] text-white' 
                           : isClosed
                             ? 'text-[#B8C0C0] line-through dark:text-[#707070]'
                             : 'hover:bg-[#F2F5F8] dark:hover:bg-[#303030] text-[#8A98A8]'}`}
                   >
                     <span className={`text-[9px] font-bold uppercase tracking-tighter 
-                      ${isSelected ? 'text-white/80' : isToday ? 'text-[#2898D8]' : isClosed ? 'line-through' : 'text-[#8A98A8]'}`}>
+                      ${isSelected ? 'text-white/80' : isToday ? 'text-white/90' : isClosed ? 'line-through' : 'text-[#8A98A8]'}`}>
                       {day.dayLabel}
                     </span>
                     <span className={`text-sm font-black 
-                      ${isSelected ? 'text-white' : isToday ? 'text-[#2898D8]' : isClosed ? 'text-[#B8C0C0] dark:text-[#707070]' : 'text-[#5A6878] dark:text-[#B8C0C0]'}`}>
+                      ${isSelected ? 'text-white' : isToday ? 'text-white' : isClosed ? 'text-[#B8C0C0] dark:text-[#707070]' : 'text-[#5A6878] dark:text-[#B8C0C0]'}`}>
                       {day.dayNum}
                     </span>
                     {count > 0 && (
@@ -1685,7 +1694,7 @@ const AgendaView: React.FC<{
                             className={`relative rounded-2xl shadow-[0_1px_4px_rgba(0,0,0,0.06)] min-h-[44px] overflow-hidden transition-all duration-500 flex
                                 ${isActuallyCompleted ? 'bg-[#D1FAE5] border-green-200 opacity-60' : 
                                   isNoShow ? 'bg-amber-50 border-amber-200 opacity-50' : 
-                                  isFinishing ? 'bg-[#D1FAE5] border-green-200' : 'bg-white dark:bg-[#242424] border-l-4 border-l-[#2898D8] dark:border-l-[#2098F0]'}`}
+                                  isFinishing ? 'bg-[#D1FAE5] border-green-200' : 'bg-[#EBF5FF] dark:bg-[#1A3A58] border-l-4 border-l-[#2898D8] dark:border-l-[#2098F0]'}`}
                         >
                             <div className="flex-1 min-w-0">
                                 {/* Header do Card */}
@@ -1704,8 +1713,19 @@ const AgendaView: React.FC<{
                                                 )}
                                             </div>
                                             <div className="flex flex-col gap-1.5">
-                                                <span className={`text-xs font-bold uppercase tracking-wide ${isActuallyCompleted ? 'text-green-700/60' : isNoShow ? 'text-amber-700/60' : 'text-[#8A98A8] dark:text-[#707070]'}`}>
-                                                    {isActuallyCompleted ? 'Atendimento Finalizado ✨' : isNoShow ? 'Falta Registrada' : apt.service}
+                                                <span className={`text-xs font-bold uppercase tracking-wide flex items-center gap-1.5 flex-wrap ${isActuallyCompleted ? 'text-green-700/60' : isNoShow ? 'text-amber-700/60' : 'text-[#2898D8]'}`}>
+                                                    {isActuallyCompleted ? 'Atendimento Finalizado ✨' : isNoShow ? 'Falta Registrada' : (() => {
+                                                        const numServices = apt.service.split(',').length;
+                                                        const serviceLabel = numServices > 1 ? `${numServices} serviços` : apt.service;
+                                                        return (
+                                                            <>
+                                                                <span>{serviceLabel}</span>
+                                                                <span className="text-[11px] font-medium text-emerald-500 normal-case tracking-normal">
+                                                                    · {formatCurrency(apt.price || 0)}
+                                                                </span>
+                                                            </>
+                                                        );
+                                                    })()}
                                                 </span>
                                                 {apt.observation?.includes('[EXCEPCIONAL]') && (
                                                     <div className="inline-flex items-center gap-1 bg-amber-100 text-amber-700 text-[10px] font-black px-2 py-0.5 rounded-full w-fit shrink-0">
@@ -1929,10 +1949,10 @@ const AgendaView: React.FC<{
         <div className="mt-6">
             <div 
                 onClick={() => onAddInSlot(selectedDate, '', true)}
-                className="bg-[#E8F4FC]/50 dark:bg-[#1A3A58]/30 border-2 border-dashed border-[#2898D8]/40 h-[52px] px-4 rounded-2xl flex items-center gap-3 transition-all hover:opacity-80 cursor-pointer group"
+                className="bg-amber-50 dark:bg-amber-900/20 border-2 border-dashed border-amber-500/40 h-[52px] px-4 rounded-2xl flex items-center gap-3 transition-all hover:opacity-80 cursor-pointer group"
             >
-                <Zap size={18} className="text-[#2898D8] fill-[#2898D8] shrink-0" />
-                <div className="text-[#2898D8] dark:text-[#2098F0] font-black text-[11px] uppercase tracking-widest">
+                <Zap size={18} className="text-amber-500 fill-amber-500 shrink-0" />
+                <div className="text-amber-600 dark:text-amber-500 font-black text-[11px] uppercase tracking-widest">
                     AGENDAR FORA DO EXPEDIENTE
                 </div>
             </div>
@@ -3113,7 +3133,11 @@ const ServicesView: React.FC<{ onSuccess?: (msg: string) => void }> = ({ onSucce
   const { services, addService, removeService, updateService, reorderServices } = useStore();
   const [formData, setFormData] = useState({ name: '', price: '', duration: '30' });
   const [errors, setErrors] = useState({ name: '', price: '' });
-  const [editingId, setEditingId] = useState<string | null>(null);
+  const [editingService, setEditingService] = useState<ServiceItem | null>(null);
+  
+  // States for the bottom sheet form
+  const [editFormData, setEditFormData] = useState({ name: '', price: '', duration: '30' });
+  const [editErrors, setEditErrors] = useState({ name: '', price: '' });
 
   const durationOptions = useMemo(() => {
     const options = [];
@@ -3172,38 +3196,75 @@ const ServicesView: React.FC<{ onSuccess?: (msg: string) => void }> = ({ onSucce
     }
     
     const serviceData = { 
-      id: editingId || Date.now().toString(), 
+      id: Date.now().toString(), 
       name: formData.name, 
       price: numericPrice,
       duration: duration
     };
     
-    if (editingId) {
-      updateService(serviceData);
-      onSuccess?.('Serviço atualizado com sucesso!');
-    } else {
-      addService(serviceData);
-      onSuccess?.('Serviço adicionado com sucesso!');
-    }
+    addService(serviceData);
+    onSuccess?.('Serviço adicionado com sucesso!');
+
     setFormData({ name: '', price: '', duration: '30' });
     setErrors({ name: '', price: '' });
-    setEditingId(null);
   };
 
   const startEditing = (s: ServiceItem) => {
-    setFormData({ 
+    setEditFormData({ 
       name: s.name, 
       price: s.price.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' }), 
       duration: s.duration.toString() 
     });
-    setErrors({ name: '', price: '' });
-    setEditingId(s.id);
+    setEditErrors({ name: '', price: '' });
+    setEditingService(s);
+  };
+
+  const handleEditSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!editingService) return;
+    
+    const newErrors = { name: '', price: '' };
+    let hasError = false;
+
+    if (!editFormData.name.trim()) {
+      newErrors.name = 'Informe o nome do serviço';
+      hasError = true;
+    }
+
+    const numericPrice = parseInt(editFormData.price.replace(/\D/g, '')) / 100;
+    if (!editFormData.price || numericPrice <= 0) {
+      newErrors.price = 'Informe um preço válido';
+      hasError = true;
+    }
+
+    if (hasError) {
+      setEditErrors(newErrors);
+      return;
+    }
+    
+    const duration = parseInt(editFormData.duration);
+    
+    if (duration % 15 !== 0) {
+      alert("A duração deve ser múltipla de 15 minutos.");
+      return;
+    }
+    
+    const serviceData = { 
+      id: editingService.id, 
+      name: editFormData.name, 
+      price: numericPrice,
+      duration: duration
+    };
+    
+    updateService(serviceData);
+    onSuccess?.('Serviço atualizado com sucesso!');
+    setEditingService(null);
   };
 
   return (
     <div className="space-y-6">
       <div className="bg-[#FFFFFF] dark:bg-[#242424] p-4 rounded-3xl shadow-[0_1px_4px_rgba(0,0,0,0.06)] space-y-3">
-        <h2 className="font-semibold text-sm text-[#1A2332] dark:text-[#F8F8F8] uppercase tracking-widest">{editingId ? 'Editar Serviço' : 'Novo Serviço'}</h2>
+        <h2 className="font-semibold text-sm text-[#1A2332] dark:text-[#F8F8F8] uppercase tracking-widest">Novo Serviço</h2>
         <form onSubmit={handleSubmit} className="space-y-3">
           <Input 
             label="Nome do Serviço" 
@@ -3238,7 +3299,7 @@ const ServicesView: React.FC<{ onSuccess?: (msg: string) => void }> = ({ onSucce
               </select>
             </div>
           </div>
-          <Button type="submit" fullWidth className="h-11">{editingId ? 'Salvar Alterações' : 'Adicionar Serviço'}</Button>
+          <Button type="submit" fullWidth className="h-11">Adicionar Serviço</Button>
         </form>
       </div>
 
@@ -3286,6 +3347,91 @@ const ServicesView: React.FC<{ onSuccess?: (msg: string) => void }> = ({ onSucce
           ))}
         </Reorder.Group>
       </div>
+
+      <AnimatePresence>
+        {editingService && (
+          <div className="fixed inset-0 z-[300] flex items-end sm:items-center justify-center sm:p-4">
+            <motion.div 
+              initial={{ opacity: 0 }} 
+              animate={{ opacity: 1 }} 
+              exit={{ opacity: 0 }} 
+              onClick={() => setEditingService(null)}
+              className="absolute inset-0 bg-[#111827]/40 backdrop-blur-sm"
+            />
+            <motion.div 
+              initial={{ y: '100%', opacity: 1 }}
+              animate={{ y: 0, opacity: 1 }}
+              exit={{ y: '100%', opacity: 0 }}
+              transition={{ type: "spring", damping: 25, stiffness: 300 }}
+              drag="y"
+              dragConstraints={{ top: 0 }}
+              dragElastic={0.2}
+              onDragEnd={(e, info) => {
+                if (info.offset.y > 100) setEditingService(null);
+              }}
+              className="w-full max-w-lg bg-[#FFFFFF] dark:bg-[#242424] rounded-t-3xl sm:rounded-3xl shadow-2xl relative flex flex-col max-h-[90vh]"
+            >
+              <div className="w-12 h-1.5 bg-[#D0D8E4] dark:bg-[#3A3A3A] rounded-full mx-auto my-3 shrink-0" />
+              <div className="px-6 flex justify-between items-center pb-2 shrink-0">
+                <h2 className="text-lg font-bold text-[#1A2332] dark:text-[#F8F8F8]">Editar Serviço</h2>
+                <button 
+                  onClick={() => setEditingService(null)}
+                  className="w-8 h-8 flex items-center justify-center rounded-full bg-[#F4F7FB] dark:bg-[#2F2F2F] text-[#8A98A8] hover:bg-[#E4E7EB] dark:hover:bg-[#3A3A3A] transition-colors"
+                >
+                  <X size={18} />
+                </button>
+              </div>
+
+              <div className="p-6 overflow-y-auto">
+                <form id="edit-service-form" onSubmit={handleEditSubmit} className="space-y-4">
+                  <Input 
+                    label="Nome do Serviço" 
+                    placeholder="Ex: Corte de Cabelo"
+                    value={editFormData.name} 
+                    onChange={e => {
+                      setEditFormData({...editFormData, name: e.target.value});
+                      if (editErrors.name) setEditErrors(prev => ({ ...prev, name: '' }));
+                    }} 
+                    errorMessage={editErrors.name}
+                  />
+                  <div className="flex gap-3">
+                    <div className="flex-1">
+                      <Input 
+                        label="Preço" 
+                        placeholder="R$ 0,00"
+                        value={editFormData.price} 
+                        onChange={(e) => {
+                          const formatted = formatCurrencyInput(e.target.value);
+                          setEditFormData({ ...editFormData, price: formatted });
+                          if (editErrors.price) setEditErrors(prev => ({ ...prev, price: '' }));
+                        }} 
+                        errorMessage={editErrors.price}
+                      />
+                    </div>
+                    <div className="flex-1 flex flex-col gap-1">
+                      <label className="text-[10px] font-bold text-[#8A98A8] dark:text-[#707070] ml-1 uppercase tracking-widest">Duração</label>
+                      <select 
+                        value={editFormData.duration} 
+                        onChange={e => setEditFormData({...editFormData, duration: e.target.value})}
+                        className="w-full px-4 py-2.5 rounded-xl border border-[#D0D8E4] dark:border-[#3A3A3A] bg-[#FFFFFF] dark:bg-[#2F2F2F] text-[#1A2332] dark:text-[#F8F8F8] text-sm focus:outline-none focus:ring-2 focus:ring-[#2898D8]/20 transition-colors h-[42px]"
+                      >
+                        {durationOptions.map(opt => (
+                          <option key={opt.value} value={opt.value}>{opt.label}</option>
+                        ))}
+                      </select>
+                    </div>
+                  </div>
+                </form>
+              </div>
+              <div className="p-6 border-t border-[#D0D8E4] dark:border-[#3A3A3A] shrink-0">
+                <Button fullWidth form="edit-service-form" type="submit" className="h-12 shadow-md">
+                  Salvar Alterações
+                </Button>
+              </div>
+            </motion.div>
+          </div>
+        )}
+      </AnimatePresence>
     </div>
   );
 };

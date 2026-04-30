@@ -170,7 +170,7 @@ const Calendar: React.FC<CalendarProps> = ({
                     }}
                     className={`h-10 w-full rounded-xl flex items-center justify-center text-xs font-bold transition-all relative
                       ${isSelected ? 'bg-[#2898D8] text-white shadow-md scale-105 z-10' : 
-                        isToday ? 'bg-[#E8F4FC] text-[#2898D8] dark:bg-[#1A3A58] dark:text-[#2898D8]' : 
+                        isToday ? 'bg-[#F59E0B] text-white' : 
                         highlighted ? 'bg-[#E8F4FC] text-[#2898D8] dark:bg-[#1A3A58] dark:text-[#2898D8]' :
                         type !== 'current' || isOutOfRange ? 'text-[#8A98A8] dark:text-[#5A6878]' : 
                         closed ? 'text-red-400 dark:text-red-900/50' :
