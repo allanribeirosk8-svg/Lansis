@@ -4003,10 +4003,9 @@ const CustomerDetail: React.FC<{
 };
 
 const ReportsView: React.FC = () => {
-  const { appointments, customers, isDarkMode } = useStore();
+  const { appointments, customers, isDarkMode, weeklySchedule } = useStore();
   const [period, setPeriod] = useState<'dia' | 'semana' | 'mes' | 'ano'>('dia');
   const [currentDate, setCurrentDate] = useState(new Date());
-  const [activeTab, setActiveTab] = useState<'resumo' | 'clientes' | 'servicos'>('resumo');
   const [showSelector, setShowSelector] = useState(false);
   const [viewDate, setViewDate] = useState(new Date());
   const [viewMode, setViewMode] = useState<'days' | 'years'>('days');
@@ -4100,25 +4099,25 @@ const ReportsView: React.FC = () => {
     let chartData: any[] = [];
     let chartTitle = "";
     if (period === 'dia') {
-      chartTitle = "Atendimentos por Hora";
+      chartTitle = "Horários mais movimentados";
       for (let h = 8; h <= 20; h++) {
         const hourStr = h.toString().padStart(2, '0');
         const count = current.apts.filter(a => a.status === 'completed' && a.time.startsWith(hourStr)).length;
         chartData.push({ name: `${h}h`, value: count });
       }
     } else if (period === 'semana') {
-      chartTitle = "Atendimentos por Dia";
-      const days = ['Seg', 'Ter', 'Qua', 'Qui', 'Sex', 'Sab', 'Dom'];
+      chartTitle = "Dias da semana";
+      const dayNames = ['Seg', 'Ter', 'Qua', 'Qui', 'Sex', 'Sab', 'Dom'];
       const start = new Date(currentRange.start + 'T12:00:00');
       for (let i = 0; i < 7; i++) {
         const d = new Date(start);
         d.setDate(start.getDate() + i);
         const dateStr = d.toISOString().split('T')[0];
         const count = current.apts.filter(a => a.status === 'completed' && a.date === dateStr).length;
-        chartData.push({ name: days[i], value: count });
+        chartData.push({ name: dayNames[i], value: count });
       }
     } else if (period === 'mes') {
-      chartTitle = "Atendimentos por Semana";
+      chartTitle = "Semanas do mês";
       const start = new Date(currentRange.start + 'T12:00:00');
       const end = new Date(currentRange.end + 'T12:00:00');
       let week = 1;
@@ -4133,7 +4132,7 @@ const ReportsView: React.FC = () => {
         week++;
       }
     } else if (period === 'ano') {
-      chartTitle = "Atendimentos por Mês";
+      chartTitle = "Meses do ano";
       const months = ['Jan', 'Fev', 'Mar', 'Abr', 'Mai', 'Jun', 'Jul', 'Ago', 'Set', 'Out', 'Nov', 'Dez'];
       for (let m = 0; m < 12; m++) {
         const count = current.apts.filter(a => {
@@ -4159,6 +4158,7 @@ const ReportsView: React.FC = () => {
     });
 
     const topClients = Object.values(clientStats)
+      .sort((a, b) => b.spent - a.spent)
       .sort((a, b) => b.count - a.count)
       .slice(0, 5);
 
@@ -4187,11 +4187,8 @@ const ReportsView: React.FC = () => {
 
     const topServices = Object.entries(serviceStats)
       .map(([name, s]) => ({ name, ...s, ticket: s.count > 0 ? s.revenue / s.count : 0 }))
-      .sort((a, b) => b.count - a.count);
-
-    const highestTicketService = [...topServices].sort((a, b) => b.ticket - a.ticket)[0];
-
-    const pieData = topServices.map(s => ({ name: s.name, value: s.revenue }));
+      .sort((a, b) => b.revenue - a.revenue)
+      .slice(0, 5);
 
     return {
       current,
@@ -4202,26 +4199,91 @@ const ReportsView: React.FC = () => {
       newClients,
       returnRate,
       topServices,
-      highestTicketService,
-      pieData,
       totalCustomers: totalClientsWithApts
     };
-  }, [appointments, customers, period, currentDate, currentRange, previousRange]);
+  }, [appointments, period, currentDate, currentRange, previousRange]);
 
-  const renderComparison = (current: number, previous: number, isPercentage = false) => {
+  const occupancyRatio = useMemo(() => {
+    let totalSlots = 0;
+    
+    if (period === 'dia') {
+       const dayOfWeek = currentDate.getDay();
+       const config = weeklySchedule[dayOfWeek];
+       if (config?.isOpen) {
+         totalSlots = generateTimeSlots(config.start, config.end).length;
+       }
+    } else {
+       const start = new Date(currentRange.start + 'T12:00:00');
+       const end = new Date(currentRange.end + 'T12:00:00');
+       let curr = new Date(start);
+       while (curr <= end) {
+         const dayOfWeek = curr.getDay();
+         const config = weeklySchedule[dayOfWeek];
+         if (config?.isOpen) {
+             totalSlots += generateTimeSlots(config.start, config.end).length;
+         }
+         curr.setDate(curr.getDate() + 1);
+       }
+    }
+    if (totalSlots === 0) return 0;
+    const completed = stats.current.count;
+    return Math.min(completed / totalSlots, 1);
+  }, [weeklySchedule, currentDate, currentRange, period, stats.current.count]);
+
+  const renderComparison = (current: number, previous: number) => {
     if (previous === 0) return <p className="text-[9px] text-[#9CA3AF] mt-0.5">✦ Primeiro registro neste período</p>;
     const diff = ((current - previous) / previous) * 100;
     const isUp = diff > 0;
-    const isDown = diff < 0;
+    
     const absDiff = Math.abs(diff).toLocaleString('pt-BR', { minimumFractionDigits: 0, maximumFractionDigits: 1 });
 
     if (diff === 0) return <p className="text-[9px] text-[#8A98A8] mt-0.5">Mesmo que o período anterior</p>;
     
     return (
-      <p className={`text-[9px] flex items-center gap-0.5 mt-0.5 ${isUp ? 'text-green-500' : 'text-red-500'}`}>
-        {isUp ? <TrendingUp size={8} /> : <TrendingDown size={8} />}
-        {isUp ? '↑' : '↓'} {absDiff}% vs período anterior
+      <p className={`flex items-center gap-1 font-bold text-sm ${isUp ? 'text-green-500' : 'text-red-500'}`}>
+        {isUp ? <TrendingUp size={14} /> : <TrendingDown size={14} />}
+        {absDiff}%
       </p>
+    );
+  };
+
+  const renderAlertCard = () => {
+    const { noShowRate } = stats.current;
+    const { returnRate } = stats;
+    let alertType: 'red' | 'yellow' | 'green' | null = null;
+    let message = "";
+
+    if (noShowRate > 20) {
+      alertType = 'red';
+      message = "Taxa de circular no-show alta neste período";
+    } else if (returnRate < 30 && period !== 'dia') {
+      alertType = 'yellow';
+      message = "Poucos clientes retornando";
+    } else if (stats.current.revenue > stats.previous.revenue * 1.3 && stats.previous.revenue > 0) {
+      alertType = 'green';
+      const diff = ((stats.current.revenue - stats.previous.revenue) / stats.previous.revenue) * 100;
+      message = `Ótimo período! Faturamento ${diff.toFixed(0)}% acima`;
+    }
+
+    if (!alertType) return null;
+
+    const colors = {
+      red: 'bg-red-50 text-red-600 border-red-200 dark:bg-red-500/10 dark:text-red-400 dark:border-red-500/20',
+      yellow: 'bg-amber-50 text-amber-600 border-amber-200 dark:bg-amber-500/10 dark:text-amber-400 dark:border-amber-500/20',
+      green: 'bg-green-50 text-green-600 border-green-200 dark:bg-green-500/10 dark:text-green-400 dark:border-green-500/20',
+    };
+    
+    const icons = {
+      red: <AlertTriangle size={16} />,
+      yellow: <AlertTriangle size={16} />,
+      green: <TrendingUp size={16} />
+    };
+
+    return (
+      <div className={`p-4 rounded-[1.25rem] border flex items-center gap-3 ${colors[alertType]}`}>
+        <div className="shrink-0">{icons[alertType]}</div>
+        <p className="text-xs font-bold leading-tight">{message}</p>
+      </div>
     );
   };
 
@@ -4245,8 +4307,6 @@ const ReportsView: React.FC = () => {
     }
     return '';
   };
-
-  const COLORS = ['#3b82f6', '#10b981', '#f59e0b', '#8b5cf6', '#ec4899', '#06b6d4'];
 
   const renderCalendar = () => {
     if (viewMode === 'years') {
@@ -4311,7 +4371,7 @@ const ReportsView: React.FC = () => {
             setShowSelector(false);
           }}
           className={`h-8 w-full rounded-lg flex items-center justify-center text-[11px] font-bold transition-all relative
-            ${isSelected || isWeekSelected ? 'bg-[#2898D8] text-white shadow-sm' : isToday ? 'bg-[#E8F4FC] text-[#2898D8]' : 'hover:bg-[#F4F7FB] dark:hover:bg-slate-800 text-[#5A6878] dark:text-slate-200'}
+            ${isSelected || isWeekSelected ? 'bg-[#2898D8] text-white shadow-sm' : isToday ? 'bg-[#E8F4FC] dark:bg-[#1A3A58] dark:text-[#2098F0] text-[#2898D8]' : 'hover:bg-[#F4F7FB] dark:hover:bg-[#3A3A3A] text-[#5A6878] dark:text-[#F8F8F8]'}
             ${isBefore2026 && (period === 'semana' || period === 'mes') ? 'opacity-20 cursor-not-allowed' : ''}`}
         >
           {d}
@@ -4363,7 +4423,6 @@ const ReportsView: React.FC = () => {
 
   const renderMonthGrid = () => {
     const months = ['Jan', 'Fev', 'Mar', 'Abr', 'Mai', 'Jun', 'Jul', 'Ago', 'Set', 'Out', 'Nov', 'Dez'];
-    const isBefore2026 = viewDate.getFullYear() < 2026;
 
     return (
       <div className="p-4 space-y-4">
@@ -4430,340 +4489,212 @@ const ReportsView: React.FC = () => {
     );
   };
 
+  const handleChipClick = (targetPeriod: 'dia' | 'semana' | 'mes' | 'ano') => {
+    if (period === targetPeriod) {
+      setShowSelector(!showSelector);
+    } else {
+      setPeriod(targetPeriod);
+      setCurrentDate(new Date());
+      setShowSelector(false);
+    }
+  };
+
+  const periodLabels = {
+    dia: 'Hoje',
+    semana: 'Esta Semana',
+    mes: 'Este Mês',
+    ano: 'Este Ano'
+  };
+
   return (
-    <div className="space-y-4 pb-24">
-      {/* Filtros de Período */}
-      <div className="space-y-3">
-        <div className="flex bg-[#F4F7FB] dark:bg-[#2F2F2F] p-1 rounded-2xl">
-          {(['dia', 'semana', 'mes', 'ano'] as const).map((p) => (
-            <button
-              key={p}
-              onClick={() => {
-                setPeriod(p);
-                setCurrentDate(new Date());
-                setShowSelector(false);
-              }}
-              className={`flex-1 py-2 text-[10px] font-black uppercase tracking-widest rounded-xl transition-all ${
-                period === p ? 'bg-[#2898D8] text-white shadow-md' : 'text-[#8A98A8] dark:text-[#707070] hover:text-[#1A2332]'
-              }`}
-            >
-              {p === 'dia' ? 'Dia' : p === 'semana' ? 'Semana' : p === 'mes' ? 'Mês' : 'Ano'}
-            </button>
-          ))}
-        </div>
-
-        <div className="flex flex-col items-center">
-          <button 
-            onClick={() => {
-              setShowSelector(!showSelector);
-              setViewDate(currentDate);
-              setViewMode('days');
-            }}
-            className="flex items-center gap-2 px-5 py-[10px] bg-[#FFFFFF] dark:bg-[#242424] rounded-[12px] shadow-[0_1px_4px_rgba(0,0,0,0.06)] hover:bg-[#F3F4F6] dark:hover:bg-[#2A3544] active:scale-[0.97] transition-all duration-100 w-fit"
-          >
-            <Calendar size={18} className="text-[#2898D8]" />
-            <span className="text-[15px] font-semibold text-[#1A2332] dark:text-[#F8F8F8]">
-              {formatPeriodDisplay()}
-            </span>
-            <ChevronDown 
-              size={16} 
-              className={`text-[#B0BCC7] transition-transform duration-300 ${showSelector ? 'rotate-180' : ''}`} 
-            />
-          </button>
-
-          <AnimatePresence>
-            {showSelector && (
-              <motion.div
-                initial={{ height: 0, opacity: 0 }}
-                animate={{ height: 'auto', opacity: 1 }}
-                exit={{ height: 0, opacity: 0 }}
-                transition={{ duration: 0.3 }}
-                className="w-full max-w-[320px] overflow-hidden bg-[#FFFFFF] dark:bg-[#242424] rounded-2xl mt-3 shadow-[0_10px_25px_rgba(0,0,0,0.1)] z-50"
-              >
-                {(period === 'dia' || period === 'semana') && renderCalendar()}
-                {period === 'mes' && renderMonthGrid()}
-                {period === 'ano' && renderYearGrid()}
-              </motion.div>
-            )}
-          </AnimatePresence>
+    <div className="space-y-6 pb-24 max-w-full overflow-x-hidden">
+      {/* Scroll de chips horizontal */}
+      <div className="overflow-x-auto hide-scrollbar -mx-4 px-4 sticky top-0 bg-[#F4F7FB] dark:bg-[#1A1A1A] z-10 pt-2 pb-3">
+        <div className="flex gap-2 w-max">
+          {(['dia', 'semana', 'mes', 'ano'] as const).map(p => {
+             const isActive = period === p;
+             const isCurrentDate = getRange(p, currentDate).start === getRange(p, new Date()).start;
+             
+             let text = periodLabels[p];
+             if (isActive && !isCurrentDate) {
+                 text = formatPeriodDisplay();
+             }
+             
+             return (
+               <button
+                 key={p}
+                 onClick={() => handleChipClick(p)}
+                 className={`flex items-center gap-1.5 px-4 py-2 rounded-full text-xs font-bold transition-all whitespace-nowrap ${
+                   isActive ? 'bg-[#2898D8] text-white shadow-md border border-[#2898D8]' : 'bg-white dark:bg-[#242424] text-[#8A98A8] dark:text-[#707070] border border-[#D0D8E4] dark:border-[#3A3A3A]'
+                 }`}
+               >
+                 {text}
+                 {isActive && (
+                   <ChevronDown size={14} className={`transition-transform ${showSelector ? 'rotate-180' : ''}`} />
+                 )}
+               </button>
+             );
+          })}
         </div>
       </div>
 
-      {/* Abas */}
-      <div className="flex border-b border-[#D0D8E4] dark:border-[#3A3A3A]">
-        {(['resumo', 'clientes', 'servicos'] as const).map((t) => (
-          <button
-            key={t}
-            onClick={() => setActiveTab(t)}
-            className={`flex-1 py-3 text-[11px] font-bold uppercase tracking-wider transition-all relative ${
-              activeTab === t ? 'text-[#2898D8]' : 'text-[#B0BCC7]'
-            }`}
-          >
-            <div className="flex items-center justify-center gap-2">
-              {t === 'resumo' && <LayoutDashboard size={14} />}
-              {t === 'clientes' && <Users2 size={14} />}
-              {t === 'servicos' && <Scissors size={14} />}
-              {t === 'servicos' ? 'SERVIÇOS' : t.charAt(0).toUpperCase() + t.slice(1)}
-            </div>
-            {activeTab === t && (
-              <motion.div layoutId="activeTab" className="absolute bottom-0 left-0 right-0 h-0.5 bg-[#2898D8]" />
-            )}
-          </button>
-        ))}
-      </div>
-
-
-      <AnimatePresence mode="wait">
-        {activeTab === 'resumo' && (
+      <AnimatePresence>
+        {showSelector && (
           <motion.div
-            key="resumo"
-            initial={{ opacity: 0, y: 10 }}
-            animate={{ opacity: 1, y: 0 }}
-            exit={{ opacity: 0, y: -10 }}
-            className="space-y-4"
+            initial={{ height: 0, opacity: 0 }}
+            animate={{ height: 'auto', opacity: 1 }}
+            exit={{ height: 0, opacity: 0 }}
+            transition={{ duration: 0.3 }}
+            className="w-full overflow-hidden bg-[#FFFFFF] dark:bg-[#242424] rounded-3xl shadow-[0_10px_25px_rgba(0,0,0,0.1)] -mt-2 border border-[#D0D8E4] dark:border-[#3A3A3A]"
           >
-            {/* Cards de Métricas */}
-            <div className="grid grid-cols-2 gap-3">
-              <div className="bg-[#FFFFFF] dark:bg-[#242424] py-3 px-4 rounded-3xl shadow-[0_1px_4px_rgba(0,0,0,0.06)] flex flex-col items-center text-center">
-                <div className="w-7 h-7 bg-green-50 dark:bg-green-500/10 text-green-500 rounded-full flex items-center justify-center mb-1">
-                  <DollarSign size={14} />
-                </div>
-                <p className="text-lg font-bold text-[#1A2332] dark:text-[#F8F8F8]">{formatCurrency(stats.current.revenue)}</p>
-                <p className="text-[#8A98A8] dark:text-[#707070] text-[9px] font-medium uppercase tracking-widest">Receita</p>
-                {renderComparison(stats.current.revenue, stats.previous.revenue)}
-              </div>
-
-              <div className="bg-[#FFFFFF] dark:bg-[#242424] py-3 px-4 rounded-3xl shadow-[0_1px_4px_rgba(0,0,0,0.06)] flex flex-col items-center text-center">
-                <div className="w-7 h-7 bg-blue-50 dark:bg-blue-500/10 text-[#2898D8] rounded-full flex items-center justify-center mb-1">
-                  <Scissors size={14} />
-                </div>
-                <p className="text-lg font-bold text-[#1A2332] dark:text-[#F8F8F8]">{stats.current.count}</p>
-                <p className="text-[#8A98A8] dark:text-[#707070] text-[9px] font-medium uppercase tracking-widest">Atendimentos</p>
-                {renderComparison(stats.current.count, stats.previous.count)}
-              </div>
-              
-              <div className="bg-[#FFFFFF] dark:bg-[#242424] py-3 px-4 rounded-3xl shadow-[0_1px_4px_rgba(0,0,0,0.06)] flex flex-col items-center text-center">
-                <div className="w-7 h-7 bg-amber-50 dark:bg-amber-500/10 text-amber-500 rounded-full flex items-center justify-center mb-1">
-                  <TrendingUp size={14} />
-                </div>
-                <p className="text-lg font-bold text-[#1A2332] dark:text-[#F8F8F8]">{formatCurrency(stats.current.ticket)}</p>
-                <p className="text-[#8A98A8] dark:text-[#707070] text-[9px] font-medium uppercase tracking-widest">Ticket Médio</p>
-                {renderComparison(stats.current.ticket, stats.previous.ticket)}
-              </div>
-
-              <div className="bg-[#FFFFFF] dark:bg-[#242424] py-3 px-4 rounded-3xl shadow-[0_1px_4px_rgba(0,0,0,0.06)] flex flex-col items-center text-center opacity-80">
-                <div className="w-7 h-7 bg-red-50 dark:bg-red-500/10 text-[#EF4444]/80 rounded-full flex items-center justify-center mb-1">
-                  <UserX size={14} />
-                </div>
-                <p className="text-lg font-bold text-[#1A2332] dark:text-[#F8F8F8]">{stats.current.noShowRate.toLocaleString('pt-BR', { minimumFractionDigits: 0, maximumFractionDigits: 1 })}%</p>
-                <p className="text-[#8A98A8] dark:text-[#707070] text-[9px] font-medium uppercase tracking-widest">Taxa de Faltas</p>
-                {renderComparison(stats.current.noShowRate, stats.previous.noShowRate)}
-              </div>
-            </div>
-
-            {/* Gráfico */}
-            <div className="bg-[#FFFFFF] dark:bg-[#242424] p-5 rounded-[2rem] shadow-[0_1px_4px_rgba(0,0,0,0.06)] space-y-4">
-              <div className="flex items-center justify-between">
-                <h4 className="text-[10px] font-medium uppercase tracking-widest text-[#8A98A8] dark:text-[#707070]">
-                  {stats.chartTitle}
-                </h4>
-              </div>
-              <div className="h-[200px] w-full">
-                <ResponsiveContainer width="100%" height="100%">
-                  <BarChart data={stats.chartData} margin={{ top: 10, right: 10, left: 0, bottom: 0 }}>
-                    <defs>
-                      <linearGradient id="barGradient" x1="0" y1="1" x2="0" y2="0">
-                        <stop offset="0%" stopColor="#2898D8" />
-                        <stop offset="100%" stopColor="#81c784" />
-                      </linearGradient>
-                    </defs>
-                    <CartesianGrid strokeDasharray="3 3" vertical={false} stroke={isDarkMode ? '#3A3A3A' : '#D0D8E4'} />
-                    <XAxis 
-                      dataKey="name" 
-                      axisLine={false} 
-                      tickLine={false} 
-                      tick={{ fontSize: 9, fontWeight: 500, fill: isDarkMode ? '#707070' : '#8A98A8' }}
-                      dy={10}
-                      interval={0}
-                    />
-                    <YAxis hide />
-                    <Tooltip 
-                      cursor={{ fill: isDarkMode ? '#2F2F2F' : '#F4F7FB' }}
-                      contentStyle={{ 
-                        borderRadius: '12px', 
-                        border: 'none', 
-                        boxShadow: '0 10px 15px -3px rgb(0 0 0 / 0.1)',
-                        backgroundColor: isDarkMode ? '#242424' : '#FFFFFF',
-                        color: isDarkMode ? '#F8F8F8' : '#1A2332',
-                        fontSize: '11px'
-                      }}
-                      labelStyle={{ fontWeight: 700, textTransform: 'uppercase', fontSize: '9px', marginBottom: '4px' }}
-                      formatter={(value: number) => [`${value} atendimento(s)`, '']}
-                      separator=""
-                    />
-
-                    <Bar dataKey="value" radius={[4, 4, 0, 0]} barSize={period === 'dia' ? 10 : 20}>
-                      {stats.chartData.map((entry, index) => {
-                        const max = Math.max(...stats.chartData.map(d => d.value));
-                        const ratio = max > 0 ? entry.value / max : 0;
-                        return (
-                          <Cell 
-                            key={`cell-${index}`} 
-                            fill="url(#barGradient)"
-                            fillOpacity={0.4 + (ratio * 0.6)}
-                          />
-                        );
-                      })}
-                    </Bar>
-                  </BarChart>
-                </ResponsiveContainer>
-              </div>
-            </div>
-          </motion.div>
-        )}
-
-        {activeTab === 'clientes' && (
-          <motion.div
-            key="clientes"
-            initial={{ opacity: 0, y: 10 }}
-            animate={{ opacity: 1, y: 0 }}
-            exit={{ opacity: 0, y: -10 }}
-            className="space-y-4"
-          >
-            <div className="grid grid-cols-3 gap-2">
-              <div className="bg-[#FFFFFF] dark:bg-[#242424] p-3 rounded-2xl shadow-[0_1px_4px_rgba(0,0,0,0.06)] text-center">
-                <p className="text-2xl font-black text-[#1A2332] dark:text-[#F8F8F8] leading-none">{stats.totalCustomers}</p>
-                <p className="text-[10px] text-[#8A98A8] uppercase tracking-widest font-bold mt-1">Total</p>
-              </div>
-              <div className="bg-[#FFFFFF] dark:bg-[#242424] p-3 rounded-2xl shadow-[0_1px_4px_rgba(0,0,0,0.06)] text-center">
-                <p className="text-xl font-bold text-[#2898D8] leading-none">{stats.newClients}</p>
-                <p className="text-[10px] text-[#8A98A8] uppercase tracking-widest font-bold mt-1">Novos</p>
-              </div>
-              <div className="bg-[#FFFFFF] dark:bg-[#242424] p-3 rounded-2xl shadow-[0_1px_4px_rgba(0,0,0,0.06)] text-center">
-                <p className="text-xl font-medium text-[#8A98A8] leading-none">{stats.returnRate.toLocaleString('pt-BR', { minimumFractionDigits: 0, maximumFractionDigits: 0 })}%</p>
-                <p className="text-[10px] text-[#8A98A8] uppercase tracking-widest font-bold mt-1">Retorno</p>
-              </div>
-            </div>
-
-            <div className="bg-[#FFFFFF] dark:bg-[#242424] p-5 rounded-[2rem] shadow-[0_1px_4px_rgba(0,0,0,0.06)]">
-              <h4 className="text-[10px] font-bold uppercase tracking-widest text-[#8A98A8] mb-4">Top 5 Clientes</h4>
-              <div className="space-y-4">
-                {stats.topClients.length > 0 ? stats.topClients.map((client, idx) => (
-                  <div key={idx} className="flex items-center gap-3">
-                    <div className={`w-10 h-10 rounded-full flex items-center justify-center text-white font-bold text-sm ${getAvatarColor(client.name)}`}>
-                      {getInitials(client.name)}
-                    </div>
-                    <div className="flex-1 min-w-0">
-                      <p className="text-sm font-bold text-[#1A2332] dark:text-[#F8F8F8] truncate">{client.name}</p>
-                      <p className="text-[10px] text-[#8A98A8]">{client.count} visitas • {formatCurrency(client.spent)}</p>
-                    </div>
-                    <div className="text-right">
-                      <p className="text-[10px] font-bold text-red-500">{client.noShows} faltas</p>
-                    </div>
-                  </div>
-                )) : (
-                  <p className="text-center text-[#8A98A8] text-sm py-4">Nenhum dado no período</p>
-                )}
-              </div>
-            </div>
-          </motion.div>
-        )}
-
-
-        {activeTab === 'servicos' && (
-          <motion.div
-            key="servicos"
-            initial={{ opacity: 0, y: 10 }}
-            animate={{ opacity: 1, y: 0 }}
-            exit={{ opacity: 0, y: -10 }}
-            className="space-y-4"
-          >
-            {stats.highestTicketService && (
-              <div className="bg-[#2898D8] p-4 rounded-3xl shadow-lg flex items-center gap-4 text-white">
-                <div className="w-10 h-10 bg-white/20 rounded-2xl flex items-center justify-center">
-                  <Award size={20} />
-                </div>
-                <div>
-                  <p className="text-[9px] font-black uppercase tracking-widest text-[#FFFFFF]/80">Maior Ticket Médio</p>
-                  <p className="text-sm font-bold">{stats.highestTicketService.name}</p>
-                  <p className="text-xs text-[#FFFFFF]/70">{formatCurrency(stats.highestTicketService.ticket)} por atendimento</p>
-                </div>
-              </div>
-            )}
-
-            <div className="bg-[#FFFFFF] dark:bg-[#242424] p-5 rounded-[2rem] shadow-[0_1px_4px_rgba(0,0,0,0.06)]">
-              <h4 className="text-[10px] font-bold uppercase tracking-widest text-[#8A98A8] mb-4">Distribuição de Receita</h4>
-              
-              {stats.pieData.length === 0 || stats.pieData.every(d => d.value === 0) ? (
-                <div className="flex flex-col items-center justify-center py-10 space-y-2 min-h-[200px]">
-                  <PieChartIcon size={40} className="text-[#B0BCC7]" />
-                  <p className="text-sm font-bold text-[#8A98A8]">Sem atendimentos neste período</p>
-                  <p className="text-[10px] text-[#8A98A8]">Selecione outro período para ver a distribuição</p>
-                </div>
-              ) : (
-                <div className="flex flex-col sm:flex-row items-center justify-center w-full gap-6 px-4 min-h-[200px]">
-                  <div className="h-[200px] w-full max-w-[200px] shrink-0">
-                    <ResponsiveContainer width="100%" height="100%">
-                      <PieChart>
-                        <Pie
-                          data={stats.pieData}
-                          cx="50%"
-                          cy="50%"
-                          innerRadius={60}
-                          outerRadius={80}
-                          paddingAngle={5}
-                          dataKey="value"
-                        >
-                          {stats.pieData.map((entry, index) => (
-                            <Cell key={`cell-${index}`} fill={['#2898D8', '#42b4e6', '#1e88e5', '#60a5fa', '#3b82f6'][index % 5]} />
-                          ))}
-                        </Pie>
-                        <Tooltip 
-                          contentStyle={{ borderRadius: '12px', border: 'none', fontSize: '11px', backgroundColor: isDarkMode ? '#242424' : '#FFFFFF', color: isDarkMode ? '#F8F8F8' : '#1A2332' }}
-                          formatter={(value: number) => [formatCurrency(value), 'Receita']}
-                        />
-                      </PieChart>
-                    </ResponsiveContainer>
-                  </div>
-                  <div className="flex-1 w-full sm:w-auto space-y-2">
-                    {stats.pieData.map((entry, index) => {
-                      const total = stats.pieData.reduce((sum, item) => sum + item.value, 0);
-                      const percent = total > 0 ? (entry.value / total * 100).toLocaleString('pt-BR', { minimumFractionDigits: 0, maximumFractionDigits: 0 }) : 0;
-                      return (
-                        <div key={index} className="flex items-center gap-2">
-                          <div className="w-2 h-2 rounded-full shrink-0" style={{ backgroundColor: ['#2898D8', '#42b4e6', '#1e88e5', '#60a5fa', '#3b82f6'][index % 5] }} />
-                          <p className="text-[10px] font-medium text-[#8A98A8] truncate flex-1">{entry.name}</p>
-                          <p className="text-[10px] font-bold text-[#1A2332] dark:text-[#F8F8F8]">{percent}%</p>
-                        </div>
-                      );
-                    })}
-                  </div>
-                </div>
-              )}
-            </div>
-
-            <div className="bg-[#FFFFFF] dark:bg-[#242424] p-5 rounded-[2rem] shadow-[0_1px_4px_rgba(0,0,0,0.06)]">
-              <h4 className="text-[10px] font-bold uppercase tracking-widest text-[#8A98A8] mb-4">Ranking de Serviços</h4>
-              <div className="space-y-4">
-                {stats.topServices.length > 0 ? stats.topServices.map((service, idx) => (
-                  <div key={idx} className="flex items-center justify-between">
-                    <div className="flex-1 min-w-0">
-                      <p className="text-sm font-bold text-[#1A2332] dark:text-[#F8F8F8] truncate">{service.name}</p>
-                      <p className="text-[10px] text-[#8A98A8]">{service.count} realizados</p>
-                    </div>
-                    <div className="text-right">
-                      <p className="text-sm font-bold text-[#2898D8]">{formatCurrency(service.revenue)}</p>
-                      <p className="text-[9px] text-[#8A98A8]">Ticket: {formatCurrency(service.ticket)}</p>
-                    </div>
-                  </div>
-                )) : (
-                  <p className="text-center text-[#8A98A8] text-sm py-4">Nenhum dado no período</p>
-                )}
-              </div>
-            </div>
+            {(period === 'dia' || period === 'semana') && renderCalendar()}
+            {period === 'mes' && renderMonthGrid()}
+            {period === 'ano' && renderYearGrid()}
           </motion.div>
         )}
       </AnimatePresence>
+
+      {/* Hero card faturamento */}
+      <div className="bg-[#FFFFFF] dark:bg-[#242424] p-5 rounded-[2rem] shadow-[0_1px_4px_rgba(0,0,0,0.06)] flex flex-col items-center justify-center border border-[#D0D8E4] dark:border-[#3A3A3A]">
+        <h3 className="text-[10px] font-bold uppercase tracking-widest text-[#8A98A8] dark:text-[#707070] mb-2">Faturamento</h3>
+        <p className="text-[32px] font-black text-[#1A2332] dark:text-[#F8F8F8] tracking-tighter leading-none mb-3">
+          {formatCurrency(stats.current.revenue)}
+        </p>
+        <div className="flex items-center justify-center">
+            {renderComparison(stats.current.revenue, stats.previous.revenue)}
+        </div>
+        
+        <div className="w-full mt-6 space-y-1.5">
+          <div className="flex justify-between items-center px-1">
+            <span className="text-[9px] font-bold uppercase tracking-widest text-[#8A98A8]">Ocupação</span>
+            <span className="text-[10px] font-black text-[#2898D8] bg-[#E8F4FC] dark:bg-[#1A3A58] dark:text-[#2098F0] px-2 py-0.5 rounded-full">
+               {Math.round(occupancyRatio * 100)}%
+            </span>
+          </div>
+          <div className="h-2 w-full bg-[#E8EEF5] dark:bg-[#3A3A3A] rounded-full overflow-hidden">
+             <div className="h-full bg-[#2898D8] rounded-full transition-all duration-1000 ease-out" style={{ width: `${Math.round(occupancyRatio * 100)}%` }} />
+          </div>
+        </div>
+      </div>
+
+      {/* 3 chips compactos */}
+      <div className="grid grid-cols-3 gap-2">
+         <div className="bg-[#FFFFFF] dark:bg-[#242424] p-3 py-4 rounded-2xl shadow-[0_1px_4px_rgba(0,0,0,0.06)] border border-[#E8EEF5] dark:border-[#3A3A3A] text-center flex flex-col justify-center gap-1.5">
+            <p className="text-[9px] font-bold uppercase tracking-widest text-[#8A98A8] leading-tight flex justify-center items-center h-6">Ticket Méd.</p>
+            <p className="text-sm font-black text-[#1A2332] dark:text-[#F8F8F8]">{formatCurrency(stats.current.ticket)}</p>
+         </div>
+         <div className="bg-[#FFFFFF] dark:bg-[#242424] p-3 py-4 rounded-2xl shadow-[0_1px_4px_rgba(0,0,0,0.06)] border border-[#E8EEF5] dark:border-[#3A3A3A] text-center flex flex-col justify-center gap-1.5">
+            <p className="text-[9px] font-bold uppercase tracking-widest text-[#8A98A8] leading-tight flex justify-center items-center h-6">Novos</p>
+            <p className="text-sm font-black text-[#1A2332] dark:text-[#F8F8F8]">{stats.newClients}</p>
+         </div>
+         <div className="bg-[#FFFFFF] dark:bg-[#242424] p-3 py-4 rounded-2xl shadow-[0_1px_4px_rgba(0,0,0,0.06)] border border-[#E8EEF5] dark:border-[#3A3A3A] text-center flex flex-col justify-center gap-1.5">
+            <p className="text-[9px] font-bold uppercase tracking-widest text-[#8A98A8] leading-tight flex justify-center items-center h-6">No-show</p>
+            <p className="text-sm font-black text-[#EF4444]">{stats.current.noShowRate.toFixed(1)}%</p>
+         </div>
+      </div>
+
+      {renderAlertCard()}
+
+      {/* Gráfico */}
+      <div className="bg-[#FFFFFF] dark:bg-[#242424] p-5 rounded-[2rem] shadow-[0_1px_4px_rgba(0,0,0,0.06)] border border-[#D0D8E4] dark:border-[#3A3A3A] relative">
+        <h4 className="text-[10px] font-bold uppercase tracking-widest text-[#8A98A8] dark:text-[#707070] mb-4 text-center">
+          {stats.chartTitle}
+        </h4>
+        <div className="h-[200px] w-full">
+          <ResponsiveContainer width="100%" height="100%">
+            <BarChart data={stats.chartData} margin={{ top: 0, right: 0, left: 0, bottom: 0 }}>
+              <CartesianGrid strokeDasharray="3 3" vertical={false} stroke={isDarkMode ? '#3A3A3A' : '#E8EEF5'} />
+              <XAxis 
+                dataKey="name" 
+                axisLine={false} 
+                tickLine={false} 
+                tick={{ fontSize: 9, fontWeight: 700, fill: isDarkMode ? '#707070' : '#8A98A8' }}
+                dy={10}
+              />
+              <Tooltip 
+                cursor={{ fill: isDarkMode ? '#2F2F2F' : '#F4F7FB' }}
+                contentStyle={{ 
+                  borderRadius: '12px', border: 'none', 
+                  backgroundColor: isDarkMode ? '#1A1A1A' : '#FFFFFF', 
+                  boxShadow: '0 4px 6px -1px rgb(0 0 0 / 0.1)',
+                  color: isDarkMode ? '#F8F8F8' : '#1A2332', fontSize: '11px', fontWeight: 700
+                }}
+                formatter={(value: number) => [`${value} atendimentos`, '']}
+                labelStyle={{ display: 'none' }}
+              />
+              <Bar dataKey="value" radius={[4, 4, 0, 0]} barSize={period === 'dia' ? 12 : 24}>
+                {stats.chartData.map((entry, index) => {
+                  const max = Math.max(...stats.chartData.map(d => d.value));
+                  const isMax = entry.value === max && max > 0;
+                  return (
+                    <Cell 
+                      key={`cell-${index}`} 
+                      fill="#2898D8"
+                      fillOpacity={isMax ? 1 : 0.3}
+                    />
+                  );
+                })}
+              </Bar>
+            </BarChart>
+          </ResponsiveContainer>
+        </div>
+      </div>
+
+      {/* Top 5 Clientes */}
+      <div className="bg-[#FFFFFF] dark:bg-[#242424] p-5 rounded-[2rem] shadow-[0_1px_4px_rgba(0,0,0,0.06)] border border-[#D0D8E4] dark:border-[#3A3A3A]">
+        <h4 className="text-[10px] font-bold uppercase tracking-widest text-[#8A98A8] mb-4">Top 5 Clientes</h4>
+        <div className="space-y-4">
+          {stats.topClients.length > 0 ? stats.topClients.map((client, idx) => (
+            <div key={idx} className="flex items-center gap-3">
+              <div className={`w-10 h-10 rounded-full flex items-center justify-center text-white font-bold text-xs shrink-0 ${getAvatarColor(client.name)}`}>
+                {getInitials(client.name)}
+              </div>
+              <div className="flex-1 min-w-0">
+                <p className="text-sm font-bold text-[#1A2332] dark:text-[#F8F8F8] truncate leading-tight">{client.name}</p>
+                <div className="flex items-center gap-2 mt-0.5">
+                  <p className="text-[10px] font-medium text-[#8A98A8]">{client.count} visitas</p>
+                  <span className="w-1 h-1 bg-[#D0D8E4] dark:bg-[#3A3A3A] rounded-full"></span>
+                  <p className="text-[10px] font-bold text-green-500">{formatCurrency(client.spent)}</p>
+                </div>
+              </div>
+              {client.noShows > 0 && (
+                <div className="bg-red-50 text-red-500 dark:bg-red-500/10 dark:text-red-400 px-2.5 py-1 rounded-full text-[9px] font-bold shrink-0">
+                  {client.noShows} faltas
+                </div>
+              )}
+            </div>
+          )) : (
+            <p className="text-center text-[#8A98A8] text-xs py-4 font-medium">Nenhum cliente no período</p>
+          )}
+        </div>
+      </div>
+
+      {/* Ranking de Serviços */}
+      <div className="bg-[#FFFFFF] dark:bg-[#242424] p-5 rounded-[2rem] shadow-[0_1px_4px_rgba(0,0,0,0.06)] border border-[#D0D8E4] dark:border-[#3A3A3A]">
+        <h4 className="text-[10px] font-bold uppercase tracking-widest text-[#8A98A8] mb-4">Ranking de Serviços</h4>
+        <div className="space-y-5">
+          {stats.topServices.length > 0 ? stats.topServices.map((service, idx) => {
+            const maxRevenue = Math.max(...stats.topServices.map(s => s.revenue));
+            const percentage = maxRevenue > 0 ? (service.revenue / maxRevenue) * 100 : 0;
+            return (
+              <div key={idx} className="space-y-1.5 relative">
+                <div className="flex justify-between items-center text-sm">
+                  <span className="font-bold text-[#1A2332] dark:text-[#F8F8F8] truncate pr-2">{service.name}</span>
+                  <span className="font-black text-[#2898D8] shrink-0">{formatCurrency(service.revenue)}</span>
+                </div>
+                <div className="flex justify-between items-center text-[10px] text-[#8A98A8] mb-1 font-medium">
+                  <span>{service.count} atendimentos</span>
+                </div>
+                <div className="w-full h-1.5 bg-[#E8EEF5] dark:bg-[#3A3A3A] rounded-full overflow-hidden">
+                  <div className="h-full bg-[#2898D8] rounded-full transition-all duration-1000" style={{ width: `${percentage}%` }} />
+                </div>
+              </div>
+            );
+          }) : (
+            <p className="text-center text-[#8A98A8] text-xs py-4 font-medium">Nenhum serviço no período</p>
+          )}
+        </div>
+      </div>
     </div>
   );
 };
